@@ -1,309 +1,259 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, Mic, Globe, Brain, MessageSquare, Calendar, Calculator, Headphones, ArrowRight, Check, Search, Sparkles, Heart, Home as HomeIcon } from 'lucide-react';
+import { ArrowRight, Play, ChevronRight } from 'lucide-react';
+import MainLayout from '../components/layout/MainLayout';
+
+const featuredProperties = [
+  {
+    id: 1,
+    title: 'OCEAN',
+    subtitle: 'WAVE',
+    location: 'Vancouver, BC',
+    type: 'Residential',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200',
+    price: '$3,200/mo',
+    beds: 2,
+    baths: 2
+  },
+  {
+    id: 2,
+    title: 'PUZZLE',
+    subtitle: 'TOWER',
+    location: 'Downtown, Vancouver',
+    type: 'Commercial',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200',
+    price: '$4,500/mo',
+    beds: 3,
+    baths: 2
+  },
+  {
+    id: 3,
+    title: 'HONEY',
+    subtitle: 'COMB',
+    location: 'Kitsilano, Vancouver',
+    type: 'Residential',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200',
+    price: '$2,800/mo',
+    beds: 1,
+    baths: 1
+  },
+  {
+    id: 4,
+    title: 'YELLOW',
+    subtitle: 'SUITES',
+    location: 'Yaletown, Vancouver',
+    type: 'Luxury',
+    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200',
+    price: '$5,200/mo',
+    beds: 3,
+    baths: 3
+  },
+];
 
 const stats = [
-  { number: '15', label: 'AI Features' },
-  { number: '8', label: 'Languages' },
-  { number: '24/7', label: 'Available' },
-  { number: '$0', label: 'For Renters' },
+  { number: '200+', label: 'Properties', desc: 'Premium listings across Vancouver' },
+  { number: '100%', label: 'Happy Clients', desc: 'Satisfaction guaranteed' },
+  { number: '900K', label: 'Square Feet', desc: 'Managed properties' },
+  { number: '50+', label: 'Contractors', desc: 'Verified professionals' },
 ];
 
-const aiFeatures = [
-  { icon: Brain, title: 'Smart Match', desc: 'AI matches you with perfect properties based on your preferences' },
-  { icon: Mic, title: 'Voice Search', desc: 'Just speak naturally - Nova understands what you need' },
-  { icon: Globe, title: 'Multi-Language', desc: 'Search and chat in 8 different languages' },
-  { icon: Search, title: 'Honest Analysis', desc: 'Get unbiased insights on every listing' },
-  { icon: MessageSquare, title: 'Rent Coach', desc: 'Negotiate better deals with AI guidance' },
-  { icon: Calendar, title: 'Move Planner', desc: 'AI-powered moving timeline and checklist' },
-  { icon: Calculator, title: 'Budget Calculator', desc: 'Know exactly what you can afford' },
-  { icon: Headphones, title: 'Virtual Assistant', desc: '24/7 support for all your questions' },
-];
-
-const audiences = [
-  {
-    badge: 'FREE FOREVER',
-    title: 'Renters',
-    features: ['15 AI-powered search tools', 'Smart property matching', 'Neighborhood insights', 'Application assistance', 'Move planning help'],
-    cta: 'Start Searching',
-    link: '/browse'
-  },
-  {
-    badge: 'COMING SOON',
-    title: 'Buyers',
-    features: ['Market analysis tools', 'Price predictions', 'Investment calculator', 'Mortgage comparisons', 'Agent connections'],
-    cta: 'Join Waitlist',
-    link: '#'
-  },
-  {
-    badge: 'FROM $49/MO',
-    title: 'Landlords',
-    features: ['Smart listing creation', 'Tenant screening', 'Rent collection', 'Maintenance tracking', 'Multi-property dashboard'],
-    cta: 'View Plans',
-    link: '/pricing'
-  },
-  {
-    badge: 'NO COMMISSIONS',
-    title: 'Contractors',
-    features: ['Direct client access', 'Job management tools', 'Review building', 'Scheduling system', 'Payment processing'],
-    cta: 'Join Network',
-    link: '/contractors'
-  },
-];
-
-const steps = [
-  { num: '01', title: 'Tell Nova', desc: 'Share what you are looking for in natural language' },
-  { num: '02', title: 'Get Matches', desc: 'Nova finds properties that match your exact criteria' },
-  { num: '03', title: 'Make Decisions', desc: 'Compare listings with AI-powered insights' },
-  { num: '04', title: 'Move In', desc: 'Let Nova help you with the entire process' },
+const team = [
+  { name: 'Cameron Williamson', role: 'CEO', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200' },
+  { name: 'Albert Flores', role: 'CFO', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200' },
+  { name: 'Bessie Cooper', role: 'Interior Designer', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200' },
+  { name: 'Annette Black', role: 'Customer Manager', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200' },
 ];
 
 const Home = () => {
   return (
-    <div>
+    <MainLayout>
       {/* Hero Section */}
       <section 
-        className="min-h-screen flex items-center section-padding pt-32"
-        style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4fd1c5 100%)' }}
+        className="relative min-h-screen flex items-center"
         data-testid="hero-section"
       >
-        <div className="max-w-7xl mx-auto w-full">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Text Content */}
-            <div className="fade-in-up">
-              <div 
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
-                style={{ background: 'rgba(255,255,255,0.2)' }}
-              >
-                <span className="w-2 h-2 rounded-full bg-[#4fd1c5] animate-pulse" />
-                <span className="text-white text-sm font-medium tracking-wider">INNOVATION</span>
-              </div>
-              
-              <h1 
-                className="text-6xl md:text-7xl lg:text-8xl font-black text-white leading-none mb-8 uppercase"
-                style={{ fontFamily: 'Playfair Display, serif' }}
-                data-testid="hero-title"
-              >
-                HOME<br />MADE<br />SIMPLE
-              </h1>
-              
-              <p className="text-xl text-white/80 mb-10 max-w-lg font-light leading-relaxed">
-                Find your perfect rental with Nova, our AI-powered assistant. Smart search, honest insights, and zero cost for renters.
-              </p>
-              
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: 'url(https://customer-assets.emergentagent.com/job_property-ai-hub-3/artifacts/8ejxvmv4_1.jpg)',
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1A2F3A]/90 via-[#1A2F3A]/70 to-transparent" />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32">
+          <div className="max-w-2xl">
+            <h1 
+              className="display-xl text-white mb-6 uppercase"
+              data-testid="hero-title"
+            >
+              Innovative<br />Design
+            </h1>
+            <p className="text-lg text-white/70 mb-8 max-w-md leading-relaxed">
+              Complete real estate marketplace for renting, buying, property management, and finding trusted contractors.
+            </p>
+            <div className="flex items-center gap-6">
               <Link
-                to="/browse"
-                className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-[#667eea] font-bold text-lg hover:scale-105 transition-transform shadow-xl"
+                to="/about"
+                className="flex items-center gap-2 text-white hover:text-white/80 transition-colors"
                 data-testid="hero-cta"
               >
-                Start Searching
-                <ArrowRight size={20} />
+                <span className="text-sm tracking-wider">Our Story</span>
+                <ArrowRight size={16} />
               </Link>
-            </div>
-
-            {/* Visual Element */}
-            <div className="hidden lg:block relative">
-              <div className="relative">
-                {/* Layered Cards */}
-                <div 
-                  className="absolute top-8 left-8 w-80 h-48 bg-white rounded-2xl shadow-xl"
-                  style={{ transform: 'rotate(-5deg)' }}
-                />
-                <div 
-                  className="absolute top-4 left-4 w-80 h-48 bg-white rounded-2xl shadow-xl"
-                  style={{ transform: 'rotate(-2deg)' }}
-                />
-                <div className="relative w-80 h-48 bg-white rounded-2xl shadow-xl p-6 flex flex-col justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center">
-                      <HomeIcon className="text-white" size={24} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-800">Modern Condo</p>
-                      <p className="text-sm text-gray-500">Downtown Vancouver</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-2xl font-bold text-[#667eea]">$2,800<span className="text-sm font-normal text-gray-500">/mo</span></p>
-                    <div className="flex items-center gap-1 text-[#4fd1c5]">
-                      <Sparkles size={16} />
-                      <span className="text-sm font-medium">95% Match</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 px-8 bg-white" data-testid="stats-section">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, i) => (
-              <div key={i} className="text-center">
-                <p 
-                  className="text-5xl md:text-6xl lg:text-7xl font-bold mb-2 gradient-text"
-                  style={{ fontFamily: 'Playfair Display, serif' }}
-                >
-                  {stat.number}
-                </p>
-                <p className="text-gray-600 font-medium">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Nova Introduction */}
-      <section className="section-padding bg-[#f7fafc]" data-testid="nova-intro-section">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="flex items-center justify-center">
-              <div 
-                className="w-64 h-64 rounded-full flex items-center justify-center text-8xl"
-                style={{ background: 'linear-gradient(135deg, #667eea 0%, #4fd1c5 100%)' }}
-              >
-                🤖
-              </div>
-            </div>
-            <div>
-              <h2 
-                className="text-4xl md:text-5xl font-bold mb-6"
-                style={{ fontFamily: 'Playfair Display, serif', color: '#1a202c' }}
-              >
-                MEET NOVA
-              </h2>
-              <p className="text-xl text-gray-600 leading-relaxed mb-8">
-                Nova is your AI-powered real estate assistant. Ask questions in plain English (or 7 other languages), get personalized property recommendations, and receive honest analysis on every listing. It's like having a real estate expert in your pocket - available 24/7.
-              </p>
-              <button 
-                className="inline-flex items-center gap-3 px-8 py-4 rounded-full font-bold text-white transition-all hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-                data-testid="chat-with-nova-btn"
-                onClick={() => document.querySelector('[data-testid="nova-chat-button"]')?.click()}
-              >
-                <Bot size={20} />
-                Chat with Nova
+              <button className="w-12 h-12 rounded-full border border-white/30 flex items-center justify-center text-white hover:bg-white/10 transition-colors">
+                <Play size={16} fill="white" />
               </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* AI Features Grid */}
-      <section className="section-padding bg-white" data-testid="features-section">
-        <div className="max-w-7xl mx-auto">
-          <h2 
-            className="text-4xl md:text-5xl font-bold text-center mb-16"
-            style={{ fontFamily: 'Playfair Display, serif', color: '#1a202c' }}
-          >
-            AI-POWERED FEATURES
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {aiFeatures.map((feature, i) => (
-              <div 
-                key={i}
-                className="p-6 rounded-2xl bg-white border border-gray-100 card-hover"
-                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-              >
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                  style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-                >
-                  <feature.icon className="text-white" size={24} />
+      {/* Featured Properties */}
+      <section className="section-lg bg-[#F5F5F0]" data-testid="featured-properties">
+        <div className="max-w-7xl mx-auto px-6">
+          {featuredProperties.map((property, index) => (
+            <div 
+              key={property.id}
+              className={`relative rounded-3xl overflow-hidden mb-8 h-[500px] property-card ${
+                index % 2 === 0 ? 'bg-[#C8E3E8]' : index % 3 === 0 ? 'bg-[#D7C8D7]' : 'bg-[#2C4A52]'
+              }`}
+            >
+              <img 
+                src={property.image}
+                alt={property.title}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+              
+              <div className="absolute bottom-0 left-0 p-12 z-10">
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-xs text-white/70 uppercase tracking-widest">{property.type}</span>
+                  <span className="text-xs text-white/70">•</span>
+                  <span className="text-xs text-white/70 uppercase tracking-widest">{property.location}</span>
                 </div>
-                <h3 className="font-bold text-lg mb-2" style={{ color: '#1a202c' }}>{feature.title}</h3>
-                <p className="text-gray-600 text-sm">{feature.desc}</p>
+                <h2 
+                  className="display-lg text-white uppercase leading-none mb-6"
+                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
+                >
+                  {property.title}<br />{property.subtitle}
+                </h2>
+                <p className="text-white/70 mb-6 max-w-md">
+                  {property.beds} Bedrooms • {property.baths} Bathrooms • {property.price}
+                </p>
+                <div className="flex items-center gap-4">
+                  <Link 
+                    to="/browse"
+                    className="btn-outline text-white border-white/50 hover:bg-white hover:text-[#1A2F3A]"
+                  >
+                    Explore
+                  </Link>
+                  <Link 
+                    to={`/browse`}
+                    className="btn-outline text-white border-white/50 hover:bg-white hover:text-[#1A2F3A]"
+                  >
+                    View
+                  </Link>
+                </div>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Architecture in Motion */}
+      <section className="section-lg bg-white" data-testid="about-section">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16">
+            {/* Left Content */}
+            <div>
+              <h2 
+                className="display-lg text-[#1A2F3A] mb-6"
+                style={{ fontFamily: 'Cormorant Garamond, serif' }}
+              >
+                Architecture<br />in Motion
+              </h2>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Your complete real estate platform - from finding your perfect home to managing properties and connecting with trusted contractors. We bring innovation to every aspect of real estate.
+              </p>
+              <Link 
+                to="/about"
+                className="flex items-center gap-2 text-[#1A2F3A] font-medium hover:gap-4 transition-all"
+              >
+                <span className="text-sm tracking-wider uppercase">Our Services</span>
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-8">
+              {stats.map((stat, i) => (
+                <div key={i} className="stat-card">
+                  <p className="stat-number">{stat.number}</p>
+                  <p className="text-sm font-semibold text-[#1A2F3A] uppercase tracking-wider mb-1">
+                    {stat.label}
+                  </p>
+                  <p className="text-sm text-gray-500">{stat.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Built For Everyone */}
-      <section 
-        className="section-padding"
-        style={{ background: '#1a202c' }}
-        data-testid="audience-section"
-      >
-        <div className="max-w-7xl mx-auto">
-          <h2 
-            className="text-4xl md:text-5xl font-bold text-center mb-16 text-white"
-            style={{ fontFamily: 'Playfair Display, serif' }}
-          >
-            BUILT FOR EVERYONE
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {audiences.map((audience, i) => (
-              <div 
-                key={i}
-                className="p-6 rounded-2xl bg-white/5 border border-white/10 transition-all duration-300 hover:border-[#667eea] hover:-translate-y-2"
-              >
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 bg-[#667eea]/20 text-[#667eea]">
-                  {audience.badge}
-                </span>
+      {/* Team Section */}
+      <section className="section-md bg-[#F5F5F0]" data-testid="team-section">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">Our Team</p>
+              <div className="space-y-0">
+                {team.map((member, i) => (
+                  <div key={i} className="team-card">
+                    <img src={member.image} alt={member.name} />
+                    <div className="flex-1">
+                      <p className="font-semibold text-[#1A2F3A]">{member.name}</p>
+                      <p className="text-sm text-gray-500">{member.role}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-gray-400 text-xs">in</span>
+                      <span className="text-gray-400 text-xs">tw</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Hero Image */}
+            <div 
+              className="relative rounded-3xl overflow-hidden h-[500px] img-overlay"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"
+                alt="Architecture"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-0 left-0 p-8 z-10">
                 <h3 
-                  className="text-2xl font-bold text-white mb-4"
-                  style={{ fontFamily: 'Playfair Display, serif' }}
+                  className="text-4xl text-white uppercase mb-2"
+                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
                 >
-                  {audience.title}
+                  Innovative<br />Design
                 </h3>
-                <ul className="space-y-3 mb-6">
-                  {audience.features.map((feat, j) => (
-                    <li key={j} className="flex items-start gap-2 text-gray-400 text-sm">
-                      <Check size={16} className="text-[#4fd1c5] mt-0.5 flex-shrink-0" />
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  to={audience.link}
-                  className="inline-flex items-center gap-2 text-white font-medium hover:text-[#4fd1c5] transition-colors"
+                <p className="text-white/70 text-sm mb-4">Lorem ipsum dolor sit amet</p>
+                <Link 
+                  to="/about"
+                  className="flex items-center gap-2 text-white text-sm"
                 >
-                  {audience.cta}
-                  <ArrowRight size={16} />
+                  Our Story <ArrowRight size={14} />
                 </Link>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
-
-      {/* How It Works */}
-      <section className="section-padding bg-white" data-testid="how-it-works-section">
-        <div className="max-w-7xl mx-auto">
-          <h2 
-            className="text-4xl md:text-5xl font-bold text-center mb-16"
-            style={{ fontFamily: 'Playfair Display, serif', color: '#1a202c' }}
-          >
-            HOW IT WORKS
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {steps.map((step, i) => (
-              <div key={i} className="relative">
-                <span 
-                  className="text-8xl font-bold absolute -top-4 -left-2 opacity-10"
-                  style={{ fontFamily: 'Playfair Display, serif', color: '#667eea' }}
-                >
-                  {step.num}
-                </span>
-                <div className="relative pt-12">
-                  <h3 
-                    className="text-xl font-bold mb-2"
-                    style={{ fontFamily: 'Playfair Display, serif', color: '#1a202c' }}
-                  >
-                    {step.title}
-                  </h3>
-                  <p className="text-gray-600">{step.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+    </MainLayout>
   );
 };
 
