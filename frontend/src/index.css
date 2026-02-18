@@ -79,11 +79,15 @@ h1, h2, h3, h4, h5, h6 {
 /* Nova bounce animation */
 @keyframes nova-bounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-4px); }
 }
 
 .nova-bounce {
-  animation: nova-bounce 2s infinite ease-in-out;
+  animation: nova-bounce 3s infinite ease-in-out;
+}
+
+.nova-bounce:hover {
+  animation-play-state: paused;
 }
 
 /* Section padding */
