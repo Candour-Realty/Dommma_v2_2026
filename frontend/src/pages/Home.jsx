@@ -239,7 +239,7 @@ const Home = () => {
                   className="text-4xl text-white uppercase mb-2"
                   style={{ fontFamily: 'Cormorant Garamond, serif' }}
                 >
-                  Innovative<br />Design
+                  Home Made<br />Simple
                 </h3>
                 <p className="text-white/70 text-sm mb-4">Lorem ipsum dolor sit amet</p>
                 <Link 
