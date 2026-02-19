@@ -36,6 +36,7 @@ const Browse = () => {
   const [map, setMap] = useState(null);
   const [viewMode, setViewMode] = useState('split');
   const [showNovaChat, setShowNovaChat] = useState(!!novaQuery);
+  const [favoriteIds, setFavoriteIds] = useState([]);
   const [filters, setFilters] = useState({
     search: '',
     bedrooms: '',
@@ -66,10 +67,38 @@ const Browse = () => {
   useEffect(() => {
     fetchListings();
     seedData();
+    if (user) fetchFavoriteIds();
   }, []);
 
   const seedData = async () => {
     try { await axios.post(`${API}/seed`); } catch (error) {}
+  };
+
+  const fetchFavoriteIds = async () => {
+    try {
+      const response = await axios.get(`${API}/favorites/${user.id}/ids`);
+      setFavoriteIds(response.data || []);
+    } catch (error) {
+      console.error('Error fetching favorite IDs:', error);
+    }
+  };
+
+  const toggleFavorite = async (listingId, e) => {
+    e.stopPropagation();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      const response = await axios.post(`${API}/favorites?user_id=${user.id}&listing_id=${listingId}`);
+      if (response.data.favorited) {
+        setFavoriteIds([...favoriteIds, listingId]);
+      } else {
+        setFavoriteIds(favoriteIds.filter(id => id !== listingId));
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
   };
 
   const fetchListings = async () => {
