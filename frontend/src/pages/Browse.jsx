@@ -163,24 +163,28 @@ const Browse = () => {
 
         {showFilters && (
           <div className="border-t border-white/10 p-4">
-            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-6 gap-3">
+              <select value={filters.propertyType} onChange={(e) => setFilters({...filters, propertyType: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm" data-testid="filter-property-type">
+                <option value="">All Types</option>
+                {propertyTypes.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
               <select value={filters.bedrooms} onChange={(e) => setFilters({...filters, bedrooms: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm" data-testid="filter-bedrooms">
                 <option value="">Bedrooms</option>
                 <option value="0">Studio</option>
                 <option value="1">1+</option>
                 <option value="2">2+</option>
                 <option value="3">3+</option>
+                <option value="4">4+</option>
               </select>
-              <select value={filters.bathrooms} onChange={(e) => setFilters({...filters, bathrooms: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm" data-testid="filter-bathrooms">
-                <option value="">Bathrooms</option>
-                <option value="1">1+</option>
-                <option value="2">2+</option>
-              </select>
-              <input type="number" placeholder="Min Price" value={filters.minPrice} onChange={(e) => setFilters({...filters, minPrice: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white placeholder-gray-400 text-sm" data-testid="filter-min-price" />
-              <input type="number" placeholder="Max Price" value={filters.maxPrice} onChange={(e) => setFilters({...filters, maxPrice: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white placeholder-gray-400 text-sm" data-testid="filter-max-price" />
+              <input type="number" placeholder={filters.listingType === 'sale' ? 'Min ($)' : 'Min $/mo'} value={filters.minPrice} onChange={(e) => setFilters({...filters, minPrice: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white placeholder-gray-400 text-sm" data-testid="filter-min-price" />
+              <input type="number" placeholder={filters.listingType === 'sale' ? 'Max ($)' : 'Max $/mo'} value={filters.maxPrice} onChange={(e) => setFilters({...filters, maxPrice: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white placeholder-gray-400 text-sm" data-testid="filter-max-price" />
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={filters.petFriendly} onChange={(e) => setFilters({...filters, petFriendly: e.target.checked})} className="w-4 h-4 rounded" data-testid="filter-pet-friendly" />
-                <span className="text-sm">Pet Friendly</span>
+                <span className="text-sm">Pets OK</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={filters.parking} onChange={(e) => setFilters({...filters, parking: e.target.checked})} className="w-4 h-4 rounded" data-testid="filter-parking" />
+                <span className="text-sm">Parking</span>
               </label>
             </div>
           </div>
