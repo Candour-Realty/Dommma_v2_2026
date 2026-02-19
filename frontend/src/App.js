@@ -24,6 +24,7 @@ import ContractorProfile from "@/pages/ContractorProfile";
 import SmartIssueReporter from "@/pages/SmartIssueReporter";
 import DocumentAnalyzer from "@/pages/DocumentAnalyzer";
 import CommuteOptimizer from "@/pages/CommuteOptimizer";
+import Offers from "@/pages/Offers";
 
 // Firebase Analytics
 import { initializeFirebase, trackPageView, trackLogin } from "@/lib/firebase";
