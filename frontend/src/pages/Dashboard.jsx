@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, Routes, Route } from 'react-router-dom';
 import { 
   Home, Building2, Users, Wrench, FileText, DollarSign, MessageSquare, 
-  Settings, LogOut, Search, Bell, Menu, X, Plus, Calendar, TrendingUp,
+  Settings, LogOut, Search, Menu, X, Plus, Calendar, TrendingUp,
   ChevronRight, Heart, MapPin, Clock
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
+import NotificationBell from '../components/notifications/NotificationBell';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
