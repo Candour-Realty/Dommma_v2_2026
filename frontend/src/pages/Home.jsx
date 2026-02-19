@@ -168,6 +168,14 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [topContractors, setTopContractors] = useState([]);
+
+  useEffect(() => {
+    axios.get(`${API}/contractors/search`).then(res => {
+      const sorted = (res.data || []).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 3);
+      setTopContractors(sorted);
+    }).catch(() => {});
+  }, []);
 
   const handleNovaSearch = async (query) => {
     const searchText = query || searchQuery;
