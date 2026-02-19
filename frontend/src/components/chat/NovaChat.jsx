@@ -64,6 +64,7 @@ const preferenceFields = [
 ];
 
 const NovaChat = () => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -79,6 +80,19 @@ const NovaChat = () => {
     preferences: ''
   });
   const [suggestions, setSuggestions] = useState([]);
+  const [proactiveSuggestions, setProactiveSuggestions] = useState([]);
+  
+  // Voice input state
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  
+  // Image analysis state
+  const [showImageUpload, setShowImageUpload] = useState(false);
+  const [analyzingImage, setAnalyzingImage] = useState(false);
+  const fileInputRef = useRef(null);
+  
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
