@@ -15,6 +15,9 @@ import Dashboard from "@/pages/Dashboard";
 import Payments from "@/pages/Payments";
 import Documents from "@/pages/Documents";
 import Messages from "@/pages/Messages";
+import Applications from "@/pages/Applications";
+import Maintenance from "@/pages/Maintenance";
+import Jobs from "@/pages/Jobs";
 
 // Firebase Analytics
 import { initializeFirebase, trackPageView, trackLogin } from "@/lib/firebase";
