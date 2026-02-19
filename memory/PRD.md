@@ -12,6 +12,7 @@ DOMMMA V2 is a complete real estate marketplace platform for renting, buying, le
 - **Payments**: Stripe
 - **Analytics**: Firebase Analytics
 - **Push Notifications**: Firebase Cloud Messaging (FCM)
+- **Security**: Password hashing with bcrypt (passlib)
 
 ## Design System
 - **Primary Color**: #1A2F3A (Dark Teal)
