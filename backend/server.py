@@ -48,7 +48,7 @@ class ConnectionManager:
             for connection in self.active_connections[user_id]:
                 try:
                     await connection.send_text(message)
-                except:
+                except Exception:
                     pass
 
     async def broadcast(self, message: str, user_ids: List[str]):
