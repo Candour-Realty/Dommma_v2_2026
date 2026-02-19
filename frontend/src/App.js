@@ -28,6 +28,9 @@ import Offers from "@/pages/Offers";
 import Favorites from "@/pages/Favorites";
 import Compare from "@/pages/Compare";
 import RoommateFinder from "@/pages/RoommateFinder";
+import MovingQuote from "@/pages/MovingQuote";
+import CalendarPage from "@/pages/CalendarPage";
+import ContractorPortfolio from "@/pages/ContractorPortfolio";
 
 // Firebase Analytics
 import { initializeFirebase, trackPageView, trackLogin } from "@/lib/firebase";
