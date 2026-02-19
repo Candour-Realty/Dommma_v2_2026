@@ -294,16 +294,26 @@ const Browse = () => {
             <button onClick={() => setSelectedListing(null)} className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50" data-testid="close-modal-btn"><X size={20} /></button>
             <img src={selectedListing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800'} alt={selectedListing.title} className="w-full h-64 object-cover" />
             <div className="p-8">
-              <span className="text-xs text-gray-500 uppercase tracking-wider">{selectedListing.property_type}</span>
+              <span className="text-xs text-gray-500 uppercase tracking-wider">{selectedListing.property_type} · {selectedListing.listing_type === 'sale' ? 'For Sale' : 'For Rent'}</span>
               <h2 className="text-3xl font-semibold text-[#1A2F3A] mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{selectedListing.title}</h2>
               <p className="text-gray-500 flex items-center gap-2 mb-4"><MapPin size={16} />{selectedListing.address}, {selectedListing.city}, {selectedListing.province}</p>
-              <p className="text-3xl font-semibold text-[#1A2F3A] mb-6">${selectedListing.price?.toLocaleString()}<span className="text-lg font-normal text-gray-500">/month</span></p>
+              <p className="text-3xl font-semibold text-[#1A2F3A] mb-6">
+                ${selectedListing.price?.toLocaleString()}
+                {selectedListing.listing_type !== 'sale' && <span className="text-lg font-normal text-gray-500">/month</span>}
+              </p>
               <div className="grid grid-cols-4 gap-4 mb-6">
                 <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><Bed className="mx-auto mb-1 text-[#1A2F3A]" size={24} /><p className="font-semibold">{selectedListing.bedrooms === 0 ? 'Studio' : selectedListing.bedrooms}</p><p className="text-xs text-gray-500">Beds</p></div>
                 <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><Bath className="mx-auto mb-1 text-[#1A2F3A]" size={24} /><p className="font-semibold">{selectedListing.bathrooms}</p><p className="text-xs text-gray-500">Baths</p></div>
                 <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><p className="text-xl mb-1">▢</p><p className="font-semibold">{selectedListing.sqft}</p><p className="text-xs text-gray-500">Sq Ft</p></div>
                 <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><p className="text-xl mb-1">{selectedListing.pet_friendly ? '🐾' : '🚫'}</p><p className="font-semibold text-sm">{selectedListing.pet_friendly ? 'Yes' : 'No'}</p><p className="text-xs text-gray-500">Pets</p></div>
               </div>
+              {selectedListing.listing_type === 'sale' && (selectedListing.year_built || selectedListing.lot_size) && (
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  {selectedListing.year_built && <div className="text-center p-3 bg-[#F5F5F0] rounded-xl"><p className="font-semibold text-[#1A2F3A]">{selectedListing.year_built}</p><p className="text-xs text-gray-500">Year Built</p></div>}
+                  {selectedListing.lot_size > 0 && <div className="text-center p-3 bg-[#F5F5F0] rounded-xl"><p className="font-semibold text-[#1A2F3A]">{selectedListing.lot_size?.toLocaleString()}</p><p className="text-xs text-gray-500">Lot (sqft)</p></div>}
+                  {selectedListing.garage > 0 && <div className="text-center p-3 bg-[#F5F5F0] rounded-xl"><p className="font-semibold text-[#1A2F3A]">{selectedListing.garage}</p><p className="text-xs text-gray-500">Garage</p></div>}
+                </div>
+              )}
               <div className="mb-6"><h3 className="font-semibold mb-2">Description</h3><p className="text-gray-600 leading-relaxed">{selectedListing.description}</p></div>
               {selectedListing.amenities?.length > 0 && (<div className="mb-6"><h3 className="font-semibold mb-2">Amenities</h3><div className="flex flex-wrap gap-2">{selectedListing.amenities.map((a, i) => <span key={i} className="px-3 py-1 rounded-full bg-[#F5F5F0] text-gray-700 text-sm">{a}</span>)}</div></div>)}
               <div className="flex gap-3">
