@@ -413,7 +413,7 @@ async def get_listing(listing_id: str):
     return listing
 
 @api_router.post("/listings", response_model=Listing)
-async def create_listing(listing: ListingCreate):
+async def create_listing_basic(listing: ListingCreate):
     listing_obj = Listing(**listing.model_dump())
     doc = listing_obj.model_dump()
     await db.listings.insert_one(doc)
