@@ -2080,7 +2080,51 @@ async def seed_data():
     ]
     
     await db.listings.insert_many(sample_listings)
-    return {"message": f"Successfully seeded {len(sample_listings)} listings"}
+    
+    # Seed contractor profiles
+    contractor_count = await db.contractor_profiles.count_documents({})
+    if contractor_count == 0:
+        sample_contractors = [
+            {
+                "id": str(uuid.uuid4()), "user_id": f"contractor-seed-{i}",
+                "business_name": name, "description": desc,
+                "specialties": specs, "service_areas": ["Vancouver", "Burnaby", "Richmond"],
+                "hourly_rate": rate, "years_experience": exp,
+                "insurance": True, "verified": True,
+                "phone": f"604-555-{1000+i}", "email": f"{name.lower().replace(' ', '.')}@email.com",
+                "rating": rating, "review_count": reviews, "completed_jobs": jobs,
+                "portfolio_images": [img], "status": "active",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            for i, (name, desc, specs, rate, exp, rating, reviews, jobs, img) in enumerate([
+                ("Vancouver Plumbing Pros", "Expert plumbing services for residential and commercial properties. Available 24/7 for emergencies.", ["plumbing", "pipe repair", "drain cleaning"], 85, 12, 4.8, 47, 156, "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400"),
+                ("Pacific Electrical Services", "Licensed electricians serving the Greater Vancouver area. Full residential and commercial electrical services.", ["electrical", "wiring", "panel upgrades"], 95, 15, 4.9, 62, 203, "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400"),
+                ("West Coast Painters", "Professional painting crew. Interior, exterior, and specialty finishes. Color consultation included.", ["painting", "drywall", "wallpaper"], 65, 8, 4.7, 35, 98, "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400"),
+                ("Mountain View Renovations", "Full-service renovation company. Kitchen, bathroom, and complete home remodels.", ["renovation", "carpentry", "flooring"], 110, 20, 4.9, 89, 312, "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400"),
+                ("Green Thumb Landscaping", "Transform your outdoor space. Design, installation, and ongoing maintenance services.", ["landscaping", "gardening", "irrigation"], 55, 10, 4.6, 28, 134, "https://images.unsplash.com/photo-1558904541-efa843a96f01?w=400"),
+                ("Clean Sweep Services", "Professional cleaning for move-in, move-out, and regular maintenance. Eco-friendly products.", ["cleaning", "deep cleaning", "move-out"], 45, 6, 4.8, 55, 245, "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400"),
+            ])
+        ]
+        await db.contractor_profiles.insert_many(sample_contractors)
+        
+        # Seed contractor services
+        sample_services = []
+        for cp in sample_contractors:
+            for j, (title, desc, cat, price, dur) in enumerate([
+                (f"{cp['specialties'][0].title()} Inspection", f"Complete {cp['specialties'][0]} inspection and assessment", cp['specialties'][0], cp['hourly_rate'] * 2, "1-2 hours"),
+                (f"{cp['specialties'][0].title()} Repair", f"Professional {cp['specialties'][0]} repair service", cp['specialties'][0], cp['hourly_rate'] * 4, "2-4 hours"),
+            ]):
+                sample_services.append({
+                    "id": str(uuid.uuid4()), "contractor_id": cp["user_id"],
+                    "title": title, "description": desc, "category": cat,
+                    "price_type": "fixed", "price": price, "duration_estimate": dur,
+                    "images": [], "status": "active",
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+        await db.contractor_services.insert_many(sample_services)
+    
+    return {"message": f"Successfully seeded {len(sample_listings)} listings and contractor data"}
 
 # Include the router
 app.include_router(api_router)
