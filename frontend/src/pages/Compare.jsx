@@ -25,7 +25,7 @@ const Compare = () => {
     setLoading(true);
     try {
       const response = await axios.post(`${API}/compare`, ids);
-      setListings(response.data || []);
+      setListings(response.data?.listings || []);
     } catch (error) {
       console.error('Error fetching comparison data:', error);
       // Fallback: fetch individual listings
