@@ -350,6 +350,104 @@ class ContractorBid(BaseModel):
     estimated_days: int
     message: str
 
+# Contractor Profile Models
+class ContractorProfile(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    business_name: str
+    description: str = ""
+    specialties: List[str] = []
+    service_areas: List[str] = []
+    hourly_rate: Optional[float] = None
+    years_experience: int = 0
+    license_number: Optional[str] = None
+    insurance: bool = False
+    portfolio_images: List[str] = []
+    avatar: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    website: Optional[str] = None
+    rating: float = 0.0
+    review_count: int = 0
+    completed_jobs: int = 0
+    verified: bool = False
+    status: str = "active"
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class ContractorProfileCreate(BaseModel):
+    business_name: str
+    description: str = ""
+    specialties: List[str] = []
+    service_areas: List[str] = []
+    hourly_rate: Optional[float] = None
+    years_experience: int = 0
+    license_number: Optional[str] = None
+    insurance: bool = False
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    website: Optional[str] = None
+
+# Contractor Service Models
+class ContractorService(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    contractor_id: str
+    title: str
+    description: str
+    category: str
+    price_type: str = "fixed"  # fixed, hourly, quote
+    price: Optional[float] = None
+    duration_estimate: Optional[str] = None
+    images: List[str] = []
+    status: str = "active"
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class ContractorServiceCreate(BaseModel):
+    title: str
+    description: str
+    category: str
+    price_type: str = "fixed"
+    price: Optional[float] = None
+    duration_estimate: Optional[str] = None
+
+# Service Booking Models
+class ServiceBooking(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    customer_id: str
+    contractor_id: str
+    service_id: Optional[str] = None
+    title: str
+    description: str
+    preferred_date: Optional[str] = None
+    preferred_time: Optional[str] = None
+    address: str = ""
+    status: str = "pending"  # pending, confirmed, in_progress, completed, cancelled
+    amount: Optional[float] = None
+    payment_status: str = "unpaid"  # unpaid, paid, refunded
+    payment_session_id: Optional[str] = None
+    notes: Optional[str] = None
+    rating: Optional[int] = None
+    review: Optional[str] = None
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class ServiceBookingCreate(BaseModel):
+    contractor_id: str
+    service_id: Optional[str] = None
+    title: str
+    description: str
+    preferred_date: Optional[str] = None
+    preferred_time: Optional[str] = None
+    address: str = ""
+    notes: Optional[str] = None
+
+class ReviewCreate(BaseModel):
+    rating: int
+    review: str
+
 # ========== ROUTES ==========
 
 @api_router.get("/")
