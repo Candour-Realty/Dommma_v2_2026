@@ -102,6 +102,7 @@ const ContractorPortfolio = () => {
   };
 
   const handleDelete = async (projectId) => {
+    if (!user) return;
     if (!window.confirm('Are you sure you want to delete this project?')) return;
     try {
       await axios.delete(`${API}/portfolio/project/${projectId}?contractor_id=${user.id}`);
@@ -112,6 +113,7 @@ const ContractorPortfolio = () => {
   };
 
   const toggleFeatured = async (projectId) => {
+    if (!user) return;
     try {
       await axios.post(`${API}/portfolio/project/${projectId}/feature?contractor_id=${user.id}`);
       fetchPortfolio();
