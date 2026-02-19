@@ -91,6 +91,9 @@ function App() {
           <Route path="/dashboard/applications" element={<Applications />} />
           <Route path="/dashboard/maintenance" element={<Maintenance />} />
           <Route path="/dashboard/jobs" element={<Jobs />} />
+          <Route path="/dashboard/my-properties" element={<MyProperties />} />
+          <Route path="/dashboard/contractor-profile" element={<ContractorProfile />} />
+          <Route path="/contractors" element={<ContractorMarketplace />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
