@@ -1660,6 +1660,7 @@ async def create_booking(customer_id: str, booking: ServiceBookingCreate):
         "created_at": datetime.now(timezone.utc).isoformat()
     })
     
+    doc.pop("_id", None)
     return doc
 
 @api_router.get("/bookings/customer/{customer_id}")
