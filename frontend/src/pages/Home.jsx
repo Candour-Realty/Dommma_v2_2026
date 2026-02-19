@@ -456,8 +456,43 @@ const Home = () => {
         </div>
       </section>
 
+      {/* AI Tools Section */}
+      <section className="section-md bg-[#1A2F3A]" data-testid="ai-tools-section">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <p className="text-xs text-white/50 uppercase tracking-widest mb-4">Powered by AI</p>
+            <h2 className="text-4xl text-white" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+              Smart Tools for Smarter Living
+            </h2>
+            <p className="text-white/60 mt-2">Nova AI helps you at every step of your journey</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Link to="/report-issue" className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
+              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 group-hover:bg-white/20 transition-colors">
+                <span className="text-2xl">📸</span>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Smart Issue Reporter</h3>
+              <p className="text-white/60 text-sm">Upload a photo of any issue — our AI identifies the problem and matches you with the right contractor instantly.</p>
+            </Link>
+            <Link to="/document-analyzer" className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
+              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 group-hover:bg-white/20 transition-colors">
+                <span className="text-2xl">📄</span>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Lease Analyzer</h3>
+              <p className="text-white/60 text-sm">Paste your lease agreement and get an instant fairness score, red flags, and negotiation tips powered by AI.</p>
+            </Link>
+            <Link to="/commute-optimizer" className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
+              <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-4 group-hover:bg-white/20 transition-colors">
+                <span className="text-2xl">🚇</span>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Commute Optimizer</h3>
+              <p className="text-white/60 text-sm">Enter your workplace addresses and find properties ranked by commute time. No more guessing.</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Team Section */}
-      <section className="section-md bg-[#F5F5F0]" data-testid="team-section">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-16">
             <div>
