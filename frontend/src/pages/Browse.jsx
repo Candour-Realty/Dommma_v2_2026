@@ -420,6 +420,17 @@ const Browse = () => {
         </div>
       )}
 
+      {/* Viewing Scheduler Modal */}
+      {showViewingScheduler && selectedListing && (
+        <ViewingScheduler
+          listing={selectedListing}
+          onClose={() => setShowViewingScheduler(false)}
+          onScheduled={() => {
+            // Optionally show a toast or notification
+          }}
+        />
+      )}
+
       <NovaChat />
     </div>
   );
