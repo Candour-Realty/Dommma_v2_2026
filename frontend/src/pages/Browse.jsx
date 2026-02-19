@@ -250,8 +250,12 @@ const Browse = () => {
                             <span className="text-xs text-gray-500 uppercase tracking-wider">{listing.property_type}</span>
                             <h3 className="font-semibold text-lg text-[#1A2F3A]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{listing.title}</h3>
                           </div>
-                          <button className="p-2 hover:bg-gray-100 rounded-full" onClick={(e) => e.stopPropagation()}>
-                            <Heart size={18} className="text-gray-400" />
+                          <button 
+                            className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${favoriteIds.includes(listing.id) ? 'text-red-500' : 'text-gray-400'}`} 
+                            onClick={(e) => toggleFavorite(listing.id, e)}
+                            data-testid={`favorite-btn-${listing.id}`}
+                          >
+                            <Heart size={18} fill={favoriteIds.includes(listing.id) ? 'currentColor' : 'none'} />
                           </button>
                         </div>
                         <p className="text-gray-500 text-sm mb-3 flex items-center gap-1"><MapPin size={12} />{listing.address}, {listing.city}</p>
