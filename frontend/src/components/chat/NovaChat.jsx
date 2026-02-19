@@ -555,6 +555,30 @@ const NovaChat = () => {
               </div>
             )}
 
+            {/* Proactive Suggestions */}
+            {proactiveSuggestions.length > 0 && messages.length <= 1 && (
+              <div className="px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 border-t border-gray-100">
+                <p className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                  <Bell size={12} className="text-blue-500" />
+                  Updates for you
+                </p>
+                <div className="space-y-1">
+                  {proactiveSuggestions.slice(0, 3).map((suggestion, idx) => (
+                    <div
+                      key={idx}
+                      className={`p-2 rounded-lg text-xs ${
+                        suggestion.priority === 'high' ? 'bg-blue-100 text-blue-800' :
+                        suggestion.priority === 'medium' ? 'bg-amber-100 text-amber-800' :
+                        'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {suggestion.message}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Inline Suggestions */}
             {suggestions.length > 0 && !showQuickActions && (
               <div className="px-4 py-2 bg-white border-t border-gray-100">
@@ -573,18 +597,63 @@ const NovaChat = () => {
               </div>
             )}
 
+            {/* Hidden file input for image upload */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              className="hidden"
+            />
+
             {/* Input */}
             <div className="p-4 bg-white border-t border-gray-100">
               <div className="flex gap-2">
+                {/* Voice button */}
+                <button
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isLoading || isTranscribing || analyzingImage}
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                    isRecording 
+                      ? 'bg-red-500 text-white animate-pulse' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  } disabled:opacity-50`}
+                  data-testid="nova-voice-button"
+                  title={isRecording ? 'Stop recording' : 'Voice input'}
+                >
+                  {isTranscribing ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : isRecording ? (
+                    <MicOff size={18} />
+                  ) : (
+                    <Mic size={18} />
+                  )}
+                </button>
+
+                {/* Image upload button */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading || analyzingImage}
+                  className="w-12 h-12 rounded-xl flex items-center justify-center bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all disabled:opacity-50"
+                  data-testid="nova-image-button"
+                  title="Upload property image"
+                >
+                  {analyzingImage ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <Camera size={18} />
+                  )}
+                </button>
+
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask about properties, budgets, neighborhoods..."
+                  placeholder={isRecording ? "Listening..." : "Ask about properties, budgets, neighborhoods..."}
                   className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] focus:ring-2 focus:ring-[#1A2F3A]/10 outline-none transition-all text-sm"
                   data-testid="nova-input"
-                  disabled={isLoading}
+                  disabled={isLoading || isRecording || isTranscribing}
                 />
                 <button
                   onClick={() => sendMessage()}
@@ -596,7 +665,7 @@ const NovaChat = () => {
                 </button>
               </div>
               <p className="text-xs text-gray-400 text-center mt-2">
-                Powered by Claude AI • DOMMMA
+                🎤 Voice • 📷 Images • Powered by Claude AI
               </p>
             </div>
           </div>
