@@ -24,6 +24,8 @@ const mapOptions = {
 const defaultCenter = { lat: 49.2827, lng: -123.1207 };
 
 const Browse = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const novaQuery = searchParams.get('nova');
   const [listings, setListings] = useState([]);
