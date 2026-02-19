@@ -1465,7 +1465,9 @@ async def update_listing(listing_id: str, landlord_id: str, updates: Dict[str, A
     if listing.get("landlord_id") != landlord_id:
         raise HTTPException(status_code=403, detail="Not authorized")
     
-    allowed_fields = ["title", "description", "price", "status", "available_date", "amenities", "images", "pet_friendly", "parking"]
+    allowed_fields = ["title", "address", "city", "province", "postal_code", "lat", "lng",
+                      "description", "price", "bedrooms", "bathrooms", "sqft", "property_type",
+                      "status", "available_date", "amenities", "images", "pet_friendly", "parking"]
     update_dict = {k: v for k, v in updates.items() if k in allowed_fields}
     
     await db.listings.update_one(
