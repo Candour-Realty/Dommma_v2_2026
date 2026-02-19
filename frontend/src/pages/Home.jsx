@@ -1,52 +1,144 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Play, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Play, Search, Sparkles, Bot, MapPin, Bed, Bath } from 'lucide-react';
 import MainLayout from '../components/layout/MainLayout';
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const featuredProperties = [
   {
     id: 1,
-    title: 'OCEAN',
-    subtitle: 'WAVE',
+    title: 'Modern Downtown Condo',
     location: 'Vancouver, BC',
-    type: 'Residential',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200',
-    price: '$3,200/mo',
+    type: 'Condo',
+    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600',
+    price: 2800,
     beds: 2,
-    baths: 2
+    baths: 2,
+    sqft: 950
   },
   {
     id: 2,
-    title: 'PUZZLE',
-    subtitle: 'TOWER',
-    location: 'Downtown, Vancouver',
-    type: 'Commercial',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200',
-    price: '$4,500/mo',
+    title: 'Cozy Kitsilano Character',
+    location: 'Kitsilano, Vancouver',
+    type: 'House',
+    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600',
+    price: 3200,
     beds: 3,
-    baths: 2
+    baths: 1.5,
+    sqft: 1400
   },
   {
     id: 3,
-    title: 'HONEY',
-    subtitle: 'COMB',
-    location: 'Kitsilano, Vancouver',
-    type: 'Residential',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200',
-    price: '$2,800/mo',
+    title: 'Yaletown Luxury Loft',
+    location: 'Yaletown, Vancouver',
+    type: 'Loft',
+    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600',
+    price: 3500,
     beds: 1,
-    baths: 1
+    baths: 1,
+    sqft: 850
   },
   {
     id: 4,
-    title: 'YELLOW',
-    subtitle: 'SUITES',
-    location: 'Yaletown, Vancouver',
-    type: 'Luxury',
-    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200',
-    price: '$5,200/mo',
+    title: 'Mount Pleasant Studio',
+    location: 'Mt Pleasant, Vancouver',
+    type: 'Studio',
+    image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600',
+    price: 1650,
+    beds: 0,
+    baths: 1,
+    sqft: 450
+  },
+  {
+    id: 5,
+    title: 'West End High-Rise',
+    location: 'West End, Vancouver',
+    type: 'Apartment',
+    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600',
+    price: 2400,
+    beds: 1,
+    baths: 1,
+    sqft: 650
+  },
+  {
+    id: 6,
+    title: 'Coal Harbour Penthouse',
+    location: 'Coal Harbour, Vancouver',
+    type: 'Penthouse',
+    image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600',
+    price: 5500,
     beds: 3,
-    baths: 3
+    baths: 2.5,
+    sqft: 2200
+  },
+  {
+    id: 7,
+    title: 'Gastown Heritage Suite',
+    location: 'Gastown, Vancouver',
+    type: 'Suite',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600',
+    price: 2200,
+    beds: 1,
+    baths: 1,
+    sqft: 720
+  },
+  {
+    id: 8,
+    title: 'Fairview Slopes Duplex',
+    location: 'Fairview, Vancouver',
+    type: 'Duplex',
+    image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=600',
+    price: 3800,
+    beds: 2,
+    baths: 2,
+    sqft: 1100
+  },
+  {
+    id: 9,
+    title: 'Olympic Village Modern',
+    location: 'Olympic Village, Vancouver',
+    type: 'Condo',
+    image: 'https://images.unsplash.com/photo-1502672023488-70e25813eb80?w=600',
+    price: 2950,
+    beds: 2,
+    baths: 2,
+    sqft: 980
+  },
+  {
+    id: 10,
+    title: 'South Granville Classic',
+    location: 'South Granville, Vancouver',
+    type: 'Apartment',
+    image: 'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=600',
+    price: 2100,
+    beds: 1,
+    baths: 1,
+    sqft: 600
+  },
+  {
+    id: 11,
+    title: 'Main Street Townhouse',
+    location: 'Main St, Vancouver',
+    type: 'Townhouse',
+    image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600',
+    price: 3400,
+    beds: 3,
+    baths: 2,
+    sqft: 1500
+  },
+  {
+    id: 12,
+    title: 'Commercial Drive Gem',
+    location: 'Commercial Dr, Vancouver',
+    type: 'Apartment',
+    image: 'https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=600',
+    price: 1900,
+    beds: 1,
+    baths: 1,
+    sqft: 550
   },
 ];
 
@@ -64,9 +156,36 @@ const team = [
   { name: 'Rishabh Goswami', role: 'Founder', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200' },
 ];
 
+const suggestedPrompts = [
+  "Pet-friendly apartments under $2500",
+  "2 bedroom near SkyTrain",
+  "I work from home and need natural light",
+  "Best neighborhoods for families"
+];
+
 const Home = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const handleNovaSearch = async (query) => {
+    const searchText = query || searchQuery;
+    if (!searchText.trim()) return;
+    
+    setIsSearching(true);
+    // Navigate to browse with the search query for Nova
+    navigate(`/browse?nova=${encodeURIComponent(searchText)}`);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleNovaSearch();
+    }
+  };
+
   return (
-    <MainLayout>
+    <MainLayout hideNovaButton={true}>
       {/* Hero Section */}
       <section 
         className="relative min-h-screen flex items-center"
@@ -110,55 +229,156 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Properties */}
-      <section className="section-lg bg-[#F5F5F0]" data-testid="featured-properties">
-        <div className="max-w-7xl mx-auto px-6">
-          {featuredProperties.map((property, index) => (
-            <div 
-              key={property.id}
-              className={`relative rounded-3xl overflow-hidden mb-8 h-[500px] property-card ${
-                index % 2 === 0 ? 'bg-[#C8E3E8]' : index % 3 === 0 ? 'bg-[#D7C8D7]' : 'bg-[#2C4A52]'
-              }`}
-            >
-              <img 
-                src={property.image}
-                alt={property.title}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
-              
-              <div className="absolute bottom-0 left-0 p-12 z-10">
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="text-xs text-white/70 uppercase tracking-widest">{property.type}</span>
-                  <span className="text-xs text-white/70">•</span>
-                  <span className="text-xs text-white/70 uppercase tracking-widest">{property.location}</span>
-                </div>
-                <h2 
-                  className="display-lg text-white uppercase leading-none mb-6"
-                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
-                >
-                  {property.title}<br />{property.subtitle}
-                </h2>
-                <p className="text-white/70 mb-6 max-w-md">
-                  {property.beds} Bedrooms • {property.baths} Bathrooms • {property.price}
-                </p>
-                <div className="flex items-center gap-4">
-                  <Link 
-                    to="/browse"
-                    className="btn-outline text-white border-white/50 hover:bg-white hover:text-[#1A2F3A]"
-                  >
-                    Explore
-                  </Link>
-                  <Link 
-                    to={`/browse`}
-                    className="btn-outline text-white border-white/50 hover:bg-white hover:text-[#1A2F3A]"
-                  >
-                    View
-                  </Link>
-                </div>
-              </div>
+      {/* Nova AI Search Bar Section */}
+      <section className="relative -mt-24 z-20 px-6" data-testid="nova-search-section">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-full shadow-2xl p-2 flex items-center gap-3">
+            {/* Nova Icon */}
+            <div className="flex-shrink-0 w-14 h-14 rounded-full bg-gradient-to-br from-[#1A2F3A] to-[#2C4A52] flex items-center justify-center ml-1">
+              <Bot className="text-white" size={24} />
             </div>
-          ))}
+            
+            {/* Search Input */}
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                placeholder="Ask Nova AI: Find apartments, calculate budget, get neighborhood tips..."
+                className="w-full py-4 px-2 text-lg text-[#1A2F3A] placeholder-gray-400 outline-none bg-transparent"
+                data-testid="nova-search-input"
+              />
+              
+              {/* Suggestions Dropdown */}
+              {showSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 z-50">
+                  <p className="px-4 text-xs text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <Sparkles size={12} /> Try asking
+                  </p>
+                  {suggestedPrompts.map((prompt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setSearchQuery(prompt); handleNovaSearch(prompt); }}
+                      className="w-full px-4 py-2 text-left text-gray-700 hover:bg-[#F5F5F0] transition-colors text-sm"
+                    >
+                      "{prompt}"
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Search Button */}
+            <button
+              onClick={() => handleNovaSearch()}
+              disabled={isSearching || !searchQuery.trim()}
+              className="flex-shrink-0 w-14 h-14 rounded-full bg-gradient-to-br from-[#1A2F3A] to-[#2C4A52] flex items-center justify-center text-white hover:shadow-lg transition-all disabled:opacity-50 mr-1"
+              data-testid="nova-search-button"
+            >
+              {isSearching ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Search size={20} />
+              )}
+            </button>
+          </div>
+          
+          {/* Helper Text */}
+          <p className="text-center text-sm text-gray-500 mt-4 flex items-center justify-center gap-2">
+            <Sparkles size={14} className="text-[#1A2F3A]" />
+            Powered by Nova AI — Ask anything about properties, budgets, or neighborhoods
+          </p>
+        </div>
+      </section>
+
+      {/* Featured Properties Grid */}
+      <section className="section-lg bg-[#F5F5F0] pt-20" data-testid="featured-properties">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Featured Listings</p>
+              <h2 
+                className="text-3xl md:text-4xl text-[#1A2F3A]"
+                style={{ fontFamily: 'Cormorant Garamond, serif' }}
+              >
+                Discover Your Next Home
+              </h2>
+            </div>
+            <Link 
+              to="/browse"
+              className="hidden md:flex items-center gap-2 text-[#1A2F3A] font-medium hover:gap-3 transition-all"
+            >
+              <span className="text-sm">View All</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          {/* Property Grid - 4 columns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {featuredProperties.map((property) => (
+              <Link
+                key={property.id}
+                to="/browse"
+                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+                data-testid={`property-card-${property.id}`}
+              >
+                {/* Image */}
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={property.image}
+                    alt={property.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-[#1A2F3A]">
+                      {property.type}
+                    </span>
+                  </div>
+                  <div className="absolute top-3 right-3">
+                    <span className="px-3 py-1 bg-[#1A2F3A] rounded-full text-xs font-medium text-white">
+                      ${property.price.toLocaleString()}/mo
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-4">
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1 group-hover:text-[#2C4A52] transition-colors line-clamp-1">
+                    {property.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 flex items-center gap-1 mb-3">
+                    <MapPin size={12} />
+                    {property.location}
+                  </p>
+                  <div className="flex items-center gap-4 text-xs text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <Bed size={14} />
+                      {property.beds === 0 ? 'Studio' : `${property.beds} bed`}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Bath size={14} />
+                      {property.baths} bath
+                    </span>
+                    <span>{property.sqft} sqft</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Mobile View All Button */}
+          <div className="mt-8 text-center md:hidden">
+            <Link 
+              to="/browse"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#1A2F3A] text-white rounded-full"
+            >
+              View All Properties
+              <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -241,7 +461,7 @@ const Home = () => {
                 >
                   Home Made<br />Simple
                 </h3>
-                <p className="text-white/70 text-sm mb-4">Lorem ipsum dolor sit amet</p>
+                <p className="text-white/70 text-sm mb-4">Your complete real estate solution</p>
                 <Link 
                   to="/about"
                   className="flex items-center gap-2 text-white text-sm"
