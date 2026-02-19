@@ -79,6 +79,10 @@ const ContractorPortfolio = () => {
   };
 
   const handleSubmit = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     try {
       if (selectedProject) {
         await axios.put(
