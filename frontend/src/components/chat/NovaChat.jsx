@@ -1,9 +1,65 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Send, Loader2, Bot, User } from 'lucide-react';
+import { 
+  X, Send, Loader2, Bot, User, Sparkles, Calculator, Home, 
+  MapPin, DollarSign, FileText, Briefcase, Heart, Lightbulb,
+  Settings, ChevronDown, ChevronUp, Building2
+} from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Quick action prompts for different categories
+const quickActions = [
+  {
+    category: 'Property Search',
+    icon: Home,
+    color: 'bg-blue-500',
+    actions: [
+      { label: 'Find pet-friendly apartments', prompt: 'Show me pet-friendly apartments in Vancouver under $2500/month' },
+      { label: 'Near transit', prompt: 'Find apartments within walking distance of SkyTrain stations' },
+      { label: 'Work from home', prompt: "I work from home and need a place with good natural light and a spare room for an office" },
+    ]
+  },
+  {
+    category: 'Financial Help',
+    icon: DollarSign,
+    color: 'bg-green-500',
+    actions: [
+      { label: 'Budget calculator', prompt: 'Can I afford $2500/month rent on a $80,000 salary?' },
+      { label: 'Hidden costs', prompt: 'What are the hidden costs of renting in Vancouver I should know about?' },
+      { label: 'Negotiation tips', prompt: 'How can I negotiate lower rent with my landlord?' },
+    ]
+  },
+  {
+    category: 'Application Help',
+    icon: FileText,
+    color: 'bg-purple-500',
+    actions: [
+      { label: 'Rental resume', prompt: 'Help me create a strong rental resume' },
+      { label: 'Cover letter', prompt: 'Write a compelling rental application cover letter for me' },
+      { label: 'Application tips', prompt: 'How can I make my rental application stand out?' },
+    ]
+  },
+  {
+    category: 'Neighborhood',
+    icon: MapPin,
+    color: 'bg-orange-500',
+    actions: [
+      { label: 'Best for families', prompt: 'What are the best neighborhoods in Vancouver for families?' },
+      { label: 'Coffee & nightlife', prompt: 'Which neighborhoods have the best coffee shops and nightlife?' },
+      { label: 'Safety info', prompt: 'What are the safest neighborhoods in Vancouver?' },
+    ]
+  },
+];
+
+// User preferences form fields
+const preferenceFields = [
+  { key: 'budget', label: 'Monthly Budget', icon: DollarSign, type: 'number', placeholder: '2500' },
+  { key: 'occupation', label: 'Occupation', icon: Briefcase, type: 'text', placeholder: 'Software Engineer' },
+  { key: 'has_pets', label: 'Have Pets?', icon: Heart, type: 'select', options: ['No', 'Yes - Dog', 'Yes - Cat', 'Yes - Other'] },
+  { key: 'commute_location', label: 'Commute To', icon: MapPin, type: 'text', placeholder: 'Downtown Vancouver' },
+];
 
 const NovaChat = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +67,16 @@ const NovaChat = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
+  const [showQuickActions, setShowQuickActions] = useState(true);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [userContext, setUserContext] = useState({
+    budget: '',
+    occupation: '',
+    has_pets: 'No',
+    commute_location: '',
+    preferences: ''
+  });
+  const [suggestions, setSuggestions] = useState([]);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -25,36 +91,56 @@ const NovaChat = () => {
     if (isOpen && messages.length === 0) {
       setMessages([{
         role: 'assistant',
-        content: "Hi! I'm Nova, your AI real estate assistant. I can help you find rentals, connect with landlords, or find contractors. What are you looking for today?"
+        content: "Hi! I'm Nova, your AI real estate assistant. I can help you with:\n\n🏠 **Property Search** - Find your perfect home\n💰 **Financial Advice** - Budget calculators & negotiation tips\n📄 **Application Help** - Rental resumes & cover letters\n🏘️ **Neighborhood Intel** - Safety, amenities & vibes\n\nWhat can I help you with today?",
+        suggestions: ['Find apartments near SkyTrain', 'Calculate my budget', 'Help with application']
       }]);
     }
   }, [isOpen, messages.length]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (messageText = input) => {
+    if (!messageText.trim() || isLoading) return;
 
-    const userMessage = input.trim();
+    const userMessage = messageText.trim();
     setInput('');
+    setShowQuickActions(false);
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
+    setSuggestions([]);
 
     try {
+      // Build user context for personalization
+      const contextToSend = {};
+      if (userContext.budget) contextToSend.budget = userContext.budget;
+      if (userContext.occupation) contextToSend.occupation = userContext.occupation;
+      if (userContext.has_pets && userContext.has_pets !== 'No') contextToSend.has_pets = userContext.has_pets;
+      if (userContext.commute_location) contextToSend.commute_location = userContext.commute_location;
+      if (userContext.preferences) contextToSend.preferences = userContext.preferences;
+
       const response = await axios.post(`${API}/chat`, {
         session_id: sessionId,
-        message: userMessage
+        message: userMessage,
+        user_context: Object.keys(contextToSend).length > 0 ? contextToSend : null
       });
 
       setSessionId(response.data.session_id);
-      setMessages(prev => [...prev, { 
+      
+      const assistantMessage = { 
         role: 'assistant', 
         content: response.data.response,
-        listings: response.data.listings
-      }]);
+        listings: response.data.listings,
+        suggestions: response.data.suggestions
+      };
+      
+      setMessages(prev => [...prev, assistantMessage]);
+      
+      if (response.data.suggestions?.length > 0) {
+        setSuggestions(response.data.suggestions);
+      }
     } catch (error) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "I'm having a moment! Try asking about properties in Vancouver - I'd love to help!" 
+        content: "I'm having a moment! Try asking about:\n• Apartments in Vancouver\n• Budget advice\n• Rental application tips\n• Neighborhood recommendations" 
       }]);
     } finally {
       setIsLoading(false);
@@ -68,20 +154,42 @@ const NovaChat = () => {
     }
   };
 
+  const handleQuickAction = (prompt) => {
+    setInput(prompt);
+    sendMessage(prompt);
+  };
+
+  const renderMessageContent = (content) => {
+    // Basic markdown-like formatting
+    return content.split('\n').map((line, i) => {
+      // Bold text
+      const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      return (
+        <span 
+          key={i} 
+          dangerouslySetInnerHTML={{ __html: formattedLine }}
+          className="block"
+        />
+      );
+    });
+  };
+
   return (
     <>
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-8 z-50 flex items-center gap-3 px-6 py-4 rounded-full text-white font-medium shadow-2xl transition-transform duration-300 hover:scale-105 nova-bounce"
+        className="fixed bottom-8 right-8 z-50 flex items-center gap-3 px-6 py-4 rounded-full text-white font-medium shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-[0_15px_50px_rgba(26,47,58,0.5)]"
         style={{ 
-          background: '#1A2F3A',
-          boxShadow: '0 10px 40px rgba(26, 47, 58, 0.4)'
+          background: 'linear-gradient(135deg, #1A2F3A 0%, #2C4A52 100%)',
         }}
         data-testid="nova-chat-button"
       >
-        <Bot size={22} />
-        <span className="text-sm tracking-wide">Ask Nova</span>
+        <div className="relative">
+          <Bot size={22} />
+          <Sparkles size={10} className="absolute -top-1 -right-1 text-yellow-300" />
+        </div>
+        <span className="text-sm tracking-wide">Ask Nova AI</span>
       </button>
 
       {/* Chat Modal */}
@@ -93,28 +201,84 @@ const NovaChat = () => {
           />
 
           <div 
-            className="relative w-full max-w-md h-[600px] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+            className="relative w-full max-w-lg h-[700px] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden"
             style={{ animation: 'fadeInUp 0.3s ease' }}
           >
             {/* Header */}
-            <div className="px-6 py-4 flex items-center justify-between bg-[#1A2F3A] text-white">
+            <div className="px-6 py-4 flex items-center justify-between bg-gradient-to-r from-[#1A2F3A] to-[#2C4A52] text-white">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                  <Bot size={22} />
+                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center relative">
+                  <Bot size={24} />
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-[#1A2F3A]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Nova AI</h3>
-                  <p className="text-xs text-white/70">Your Real Estate Assistant</p>
+                  <h3 className="font-semibold text-lg flex items-center gap-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                    Nova AI
+                    <Sparkles size={14} className="text-yellow-300" />
+                  </h3>
+                  <p className="text-xs text-white/70">Your Smart Real Estate Assistant</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                data-testid="nova-close-button"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setShowPreferences(!showPreferences)}
+                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                  title="Preferences"
+                  data-testid="nova-preferences-button"
+                >
+                  <Settings size={16} />
+                </button>
+                <button 
+                  onClick={() => setIsOpen(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                  data-testid="nova-close-button"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
+
+            {/* Preferences Panel */}
+            {showPreferences && (
+              <div className="px-4 py-3 bg-[#F5F5F0] border-b border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-[#1A2F3A]">Personalize Your Search</p>
+                  <button 
+                    onClick={() => setShowPreferences(false)}
+                    className="text-xs text-[#1A2F3A] hover:underline"
+                  >
+                    Done
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {preferenceFields.map(field => (
+                    <div key={field.key}>
+                      <label className="text-xs text-gray-500 flex items-center gap-1 mb-1">
+                        <field.icon size={10} />
+                        {field.label}
+                      </label>
+                      {field.type === 'select' ? (
+                        <select
+                          value={userContext[field.key]}
+                          onChange={(e) => setUserContext({...userContext, [field.key]: e.target.value})}
+                          className="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 focus:border-[#1A2F3A] outline-none"
+                        >
+                          {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                        </select>
+                      ) : (
+                        <input
+                          type={field.type}
+                          value={userContext[field.key]}
+                          onChange={(e) => setUserContext({...userContext, [field.key]: e.target.value})}
+                          placeholder={field.placeholder}
+                          className="w-full px-2 py-1.5 text-sm rounded-lg border border-gray-200 focus:border-[#1A2F3A] outline-none"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F5F5F0]" data-testid="nova-messages-container">
@@ -127,34 +291,134 @@ const NovaChat = () => {
                     className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                       msg.role === 'user' 
                         ? 'bg-[#1A2F3A] text-white' 
-                        : 'bg-white text-[#1A2F3A]'
+                        : 'bg-gradient-to-br from-[#1A2F3A] to-[#2C4A52] text-white'
                     }`}
                   >
                     {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
                   </div>
-                  <div 
-                    className={`max-w-[80%] px-4 py-3 rounded-2xl ${
-                      msg.role === 'user'
-                        ? 'bg-[#1A2F3A] text-white rounded-tr-sm'
-                        : 'bg-white text-gray-800 rounded-tl-sm shadow-sm'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  <div className={`max-w-[85%] ${msg.role === 'user' ? '' : ''}`}>
+                    <div 
+                      className={`px-4 py-3 rounded-2xl ${
+                        msg.role === 'user'
+                          ? 'bg-[#1A2F3A] text-white rounded-tr-sm'
+                          : 'bg-white text-gray-800 rounded-tl-sm shadow-sm'
+                      }`}
+                    >
+                      <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                        {renderMessageContent(msg.content)}
+                      </div>
+                    </div>
+                    
+                    {/* Listing Cards */}
+                    {msg.listings?.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {msg.listings.slice(0, 3).map((listing, idx) => (
+                          <div 
+                            key={idx}
+                            className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow"
+                          >
+                            <img 
+                              src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=100'}
+                              alt={listing.title}
+                              className="w-16 h-16 rounded-lg object-cover"
+                            />
+                            <div className="flex-1">
+                              <p className="font-medium text-[#1A2F3A] text-sm">{listing.title}</p>
+                              <p className="text-xs text-gray-500 flex items-center gap-1">
+                                <MapPin size={10} /> {listing.city}
+                              </p>
+                              <p className="text-sm font-semibold text-[#1A2F3A] mt-1">
+                                ${listing.price?.toLocaleString()}/mo
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Message Suggestions */}
+                    {msg.suggestions?.length > 0 && i === messages.length - 1 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {msg.suggestions.map((suggestion, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleQuickAction(suggestion.replace(/^[💡🐾🚇]\s*/, ''))}
+                            className="px-3 py-1.5 text-xs bg-white rounded-full text-[#1A2F3A] border border-[#1A2F3A]/20 hover:border-[#1A2F3A] hover:bg-[#1A2F3A]/5 transition-colors"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
+              
               {isLoading && (
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#1A2F3A]">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1A2F3A] to-[#2C4A52] flex items-center justify-center text-white">
                     <Bot size={16} />
                   </div>
                   <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm">
-                    <Loader2 className="w-5 h-5 animate-spin text-[#1A2F3A]" />
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1A2F3A]" />
+                      <span className="text-sm text-gray-500">Nova is thinking...</span>
+                    </div>
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
+
+            {/* Quick Actions */}
+            {showQuickActions && messages.length <= 1 && (
+              <div className="px-4 py-3 bg-white border-t border-gray-100 max-h-48 overflow-y-auto">
+                <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+                  <Lightbulb size={12} />
+                  Quick Actions
+                </p>
+                <div className="space-y-3">
+                  {quickActions.map((category, idx) => (
+                    <div key={idx}>
+                      <p className="text-xs font-medium text-gray-700 mb-1.5 flex items-center gap-1">
+                        <category.icon size={12} className={`${category.color.replace('bg-', 'text-')}`} />
+                        {category.category}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {category.actions.map((action, aIdx) => (
+                          <button
+                            key={aIdx}
+                            onClick={() => handleQuickAction(action.prompt)}
+                            className="px-2.5 py-1 text-xs bg-[#F5F5F0] rounded-full text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors"
+                            data-testid={`quick-action-${category.category.toLowerCase().replace(' ', '-')}-${aIdx}`}
+                          >
+                            {action.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Inline Suggestions */}
+            {suggestions.length > 0 && !showQuickActions && (
+              <div className="px-4 py-2 bg-white border-t border-gray-100">
+                <div className="flex flex-wrap gap-2">
+                  {suggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleQuickAction(suggestion.replace(/^[💡🐾🚇]\s*/, ''))}
+                      className="px-3 py-1.5 text-xs bg-[#F5F5F0] rounded-full text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      <Sparkles size={10} />
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Input */}
             <div className="p-4 bg-white border-t border-gray-100">
@@ -164,24 +428,40 @@ const NovaChat = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask about properties, rentals, services..."
+                  placeholder="Ask about properties, budgets, neighborhoods..."
                   className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] focus:ring-2 focus:ring-[#1A2F3A]/10 outline-none transition-all text-sm"
                   data-testid="nova-input"
                   disabled={isLoading}
                 />
                 <button
-                  onClick={sendMessage}
+                  onClick={() => sendMessage()}
                   disabled={!input.trim() || isLoading}
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-white transition-all disabled:opacity-50 bg-[#1A2F3A] hover:bg-[#2C4A52]"
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-white transition-all disabled:opacity-50 bg-gradient-to-r from-[#1A2F3A] to-[#2C4A52] hover:shadow-lg"
                   data-testid="nova-send-button"
                 >
                   <Send size={18} />
                 </button>
               </div>
+              <p className="text-xs text-gray-400 text-center mt-2">
+                Powered by Claude AI • DOMMMA
+              </p>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </>
   );
 };
