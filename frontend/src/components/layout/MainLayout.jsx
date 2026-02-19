@@ -34,7 +34,7 @@ const footerLinks = {
   ]
 };
 
-const MainLayout = ({ children }) => {
+const MainLayout = ({ children, hideNovaButton = false }) => {
   const location = useLocation();
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
