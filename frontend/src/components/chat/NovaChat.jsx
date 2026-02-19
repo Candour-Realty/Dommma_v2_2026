@@ -361,6 +361,11 @@ const NovaChat = () => {
       if (response.data.suggestions?.length > 0) {
         setSuggestions(response.data.suggestions);
       }
+      
+      // Speak the response if voice is enabled
+      if (voiceEnabled && response.data.response) {
+        speakResponse(response.data.response);
+      }
     } catch (error) {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, { 
