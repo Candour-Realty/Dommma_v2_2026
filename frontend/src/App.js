@@ -18,6 +18,9 @@ import Messages from "@/pages/Messages";
 import Applications from "@/pages/Applications";
 import Maintenance from "@/pages/Maintenance";
 import Jobs from "@/pages/Jobs";
+import MyProperties from "@/pages/MyProperties";
+import ContractorMarketplace from "@/pages/ContractorMarketplace";
+import ContractorProfile from "@/pages/ContractorProfile";
 
 // Firebase Analytics
 import { initializeFirebase, trackPageView, trackLogin } from "@/lib/firebase";
