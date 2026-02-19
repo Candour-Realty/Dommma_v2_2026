@@ -131,7 +131,7 @@ Respond in JSON format."""
     ) -> Dict[str, Any]:
         """Compare multiple property images"""
         try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContent
             
             default_criteria = [
                 "natural light",
@@ -171,9 +171,12 @@ Respond in JSON format with structure:
             # For now, analyze first image (multi-image requires different approach)
             # In production, you'd send multiple images or analyze sequentially
             if images:
+                # Extract base64 content and mime type
+                base64_content, mime_type = self._extract_base64_and_type(images[0])
+                file_content = FileContent(content_type=mime_type, file_content_base64=base64_content)
                 message = UserMessage(
                     text=prompt,
-                    image_url=images[0] if images[0].startswith('data:') else f"data:image/jpeg;base64,{images[0]}"
+                    file_contents=[file_content]
                 )
                 
                 response = await chat.send_message(message)
