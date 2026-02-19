@@ -89,6 +89,7 @@ class Listing(BaseModel):
     available_date: str
     pet_friendly: bool
     parking: bool
+    landlord_id: Optional[str] = None
     status: str = "active"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
