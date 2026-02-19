@@ -587,9 +587,14 @@ async def get_listings(
     bedrooms: Optional[int] = None,
     bathrooms: Optional[float] = None,
     property_type: Optional[str] = None,
-    pet_friendly: Optional[bool] = None
+    pet_friendly: Optional[bool] = None,
+    parking: Optional[bool] = None,
+    listing_type: Optional[str] = None,
+    q: Optional[str] = None
 ):
     query = {"status": "active"}
+    if listing_type:
+        query["listing_type"] = listing_type
     if city:
         query["city"] = {"$regex": city, "$options": "i"}
     if min_price:
@@ -604,6 +609,14 @@ async def get_listings(
         query["property_type"] = property_type
     if pet_friendly is not None:
         query["pet_friendly"] = pet_friendly
+    if parking is not None:
+        query["parking"] = parking
+    if q:
+        query["$or"] = [
+            {"title": {"$regex": q, "$options": "i"}},
+            {"address": {"$regex": q, "$options": "i"}},
+            {"description": {"$regex": q, "$options": "i"}}
+        ]
     
     listings = await db.listings.find(query, {"_id": 0}).to_list(100)
     return listings
