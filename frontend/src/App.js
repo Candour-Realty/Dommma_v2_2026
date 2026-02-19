@@ -101,6 +101,7 @@ function App() {
           <Route path="/report-issue" element={<SmartIssueReporter />} />
           <Route path="/document-analyzer" element={<DocumentAnalyzer />} />
           <Route path="/commute-optimizer" element={<CommuteOptimizer />} />
+          <Route path="/offers" element={<Offers />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
