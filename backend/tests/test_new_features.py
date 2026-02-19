@@ -613,5 +613,7 @@ class TestDashboardIntegration:
         })
         assert response.status_code == 200
         data = response.json()
-        assert data["user"]["email"] == "test_iter10@dommma.com"
-        return data["user"]
+        # Login returns user directly, not wrapped in "user" key
+        assert data["email"] == "test_iter10@dommma.com"
+        assert data["user_type"] == "renter"
+        return data
