@@ -268,7 +268,7 @@ const Browse = () => {
                             <img src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=300'} alt={listing.title} className="w-full h-24 object-cover rounded-lg mb-2" />
                             <h3 className="font-semibold text-[#1A2F3A]">{listing.title}</h3>
                             <p className="text-sm text-gray-500">{listing.address}</p>
-                            <p className="text-lg font-semibold text-[#1A2F3A] mt-1">${listing.price?.toLocaleString()}/mo</p>
+                            <p className="text-lg font-semibold text-[#1A2F3A] mt-1">${listing.price?.toLocaleString()}{listing.listing_type === 'sale' ? '' : '/mo'}</p>
                             <button onClick={() => setSelectedListing(listing)} className="mt-2 w-full py-2 rounded-full text-sm font-medium text-white bg-[#1A2F3A]">View Details</button>
                           </div>
                         </InfoWindowF>
