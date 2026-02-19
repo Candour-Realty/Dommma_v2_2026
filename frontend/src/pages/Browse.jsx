@@ -118,16 +118,26 @@ const Browse = () => {
           </div>
           
           <div className="flex-1 max-w-xl mx-8 hidden md:block">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search Vancouver properties..."
-                value={filters.search}
-                onChange={(e) => setFilters({...filters, search: e.target.value})}
-                className="w-full pl-12 pr-4 py-2.5 rounded-full bg-white/10 border border-white/10 text-white placeholder-gray-400 focus:bg-white/20 focus:outline-none text-sm"
-                data-testid="search-input"
-              />
+            <div className="flex items-center gap-3">
+              <div className="flex bg-white/10 rounded-full p-0.5">
+                <button onClick={() => setFilters({...filters, listingType: 'rent'})}
+                  className={`px-4 py-1.5 rounded-full text-sm transition-colors ${filters.listingType === 'rent' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+                  data-testid="filter-rent">Rent</button>
+                <button onClick={() => setFilters({...filters, listingType: 'sale'})}
+                  className={`px-4 py-1.5 rounded-full text-sm transition-colors ${filters.listingType === 'sale' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+                  data-testid="filter-buy">Buy</button>
+              </div>
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder={filters.listingType === 'sale' ? "Search properties for sale..." : "Search rental properties..."}
+                  value={filters.search}
+                  onChange={(e) => setFilters({...filters, search: e.target.value})}
+                  className="w-full pl-12 pr-4 py-2.5 rounded-full bg-white/10 border border-white/10 text-white placeholder-gray-400 focus:bg-white/20 focus:outline-none text-sm"
+                  data-testid="search-input"
+                />
+              </div>
             </div>
           </div>
 
