@@ -85,6 +85,9 @@ function App() {
           <Route path="/dashboard/payments" element={<Payments />} />
           <Route path="/dashboard/documents" element={<Documents />} />
           <Route path="/dashboard/messages" element={<Messages />} />
+          <Route path="/dashboard/applications" element={<Applications />} />
+          <Route path="/dashboard/maintenance" element={<Maintenance />} />
+          <Route path="/dashboard/jobs" element={<Jobs />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
