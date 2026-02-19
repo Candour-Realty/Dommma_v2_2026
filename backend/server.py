@@ -1858,6 +1858,137 @@ async def delete_listing(listing_id: str, landlord_id: str):
     
     return {"status": "deleted"}
 
+# ========== PROPERTY OFFERS (BUY/SELL) ==========
+
+@api_router.post("/offers")
+async def create_offer(buyer_id: str, offer: OfferCreate):
+    """Submit an offer on a property for sale"""
+    listing = await db.listings.find_one({"id": offer.listing_id}, {"_id": 0})
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    offer_obj = PropertyOffer(
+        buyer_id=buyer_id,
+        seller_id=listing.get("landlord_id", ""),
+        **offer.model_dump()
+    )
+    doc = offer_obj.model_dump()
+    await db.offers.insert_one(doc)
+    doc.pop("_id", None)
+    
+    # Notify seller
+    await db.notifications.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": listing.get("landlord_id", ""),
+        "title": "New Offer Received",
+        "body": f"Offer of ${offer.offer_amount:,} on {listing['title']}",
+        "type": "offer",
+        "data": {"offer_id": offer_obj.id, "listing_id": offer.listing_id},
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Email notification to seller
+    seller = await db.users.find_one({"id": listing.get("landlord_id", "")}, {"_id": 0})
+    if seller and seller.get("email"):
+        html = f"""
+        <div style="font-family:'Georgia',serif;max-width:600px;margin:0 auto;background:#F5F5F0;padding:40px;">
+          <div style="background:#1A2F3A;padding:30px;border-radius:16px 16px 0 0;text-align:center;">
+            <h1 style="color:white;font-family:'Georgia',serif;margin:0;">DOMMMA</h1>
+          </div>
+          <div style="background:white;padding:30px;border-radius:0 0 16px 16px;">
+            <h2 style="color:#1A2F3A;">New Offer on {listing['title']}</h2>
+            <div style="background:#F5F5F0;border-radius:12px;padding:20px;margin:20px 0;">
+              <p style="margin:4px 0;color:#1A2F3A;font-size:24px;font-weight:bold;">${offer.offer_amount:,}</p>
+              <p style="margin:4px 0;color:#555;">Financing: {offer.financing_type}</p>
+              {f'<p style="margin:4px 0;color:#555;">Closing: {offer.closing_date}</p>' if offer.closing_date else ''}
+            </div>
+            <p style="color:#555;">Log in to review and respond to this offer.</p>
+          </div>
+        </div>"""
+        asyncio.create_task(send_email(seller["email"], f"New Offer - {listing['title']}", html))
+    
+    return doc
+
+@api_router.get("/offers/buyer/{buyer_id}")
+async def get_buyer_offers(buyer_id: str):
+    """Get offers made by a buyer"""
+    offers = await db.offers.find({"buyer_id": buyer_id}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    for o in offers:
+        listing = await db.listings.find_one({"id": o["listing_id"]}, {"_id": 0, "title": 1, "address": 1, "city": 1, "price": 1, "images": 1})
+        o["listing"] = listing or {}
+    return offers
+
+@api_router.get("/offers/seller/{seller_id}")
+async def get_seller_offers(seller_id: str):
+    """Get offers received by a seller"""
+    offers = await db.offers.find({"seller_id": seller_id}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    for o in offers:
+        listing = await db.listings.find_one({"id": o["listing_id"]}, {"_id": 0, "title": 1, "address": 1, "city": 1, "price": 1, "images": 1})
+        o["listing"] = listing or {}
+        buyer = await db.users.find_one({"id": o["buyer_id"]}, {"_id": 0, "name": 1, "email": 1})
+        o["buyer"] = buyer or {}
+    return offers
+
+@api_router.get("/offers/listing/{listing_id}")
+async def get_listing_offers(listing_id: str):
+    """Get all offers for a listing"""
+    offers = await db.offers.find({"listing_id": listing_id}, {"_id": 0}).sort("offer_amount", -1).to_list(50)
+    for o in offers:
+        buyer = await db.users.find_one({"id": o["buyer_id"]}, {"_id": 0, "name": 1, "email": 1})
+        o["buyer"] = buyer or {}
+    return offers
+
+@api_router.put("/offers/{offer_id}/respond")
+async def respond_to_offer(offer_id: str, action: str, seller_id: str, counter_amount: Optional[int] = None, counter_message: Optional[str] = None):
+    """Seller responds to an offer: accept, reject, or counter"""
+    if action not in ["accepted", "rejected", "countered"]:
+        raise HTTPException(status_code=400, detail="Invalid action")
+    
+    offer = await db.offers.find_one({"id": offer_id}, {"_id": 0})
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer not found")
+    if offer["seller_id"] != seller_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    update = {"status": action, "updated_at": datetime.now(timezone.utc).isoformat()}
+    if action == "countered" and counter_amount:
+        update["counter_amount"] = counter_amount
+        update["counter_message"] = counter_message
+    
+    await db.offers.update_one({"id": offer_id}, {"$set": update})
+    
+    # If accepted, mark listing as sold/pending
+    if action == "accepted":
+        await db.listings.update_one(
+            {"id": offer["listing_id"]},
+            {"$set": {"status": "pending_sale"}}
+        )
+    
+    # Notify buyer
+    status_text = {"accepted": "accepted!", "rejected": "declined.", "countered": f"countered with ${counter_amount:,}." if counter_amount else "countered."}
+    await db.notifications.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": offer["buyer_id"],
+        "title": f"Offer {action.title()}",
+        "body": f"Your offer has been {status_text.get(action, action)}",
+        "type": "offer",
+        "data": {"offer_id": offer_id, "action": action},
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Email buyer
+    buyer = await db.users.find_one({"id": offer["buyer_id"]}, {"_id": 0})
+    if buyer and buyer.get("email"):
+        asyncio.create_task(send_email(
+            buyer["email"],
+            f"Offer {action.title()}",
+            email_application_update(buyer.get("name", ""), "the property", action)
+        ))
+    
+    return {"status": "updated"}
+
 # ========== CONTRACTOR PROFILES ==========
 
 @api_router.post("/contractors/profile")
