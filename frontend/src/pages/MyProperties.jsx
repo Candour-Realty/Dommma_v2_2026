@@ -205,6 +205,9 @@ const MyProperties = () => {
                   <img src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600'} alt={listing.title} className="w-full h-full object-cover" />
                   <div className="absolute top-3 left-3 flex gap-2">
                     <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium">{listing.property_type}</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${listing.listing_type === 'sale' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                      {listing.listing_type === 'sale' ? 'For Sale' : 'For Rent'}
+                    </span>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${listing.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                       {listing.status}
                     </span>
