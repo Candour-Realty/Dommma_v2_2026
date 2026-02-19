@@ -120,9 +120,75 @@ const NovaChat = () => {
       // Fetch proactive suggestions if user is logged in
       if (user?.id) {
         fetchProactiveSuggestions();
+        fetchVoicePreference();
       }
     }
   }, [isOpen, messages.length, user]);
+
+  const fetchVoicePreference = async () => {
+    if (!user?.id) return;
+    try {
+      const response = await axios.get(`${API}/nova/tts/preferences/${user.id}`);
+      setVoiceEnabled(response.data.enabled || false);
+      setSelectedVoice(response.data.voice || 'nova');
+    } catch (error) {
+      console.error('Error fetching voice preferences:', error);
+    }
+  };
+
+  const speakResponse = async (text) => {
+    if (!voiceEnabled || !text) return;
+    
+    // Strip markdown and limit length
+    const cleanText = text
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      .replace(/#{1,6}\s/g, '')
+      .replace(/\n/g, ' ')
+      .slice(0, 500);
+    
+    try {
+      setIsSpeaking(true);
+      const response = await axios.post(`${API}/nova/tts`, {
+        text: cleanText,
+        voice: selectedVoice,
+        speed: 1.0
+      });
+      
+      if (response.data.audio) {
+        const audio = new Audio(`data:audio/mp3;base64,${response.data.audio}`);
+        audioRef.current = audio;
+        audio.onended = () => setIsSpeaking(false);
+        audio.onerror = () => setIsSpeaking(false);
+        await audio.play();
+      }
+    } catch (error) {
+      console.error('TTS error:', error);
+      setIsSpeaking(false);
+    }
+  };
+
+  const stopSpeaking = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setIsSpeaking(false);
+  };
+
+  const toggleVoice = async () => {
+    const newEnabled = !voiceEnabled;
+    setVoiceEnabled(newEnabled);
+    if (user?.id) {
+      try {
+        await axios.post(`${API}/nova/tts/preferences/${user.id}`, {
+          enabled: newEnabled
+        });
+      } catch (error) {
+        console.error('Error updating voice preference:', error);
+      }
+    }
+  };
 
   const fetchProactiveSuggestions = async () => {
     if (!user?.id) return;
