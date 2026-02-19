@@ -1493,6 +1493,352 @@ async def delete_listing(listing_id: str, landlord_id: str):
     
     return {"status": "deleted"}
 
+# ========== CONTRACTOR PROFILES ==========
+
+@api_router.post("/contractors/profile")
+async def create_contractor_profile(user_id: str, profile: ContractorProfileCreate):
+    """Create or update contractor profile"""
+    existing = await db.contractor_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    
+    if existing:
+        update_data = profile.model_dump()
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.contractor_profiles.update_one(
+            {"user_id": user_id},
+            {"$set": update_data}
+        )
+        updated = await db.contractor_profiles.find_one({"user_id": user_id}, {"_id": 0})
+        return updated
+    
+    profile_obj = ContractorProfile(user_id=user_id, **profile.model_dump())
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if user:
+        profile_obj.email = profile.email or user.get("email")
+    
+    doc = profile_obj.model_dump()
+    await db.contractor_profiles.insert_one(doc)
+    return doc
+
+@api_router.get("/contractors/profile/{user_id}")
+async def get_contractor_profile(user_id: str):
+    """Get contractor profile by user_id"""
+    profile = await db.contractor_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
+
+@api_router.get("/contractors/search")
+async def search_contractors(
+    specialty: Optional[str] = None,
+    area: Optional[str] = None,
+    min_rating: Optional[float] = None,
+    q: Optional[str] = None
+):
+    """Search contractors"""
+    query = {"status": "active"}
+    if specialty:
+        query["specialties"] = {"$regex": specialty, "$options": "i"}
+    if area:
+        query["service_areas"] = {"$regex": area, "$options": "i"}
+    if min_rating:
+        query["rating"] = {"$gte": min_rating}
+    if q:
+        query["$or"] = [
+            {"business_name": {"$regex": q, "$options": "i"}},
+            {"description": {"$regex": q, "$options": "i"}},
+            {"specialties": {"$regex": q, "$options": "i"}}
+        ]
+    
+    profiles = await db.contractor_profiles.find(query, {"_id": 0}).to_list(100)
+    
+    # Enrich with user info
+    for p in profiles:
+        user = await db.users.find_one({"id": p["user_id"]}, {"_id": 0, "name": 1, "email": 1})
+        if user:
+            p["user_name"] = user.get("name", "")
+    
+    return profiles
+
+@api_router.put("/contractors/profile/{user_id}/images")
+async def update_contractor_images(user_id: str, images: List[str]):
+    """Update contractor portfolio images"""
+    await db.contractor_profiles.update_one(
+        {"user_id": user_id},
+        {"$set": {"portfolio_images": images, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"status": "updated"}
+
+# ========== CONTRACTOR SERVICES ==========
+
+@api_router.post("/contractors/services")
+async def create_contractor_service(contractor_id: str, service: ContractorServiceCreate):
+    """Create a service listing"""
+    service_obj = ContractorService(contractor_id=contractor_id, **service.model_dump())
+    doc = service_obj.model_dump()
+    await db.contractor_services.insert_one(doc)
+    return doc
+
+@api_router.get("/contractors/{contractor_id}/services")
+async def get_contractor_services(contractor_id: str):
+    """Get services offered by a contractor"""
+    services = await db.contractor_services.find(
+        {"contractor_id": contractor_id, "status": "active"}, {"_id": 0}
+    ).to_list(50)
+    return services
+
+@api_router.get("/services/search")
+async def search_services(
+    category: Optional[str] = None,
+    q: Optional[str] = None,
+    max_price: Optional[float] = None
+):
+    """Search all contractor services"""
+    query = {"status": "active"}
+    if category:
+        query["category"] = {"$regex": category, "$options": "i"}
+    if q:
+        query["$or"] = [
+            {"title": {"$regex": q, "$options": "i"}},
+            {"description": {"$regex": q, "$options": "i"}}
+        ]
+    if max_price:
+        query["price"] = {"$lte": max_price}
+    
+    services = await db.contractor_services.find(query, {"_id": 0}).to_list(100)
+    
+    # Enrich with contractor info
+    for s in services:
+        profile = await db.contractor_profiles.find_one(
+            {"contractor_id": s["contractor_id"]},
+            {"_id": 0, "business_name": 1, "rating": 1, "avatar": 1}
+        )
+        if not profile:
+            profile = await db.contractor_profiles.find_one(
+                {"user_id": s["contractor_id"]},
+                {"_id": 0, "business_name": 1, "rating": 1, "avatar": 1}
+            )
+        s["contractor"] = profile or {}
+    
+    return services
+
+@api_router.delete("/contractors/services/{service_id}")
+async def delete_contractor_service(service_id: str, contractor_id: str):
+    """Delete a service"""
+    await db.contractor_services.update_one(
+        {"id": service_id, "contractor_id": contractor_id},
+        {"$set": {"status": "deleted"}}
+    )
+    return {"status": "deleted"}
+
+# ========== SERVICE BOOKINGS ==========
+
+@api_router.post("/bookings")
+async def create_booking(customer_id: str, booking: ServiceBookingCreate):
+    """Create a service booking"""
+    booking_obj = ServiceBooking(customer_id=customer_id, **booking.model_dump())
+    
+    # If service_id provided, get price
+    if booking.service_id:
+        service = await db.contractor_services.find_one({"id": booking.service_id}, {"_id": 0})
+        if service and service.get("price"):
+            booking_obj.amount = service["price"]
+    
+    doc = booking_obj.model_dump()
+    await db.bookings.insert_one(doc)
+    
+    # Notify contractor
+    await db.notifications.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": booking.contractor_id,
+        "title": "New Booking Request",
+        "body": f"New booking: {booking.title}",
+        "type": "booking",
+        "data": {"booking_id": booking_obj.id},
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return doc
+
+@api_router.get("/bookings/customer/{customer_id}")
+async def get_customer_bookings(customer_id: str):
+    """Get bookings made by a customer"""
+    bookings = await db.bookings.find({"customer_id": customer_id}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    for b in bookings:
+        profile = await db.contractor_profiles.find_one({"user_id": b["contractor_id"]}, {"_id": 0, "business_name": 1, "avatar": 1})
+        b["contractor"] = profile or {}
+    return bookings
+
+@api_router.get("/bookings/contractor/{contractor_id}")
+async def get_contractor_bookings(contractor_id: str):
+    """Get bookings for a contractor"""
+    bookings = await db.bookings.find({"contractor_id": contractor_id}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    for b in bookings:
+        user = await db.users.find_one({"id": b["customer_id"]}, {"_id": 0, "name": 1, "email": 1})
+        b["customer"] = user or {}
+    return bookings
+
+@api_router.put("/bookings/{booking_id}/status")
+async def update_booking_status(booking_id: str, status: str, user_id: str):
+    """Update booking status"""
+    valid_statuses = ["pending", "confirmed", "in_progress", "completed", "cancelled"]
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Notify the other party
+    notify_user = booking["customer_id"] if user_id == booking["contractor_id"] else booking["contractor_id"]
+    await db.notifications.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": notify_user,
+        "title": f"Booking {status.replace('_', ' ').title()}",
+        "body": f"Booking '{booking['title']}' is now {status.replace('_', ' ')}",
+        "type": "booking",
+        "data": {"booking_id": booking_id, "status": status},
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"status": "updated"}
+
+@api_router.post("/bookings/{booking_id}/pay")
+async def pay_booking(request: Request, booking_id: str):
+    """Create payment for a booking"""
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if not booking.get("amount"):
+        raise HTTPException(status_code=400, detail="No amount set for this booking")
+    
+    api_key = os.environ.get('STRIPE_API_KEY')
+    host_url = str(request.base_url).rstrip('/')
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+    
+    origin = request.headers.get('origin', host_url)
+    success_url = f"{origin}/dashboard?payment=success&booking_id={booking_id}&session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{origin}/dashboard?payment=cancelled"
+    
+    checkout_request = CheckoutSessionRequest(
+        amount=float(booking["amount"]),
+        currency="cad",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={"booking_id": booking_id, "contractor_id": booking["contractor_id"]}
+    )
+    
+    session = await stripe_checkout.create_checkout_session(checkout_request)
+    
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"payment_session_id": session.session_id}}
+    )
+    
+    # Also create a payment transaction record
+    transaction = PaymentTransaction(
+        session_id=session.session_id,
+        user_id=booking["customer_id"],
+        amount=booking["amount"],
+        currency="cad",
+        description=f"Booking: {booking['title']}",
+        recipient_id=booking["contractor_id"],
+        payment_status="pending",
+        status="initiated"
+    )
+    await db.payment_transactions.insert_one(transaction.model_dump())
+    
+    return {"url": session.url, "session_id": session.session_id}
+
+@api_router.post("/bookings/{booking_id}/review")
+async def review_booking(booking_id: str, customer_id: str, review: ReviewCreate):
+    """Leave a review for a completed booking"""
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking["customer_id"] != customer_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"rating": review.rating, "review": review.review, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Update contractor's average rating
+    all_reviews = await db.bookings.find(
+        {"contractor_id": booking["contractor_id"], "rating": {"$exists": True, "$ne": None}},
+        {"_id": 0, "rating": 1}
+    ).to_list(500)
+    
+    if all_reviews:
+        avg_rating = sum(r["rating"] for r in all_reviews) / len(all_reviews)
+        await db.contractor_profiles.update_one(
+            {"user_id": booking["contractor_id"]},
+            {"$set": {"rating": round(avg_rating, 1), "review_count": len(all_reviews)}}
+        )
+    
+    return {"status": "reviewed"}
+
+# ========== USER PROFILE ==========
+
+@api_router.get("/users/{user_id}")
+async def get_user(user_id: str):
+    """Get user by ID"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0, "password": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@api_router.put("/users/{user_id}")
+async def update_user(user_id: str, updates: Dict[str, Any]):
+    """Update user profile"""
+    allowed_fields = ["name", "phone", "avatar", "bio"]
+    update_dict = {k: v for k, v in updates.items() if k in allowed_fields}
+    if update_dict:
+        await db.users.update_one({"id": user_id}, {"$set": update_dict})
+    return {"status": "updated"}
+
+# ========== IMAGE UPLOAD ==========
+
+@api_router.post("/upload/image")
+async def upload_image(file: UploadFile = File(...)):
+    """Upload an image and return base64 data URL"""
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:  # 5MB limit
+        raise HTTPException(status_code=400, detail="File too large (max 5MB)")
+    
+    content_type = file.content_type or "image/jpeg"
+    b64 = base64.b64encode(content).decode("utf-8")
+    data_url = f"data:{content_type};base64,{b64}"
+    
+    # Store in DB for persistence
+    image_id = str(uuid.uuid4())
+    await db.images.insert_one({
+        "id": image_id,
+        "filename": file.filename,
+        "content_type": content_type,
+        "data": data_url,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"id": image_id, "url": data_url}
+
+@api_router.get("/images/{image_id}")
+async def get_image(image_id: str):
+    """Get an uploaded image"""
+    img = await db.images.find_one({"id": image_id}, {"_id": 0})
+    if not img:
+        raise HTTPException(status_code=404, detail="Image not found")
+    return img
+
 # Seed Data Route
 @api_router.post("/seed")
 async def seed_data():
