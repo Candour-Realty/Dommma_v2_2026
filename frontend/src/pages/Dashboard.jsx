@@ -305,6 +305,7 @@ const Dashboard = () => {
       { icon: Building2, label: 'My Properties', path: '/dashboard/my-properties' },
       { icon: Users, label: 'Applications', path: '/dashboard/applications' },
       { icon: DollarSign, label: 'Offers', path: '/offers' },
+      { icon: Users2, label: 'Find Tenants', path: '/roommates' },
       { icon: Wrench, label: 'Find Contractors', path: '/contractors' },
       { icon: Sparkles, label: 'Report Issue', path: '/report-issue' },
       { icon: Calendar, label: 'Maintenance', path: '/dashboard/maintenance' },
