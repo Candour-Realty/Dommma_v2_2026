@@ -232,7 +232,10 @@ const Browse = () => {
                           <span>{listing.sqft} sqft</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <p className="text-xl font-semibold text-[#1A2F3A]">${listing.price?.toLocaleString()}<span className="text-sm font-normal text-gray-500">/mo</span></p>
+                          <p className="text-xl font-semibold text-[#1A2F3A]">
+                            ${listing.price?.toLocaleString()}
+                            <span className="text-sm font-normal text-gray-500">{listing.listing_type === 'sale' ? '' : '/mo'}</span>
+                          </p>
                           {listing.pet_friendly && <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">Pet Friendly</span>}
                         </div>
                       </div>
