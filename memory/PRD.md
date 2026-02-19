@@ -176,4 +176,4 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
 - **Emergent LLM Key**: Configured for Claude, Whisper, TTS
 
 ## Last Updated
-December 19, 2025 - V7 TTS, Insights, OAuth verified working
+December 19, 2025 - V8 Viewing Scheduler implemented and tested
