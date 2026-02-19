@@ -360,9 +360,13 @@ class TestPreviousFeatures:
         assert response.status_code == 200
         
         data = response.json()
-        assert "categories" in data
-        assert len(data["categories"]) > 0
-        print(f"✓ Portfolio categories endpoint working")
+        # Response is a list of categories directly
+        assert isinstance(data, list)
+        assert len(data) > 0
+        # Each category should have value and label
+        assert "value" in data[0]
+        assert "label" in data[0]
+        print(f"✓ Portfolio categories endpoint working - {len(data)} categories")
     
     def test_listings_endpoint(self):
         """Test listings endpoint still works"""
