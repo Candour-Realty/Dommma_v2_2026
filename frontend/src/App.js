@@ -12,6 +12,9 @@ import Contact from "@/pages/Contact";
 import Browse from "@/pages/Browse";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
+import Payments from "@/pages/Payments";
+import Documents from "@/pages/Documents";
+import Messages from "@/pages/Messages";
 
 // Auth Context
 export const AuthContext = createContext(null);
@@ -43,6 +46,9 @@ function App() {
           <Route path="/browse" element={<Browse />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/payments" element={<Payments />} />
+          <Route path="/dashboard/documents" element={<Documents />} />
+          <Route path="/dashboard/messages" element={<Messages />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
