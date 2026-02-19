@@ -99,7 +99,10 @@ const Browse = () => {
     return () => clearTimeout(debounce);
   }, [filters]);
 
-  const createPriceLabel = (price) => `$${Math.floor(price / 1000)}k`;
+  const createPriceLabel = (price, listingType) => {
+    if (listingType === 'sale' || price > 100000) return `$${(price / 1000).toFixed(0)}k`;
+    return `$${(price / 1000).toFixed(1)}k`;
+  };
 
   return (
     <div className="min-h-screen bg-[#F5F5F0]">
