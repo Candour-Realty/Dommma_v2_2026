@@ -166,10 +166,17 @@ class Listing(BaseModel):
     description: str
     amenities: List[str]
     images: List[str]
-    available_date: str
-    pet_friendly: bool
-    parking: bool
+    available_date: str = ""
+    pet_friendly: bool = False
+    parking: bool = False
     landlord_id: Optional[str] = None
+    listing_type: str = "rent"  # rent, sale
+    sale_price: Optional[int] = None
+    year_built: Optional[int] = None
+    lot_size: Optional[int] = None
+    garage: Optional[int] = None
+    mls_number: Optional[str] = None
+    open_house_dates: List[str] = []
     status: str = "active"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -192,6 +199,13 @@ class ListingCreate(BaseModel):
     available_date: str = ""
     pet_friendly: bool = False
     parking: bool = False
+    listing_type: str = "rent"
+    sale_price: Optional[int] = None
+    year_built: Optional[int] = None
+    lot_size: Optional[int] = None
+    garage: Optional[int] = None
+    mls_number: Optional[str] = None
+    open_house_dates: List[str] = []
 
 class ChatMessage(BaseModel):
     role: str
