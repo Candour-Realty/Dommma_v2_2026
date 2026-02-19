@@ -257,7 +257,7 @@ const Browse = () => {
                       position={{ lat: listing.lat, lng: listing.lng }}
                       onClick={() => { setActiveMarker(listing.id); setHoveredListing(listing); }}
                       icon={{
-                        url: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="60" height="30"><rect x="0" y="0" width="60" height="30" rx="15" fill="${activeMarker === listing.id ? '#2C4A52' : '#1A2F3A'}"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold" font-size="12">${createPriceLabel(listing.price)}</text></svg>`)}`,
+                        url: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="60" height="30"><rect x="0" y="0" width="60" height="30" rx="15" fill="${activeMarker === listing.id ? '#2C4A52' : '#1A2F3A'}"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold" font-size="12">${createPriceLabel(listing.price, listing.listing_type)}</text></svg>`)}`,
                         scaledSize: new window.google.maps.Size(60, 30),
                         anchor: new window.google.maps.Point(30, 15),
                       }}
