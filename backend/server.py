@@ -2324,6 +2324,163 @@ async def get_image(image_id: str):
         raise HTTPException(status_code=404, detail="Image not found")
     return img
 
+# ========== ROOMMATE FINDER ==========
+
+@api_router.post("/roommates/profile")
+async def create_roommate_profile(user_id: str, profile: RoommateProfileCreate):
+    """Create or update roommate profile"""
+    existing = await db.roommate_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    if existing:
+        await db.roommate_profiles.update_one(
+            {"user_id": user_id},
+            {"$set": {**profile.model_dump(), "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        updated = await db.roommate_profiles.find_one({"user_id": user_id}, {"_id": 0})
+        return updated
+    
+    profile_obj = RoommateProfile(user_id=user_id, **profile.model_dump())
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if user:
+        profile_obj.name = profile.name or user.get("name", "")
+    doc = profile_obj.model_dump()
+    await db.roommate_profiles.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.get("/roommates/profile/{user_id}")
+async def get_roommate_profile(user_id: str):
+    profile = await db.roommate_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
+
+@api_router.get("/roommates/search")
+async def search_roommates(
+    budget_min: Optional[int] = None,
+    budget_max: Optional[int] = None,
+    area: Optional[str] = None,
+    lifestyle: Optional[str] = None,
+    pets: Optional[bool] = None,
+    smoking: Optional[bool] = None,
+    user_id: Optional[str] = None
+):
+    """Search for compatible roommates"""
+    query = {"status": "active"}
+    if user_id:
+        query["user_id"] = {"$ne": user_id}
+    if budget_min:
+        query["budget_max"] = {"$gte": budget_min}
+    if budget_max:
+        query["budget_min"] = {"$lte": budget_max}
+    if area:
+        query["preferred_areas"] = {"$regex": area, "$options": "i"}
+    if lifestyle:
+        query["lifestyle"] = {"$regex": lifestyle, "$options": "i"}
+    if pets is not None:
+        query["pets"] = pets
+    if smoking is not None:
+        query["smoking"] = smoking
+    
+    profiles = await db.roommate_profiles.find(query, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return profiles
+
+@api_router.post("/roommates/{profile_id}/connect")
+async def connect_roommate(profile_id: str, user_id: str, message: str = ""):
+    """Send a connection request to a roommate"""
+    target = await db.roommate_profiles.find_one({"id": profile_id}, {"_id": 0})
+    if not target:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    connection = {
+        "id": str(uuid.uuid4()),
+        "from_user_id": user_id,
+        "to_user_id": target["user_id"],
+        "profile_id": profile_id,
+        "message": message,
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.roommate_connections.insert_one(connection)
+    
+    await db.notifications.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": target["user_id"],
+        "title": "New Roommate Request",
+        "body": f"Someone wants to connect as a potential roommate!",
+        "type": "roommate",
+        "data": {"connection_id": connection["id"]},
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    connection.pop("_id", None)
+    return connection
+
+@api_router.get("/roommates/connections/{user_id}")
+async def get_roommate_connections(user_id: str):
+    """Get roommate connections for a user"""
+    connections = await db.roommate_connections.find(
+        {"$or": [{"from_user_id": user_id}, {"to_user_id": user_id}]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    for c in connections:
+        other_id = c["to_user_id"] if c["from_user_id"] == user_id else c["from_user_id"]
+        profile = await db.roommate_profiles.find_one({"user_id": other_id}, {"_id": 0})
+        c["other_profile"] = profile or {}
+    return connections
+
+# ========== FAVORITES ==========
+
+@api_router.post("/favorites")
+async def toggle_favorite(user_id: str, listing_id: str):
+    """Toggle favorite on a listing"""
+    existing = await db.favorites.find_one({"user_id": user_id, "listing_id": listing_id})
+    if existing:
+        await db.favorites.delete_one({"user_id": user_id, "listing_id": listing_id})
+        return {"status": "removed", "favorited": False}
+    else:
+        await db.favorites.insert_one({
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "listing_id": listing_id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        return {"status": "added", "favorited": True}
+
+@api_router.get("/favorites/{user_id}")
+async def get_favorites(user_id: str):
+    """Get user's favorited listings"""
+    favs = await db.favorites.find({"user_id": user_id}, {"_id": 0}).to_list(100)
+    listings = []
+    for f in favs:
+        listing = await db.listings.find_one({"id": f["listing_id"]}, {"_id": 0})
+        if listing:
+            listing["favorited_at"] = f.get("created_at")
+            listings.append(listing)
+    return listings
+
+@api_router.get("/favorites/{user_id}/ids")
+async def get_favorite_ids(user_id: str):
+    """Get just the IDs of favorited listings"""
+    favs = await db.favorites.find({"user_id": user_id}, {"_id": 0, "listing_id": 1}).to_list(100)
+    return [f["listing_id"] for f in favs]
+
+# ========== PROPERTY COMPARISON ==========
+
+@api_router.post("/compare")
+async def compare_properties(listing_ids: List[str]):
+    """Compare multiple properties side by side"""
+    if len(listing_ids) < 2 or len(listing_ids) > 4:
+        raise HTTPException(status_code=400, detail="Compare 2-4 properties")
+    
+    listings = []
+    for lid in listing_ids:
+        listing = await db.listings.find_one({"id": lid}, {"_id": 0})
+        if listing:
+            listings.append(listing)
+    
+    return {"listings": listings, "count": len(listings)}
+
 # Seed Data Route
 @api_router.post("/seed")
 async def seed_data():
