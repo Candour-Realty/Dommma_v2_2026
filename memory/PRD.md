@@ -279,6 +279,16 @@ DOMMMA V2 is a complete real estate marketplace platform for renting, buying, le
 - **Google Maps Platform**: Interactive property map
 - **Claude Sonnet 4.5**: Nova AI chatbot (via Emergent LLM Key)
 - **Stripe**: Payment processing (test mode)
+- **Firebase**: Analytics + Push Notifications
+
+### Firebase Setup (VAPID Key Required for Push Notifications)
+To enable push notifications, generate a VAPID key:
+1. Go to Firebase Console → Project Settings → Cloud Messaging
+2. Under "Web configuration", click "Generate key pair"
+3. Copy the VAPID key and update `/app/frontend/src/lib/firebase.js`:
+   ```javascript
+   const VAPID_KEY = 'YOUR_GENERATED_VAPID_KEY';
+   ```
 
 ## Notes
 - Demo contacts in Messages are mocked for UI display
