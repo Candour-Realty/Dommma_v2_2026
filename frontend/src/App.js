@@ -127,6 +127,7 @@ function App() {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/portfolio" element={<ContractorPortfolio />} />
           <Route path="/portfolio/:contractorId" element={<ContractorPortfolio />} />
+          <Route path="/nova-insights" element={<NovaInsights />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
