@@ -753,8 +753,8 @@ async def chat_with_nova(request: ChatRequest):
     # Get available listings for context
     listings = await db.listings.find({"status": "active"}, {"_id": 0}).to_list(50)
     listings_context = "\n".join([
-        f"- {l['title']}: {l['bedrooms']}bd/{l['bathrooms']}ba, ${l['price']}/mo, {l['address']}, {l['city']}, {l['sqft']}sqft, Pet-friendly: {l['pet_friendly']}, Type: {l['property_type']}"
-        for l in listings
+        f"- {listing['title']}: {listing['bedrooms']}bd/{listing['bathrooms']}ba, ${listing['price']}/mo, {listing['address']}, {listing['city']}, {listing['sqft']}sqft, Pet-friendly: {listing['pet_friendly']}, Type: {listing['property_type']}"
+        for listing in listings
     ])
     
     # Build conversation context from history
