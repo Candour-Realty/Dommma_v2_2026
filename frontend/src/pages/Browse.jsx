@@ -4,6 +4,7 @@ import { Search, Bed, Bath, MapPin, Heart, X, SlidersHorizontal, ArrowLeft, Grid
 import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from '@react-google-maps/api';
 import axios from 'axios';
 import NovaChat from '../components/chat/NovaChat';
+import ViewingScheduler from '../components/scheduling/ViewingScheduler';
 import { useAuth } from '../App';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
