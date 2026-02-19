@@ -50,6 +50,7 @@ const Browse = () => {
     listingType: 'rent'
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [showViewingScheduler, setShowViewingScheduler] = useState(false);
   
   const propertyTypes = ['Apartment', 'Condo', 'House', 'Townhouse', 'Studio', 'Duplex', 'Penthouse'];
 
