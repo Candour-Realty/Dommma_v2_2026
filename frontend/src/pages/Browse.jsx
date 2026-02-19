@@ -374,9 +374,15 @@ const Browse = () => {
                     </button>
                     <button onClick={() => {
                       if (!user) { navigate('/login'); return; }
+                      setShowViewingScheduler(true);
+                    }} className="px-6 py-4 rounded-full border-2 border-[#1A2F3A] text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors flex items-center gap-2" data-testid="schedule-viewing-btn">
+                      <CalendarCheck size={18} /> Schedule Viewing
+                    </button>
+                    <button onClick={() => {
+                      if (!user) { navigate('/login'); return; }
                       navigate(`/dashboard/messages?to=${selectedListing.landlord_id || ''}&listing=${selectedListing.id}`);
                     }} className="px-6 py-4 rounded-full border-2 border-[#1A2F3A] text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors flex items-center gap-2" data-testid="message-seller-btn">
-                      <MessageSquare size={18} /> Message
+                      <MessageSquare size={18} />
                     </button>
                   </>
                 ) : (
@@ -389,13 +395,25 @@ const Browse = () => {
                     </button>
                     <button onClick={() => {
                       if (!user) { navigate('/login'); return; }
+                      setShowViewingScheduler(true);
+                    }} className="px-6 py-4 rounded-full border-2 border-[#1A2F3A] text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors flex items-center gap-2" data-testid="schedule-viewing-btn">
+                      <CalendarCheck size={18} /> Schedule Viewing
+                    </button>
+                    <button onClick={() => {
+                      if (!user) { navigate('/login'); return; }
                       navigate(`/dashboard/messages?to=${selectedListing.landlord_id || ''}&listing=${selectedListing.id}`);
                     }} className="px-6 py-4 rounded-full border-2 border-[#1A2F3A] text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors flex items-center gap-2" data-testid="message-landlord-btn">
-                      <MessageSquare size={18} /> Message
+                      <MessageSquare size={18} />
                     </button>
                   </>
                 )}
-                <button className="px-6 py-4 rounded-full border-2 border-[#1A2F3A] text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors" data-testid="save-listing-btn"><Heart size={20} /></button>
+                <button 
+                  onClick={(e) => toggleFavorite(selectedListing.id, e)}
+                  className={`px-6 py-4 rounded-full border-2 border-[#1A2F3A] transition-colors ${favoriteIds.includes(selectedListing.id) ? 'bg-red-50 text-red-500 border-red-200' : 'text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white'}`}
+                  data-testid="save-listing-btn"
+                >
+                  <Heart size={20} fill={favoriteIds.includes(selectedListing.id) ? 'currentColor' : 'none'} />
+                </button>
               </div>
             </div>
           </div>
