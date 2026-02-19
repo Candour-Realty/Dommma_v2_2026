@@ -1,102 +1,85 @@
 <analysis>An analysis of the conversation for the next agent.
 
 ### original_problem_statement
-The user wants to build a complete real estate marketplace platform called DOMMMA. Initially focused on rentals for Renters, Landlords, and Contractors, the scope has expanded significantly to include a full contractor marketplace, a complete buy/sell real estate platform, advanced AI-powered tools, and social features like a roommate finder.
+The user wants to build a complete real estate marketplace platform called DOMMMA. Initially focused on rentals for Renters, Landlords, and Contractors, the scope has expanded significantly to include a full contractor marketplace, a complete buy/sell real estate platform, advanced AI-powered tools (Nova), social features like a roommate finder, PWA capabilities, and various third-party integrations.
 
 **PRODUCT REQUIREMENTS:**
 *   **Core Platform:** A comprehensive real estate marketplace supporting rentals, sales, and contractor services.
 *   **User Roles:** Renter, Landlord, Contractor, Buyer, Seller.
 *   **Key Features:**
     *   **Marketplace:** Users can list, search, and filter properties for both rent and sale.
-    *   **Contractor Services:** A dedicated marketplace for customers to find, book, and pay contractors. Contractors can manage their profiles and services.
+    *   **Contractor Services:** A dedicated marketplace for customers to find, book, and pay contractors. Contractors can manage their profiles and portfolios.
     *   **Offers & Applications:** Digital rental applications and property purchase offer management.
-    *   **Full Landlord/Seller Functionality:** Ability to post/manage listings, track applications/offers, and communicate with potential tenants/buyers.
     *   **Social Features:** Roommate finder, property comparison tools, and a favorites list.
+    *   **PWA:** The application is a Progressive Web App, making it installable on user devices.
 *   **AI-Powered Tools (Nova):**
-    *   **Smart Issue Reporter:** Users upload an image of a maintenance issue (e.g., a leak), and the AI suggests relevant contractors.
+    *   **Enhanced Chatbot:** A multimodal AI assistant with voice input (Speech-to-Text), voice output (Text-to-Speech), image analysis, conversational memory, and proactive suggestions.
+    *   **Smart Issue Reporter:** Users upload an image of a maintenance issue to get contractor suggestions.
     *   **Document Analyzer:** Scans lease documents for fairness.
     *   **Commute Optimizer:** Finds properties based on commute times.
-*   **Integrations:** Stripe (Payments), Resend (Emails), Google Maps, Claude (AI Chat).
+    *   **Insights Dashboard:** An admin-facing dashboard to track AI usage and user engagement.
+*   **Integrations:** Stripe (Payments), Resend (Emails), Google Maps, Google Calendar (for scheduling), Claude & OpenAI (for AI features), Firebase (for notifications).
 *   **Future Goal:** Native iOS and Android applications.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The DOMMA platform is a large, feature-rich full-stack application.
-*   **Architecture:** React frontend, FastAPI backend (partially refactored), MongoDB database.
-*   **Core Functionality:** Role-based authentication (Renter, Landlord, Contractor), dashboards, and navigation are fully implemented.
-*   **Rental Marketplace:** Fully functional system for listing, searching, applying for, and managing rental properties.
-*   **Sales Marketplace:** Fully functional system for listing properties for sale, browsing, and making offers. The browse page includes a rent/buy toggle and advanced filters.
-*   **Contractor Marketplace:** A complete marketplace where customers can browse and search for contractors. Contractors can manage their profiles. A contractor rating leaderboard is displayed on the homepage.
-*   **AI Features:** Backend endpoints for AI-powered issue detection (image analysis), lease document analysis, and commute optimization are implemented and tested. Frontend pages for these features have been created.
-*   **Integrations:** Stripe, Resend (for email notifications on registration, bookings, etc.), Firebase (Analytics & FCM), Google Maps, and Claude Sonnet 4.5 are all integrated.
-*   **Backend State:** The backend has been partially refactored from a single  file.  and  have been extracted, but all routes and models remain in the main  file.
+The DOMMA platform is a large, feature-rich full-stack application with a modular backend and a comprehensive frontend.
+*   **Architecture:** React frontend, FastAPI backend, MongoDB database. The backend has been successfully refactored from a monolith into a clean, modular structure (, , ).
+*   **Core Functionality:** Role-based authentication, dashboards, and navigation are fully implemented. The rental, sales, and contractor marketplaces are complete and functional.
+*   **Social & Utility Features:** Roommate Finder, Favorites list, and a Property Comparison tool are fully implemented and tested.
+*   **AI Features (Nova):** The AI chatbot Nova is highly advanced. It supports voice input (OpenAI Whisper), image analysis, conversational memory, proactive suggestions, and can read responses aloud (OpenAI TTS). Backend services for other AI tools (document analysis, commute optimization) are also in place. A Nova Insights dashboard has been created to display AI analytics.
+*   **Integrations:** Stripe, Resend, Firebase (Analytics & FCM), Google Maps, Claude Sonnet 4.5, OpenAI Whisper, and OpenAI TTS are all integrated. The backend for Google Calendar OAuth2 is implemented with user-provided credentials.
+*   **PWA:** The application is configured as a Progressive Web App with a manifest and service worker, allowing it to be installed on devices.
+*   **Mock Services:** A mock API for Moving Company quotes exists.
 
 **Last working item**:
-*   **Last item agent was working:** The agent was in the middle of a large feature implementation and refactoring task. After starting the backend refactor and adding backend endpoints for a Roommate Finder, Favorites, and a Comparison tool, the agent began creating the frontend components. The very last action was creating the initial file for the Roommate Finder page.
+*   **Last item agent was working:** The agent implemented a large batch of features:
+    1.  **Text-to-Speech (TTS):** Integrated OpenAI TTS into the Nova chatbot, allowing it to speak responses.
+    2.  **Google Calendar OAuth:** Implemented the backend flow for real Google OAuth2 authentication using credentials provided by the user.
+    3.  **Nova Insights Dashboard:** Created the frontend page and backend endpoint to display analytics about AI chatbot usage.
+    4.  **Push Notifications Service (Backend Stub):** Created the initial backend service file for future push notification logic.
 *   **Status:** IN PROGRESS
-*   **Agent Testing Done:** N
-*   **Which testing method agent to use?** both. Once the full feature set (Roommate Finder, Favorites, Comparison) is implemented, the  should be used to verify the frontend and backend changes.
+*   **Agent Testing Done:** N (The agent only took a screenshot of the Nova Insights page to verify it rendered).
+*   **Which testing method agent to use?** both. The changes are significant and touch the backend (new services, OAuth), frontend (new pages, component updates), and external integrations. A full run with  is required to validate everything.
 *   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-*   **Issue 1: Incomplete Backend Refactoring (P0 - CRITICAL)**
-    *   **Description:** The  file is still a monolith containing all API routes and database models (~4000 lines). While  and  were extracted, the core logic remains entangled, making the codebase difficult to maintain and extend.
-    *   **Attempted fixes:** The agent created a new directory structure (, ) and moved the DB and email logic.
-    *   **Next debug checklist:**
-        1.  Create  and move all Pydantic models from  into separate files (e.g., , , ).
-        2.  Create  and move the API endpoints from  into separate  files (e.g., , , ).
-        3.  Update  to be a lean entry point that includes the routers from .
-    *   **Why fix this issue and what will be achieved with the fix?** Completing the refactor is essential for code maintainability, scalability, and preventing future bugs. It will make adding new features much faster and safer.
-    *   **Status:** IN PROGRESS
-    *   **Is recurring issue?** N
-    *   **Should Test frontend/backend/both after fix?** backend
-    *   **Blocked on other issue:** None. This is the primary blocker.
+There are no outstanding bugs or critical issues. The primary pending work involves completing and testing the last set of implemented features.
 
 **In progress Task List**:
-*   **Task 1: Implement Roommate Finder, Favorites, and Comparison Features (P1)**
-    *   **Where to resume:** The agent has created the backend endpoints and the initial frontend file . The next steps are:
-        1.  Build the UI for , allowing users to create profiles and browse others.
-        2.  Create and build the UI for  to display a user's saved properties.
-        3.  Create and build the UI for a property comparison page.
-        4.  Add routing for the new pages in .
-        5.  Update the  sidebar to link to these new pages.
-    *   **What will be achieved with this?** This will add key social and utility features requested by the user, enhancing the platform's value proposition.
-    *   **Status:** IN PROGRESS
+*   **Task 1: Test and Verify Latest Features (P0 - CRITICAL)**
+    *   **Where to resume:** The code for TTS, Google Calendar OAuth, and the Nova Insights Dashboard has been written. The immediate next step is to run a comprehensive test using the .
+    *   **What will be achieved with this?** This will confirm that the new Nova chatbot features (TTS), the Google OAuth flow, and the new dashboard are working correctly without regressions.
+    *   **Status:** TESTING PENDING
     *   **Should Test frontend/backend/both after fix?** both
-    *   **Blocked on something:** It is highly recommended to complete the backend refactoring (Issue 1) before adding more frontend logic that depends on it.
+    *   **Blocked on something:** None. This is the blocker for all subsequent tasks.
 
 **Upcoming and Future Tasks**
 **Upcoming Tasks:**
-*   **P1: Frontend for AI-powered Maintenance:** Implement the UI for the  page, allowing users to upload an image of a maintenance issue, which is then sent to the backend for analysis to match them with contractors.
-*   **P2: Google Calendar Integration:** Integrate Google Calendar to allow users to schedule property viewings directly from the platform.
+*   **P0: Implement Viewing Scheduler with Google Calendar:** The backend OAuth is done. The next step is to add UI to the property listing pages that allows authenticated users to schedule a viewing, which then creates an event on their connected Google Calendar.
+*   **P1: Implement Frontend Push Notifications:** The backend service stub exists. The frontend needs to be updated to use the Firebase SDK to request user permission for notifications and handle incoming messages for real-time alerts (e.g., new messages, offer updates).
+*   **P2: Implement Contractor Ratings System:** Build the UI for users to submit ratings and reviews for contractors after a job. Display the average rating on contractor profiles and the marketplace leaderboard.
+*   **P3: Implement AI Roommate Compatibility Score:** Replace the current mock service with a real AI-powered backend service that calculates a compatibility score between users based on their profile information (budget, habits, bio).
 
 **Future Tasks:**
 *   **Native Mobile Apps:** Build iOS and Android versions of the application.
-*   **Moving Company Integration:** Connect with moving company APIs to provide instant quotes to users.
-*   **Contractor Ratings System:** Implement a UI for users to rate contractors after a job is completed. The backend  model has a  field, but it is currently unused.
+*   **Real Moving Company Integration:** Replace the mock moving quote API with an integration to a live third-party service.
 
 **Completed work in this session**
--   **Full Buy/Sell Marketplace Implementation:**
-    -   Extended backend models (, ) and added CRUD endpoints for sales listings and offers.
-    -   Enhanced the  page with a Rent/Buy toggle, advanced filters (property type, parking), and sale-specific information in modals.
-    -   Updated the  page to allow landlords/sellers to create and manage For Sale listings.
-    -   Created an  page for buyers to track their offers.
-    -   Added a Featured For Sale section to the homepage.
--   **Full Contractor Marketplace Implementation:**
-    -   Created backend models and endpoints for contractor profiles and services.
-    -   Built frontend pages:  for customers to browse/search contractors and  for contractors to manage their details.
-    -   Added a Contractor Services section and a Contractor Rating Leaderboard to the homepage.
--   **Advanced AI Features (Backend & UI Shells):**
-    -   Implemented and tested backend endpoints for:
-        -   : Analyzes an image of a maintenance issue and suggests contractors.
-        -   : Analyzes a lease document.
-        -   : Finds properties based on commute times.
-    -   Created placeholder frontend pages: , , .
--   **Email Notifications (Resend Integration):**
-    -   Integrated the Resend API to send transactional emails for user registration, booking status updates, and application status changes.
--   **Backend Refactoring (Initiated):**
-    -   Created  and  to begin modularizing the monolithic .
+*   **Backend Refactoring (Completed):** The monolithic  was fully refactored into a modular structure with organized routers, models, and services.
+*   **Social Features (Completed):** Implemented and tested the Favorites, Property Comparison, and Roommate Finder features on the frontend and backend.
+*   **PWA Conversion (Completed):** The React app was converted into a Progressive Web App with a manifest and service worker.
+*   **Advanced AI Chatbot (Nova) Enhancements:**
+    -   Integrated Voice Input (Speech-to-Text via OpenAI Whisper).
+    -   Integrated Voice Output (Text-to-Speech via OpenAI TTS).
+    -   Enhanced UI with proactive suggestions and multimodal input buttons (mic, camera).
+    -   Implemented backend services for conversational memory.
+*   **New Pages & Features:**
+    -   Created  page with a mock backend.
+    -   Created  page.
+    -   Created  page with a backend service.
+    -   Implemented the full backend OAuth2 flow for Google Calendar.
 
 ### **Earlier issues found/mentioned but not fixed**
 None.
@@ -108,91 +91,97 @@ None.
 
 
 ### **Key Technical Concepts**
--   **Frontend:** React.js
--   **Backend:** Python (FastAPI)
+-   **Frontend:** React.js, PWA (Progressive Web App)
+-   **Backend:** Python (FastAPI), Modular service-based architecture
 -   **Database:** MongoDB
--   **Authentication:** JWT with 
--   **Emails:** Resend API
--   **Real-time Notifications:** Firebase Cloud Messaging (FCM)
--   **Payments:** Stripe
--   **AI/LLM:** Claude Sonnet 4.5 via Emergent LLM Key
+-   **Authentication:** JWT, Google OAuth2
+-   **AI/LLM:** Claude Sonnet 4.5, OpenAI Whisper (STT), OpenAI TTS
+-   **Integrations:** Resend (Email), Stripe (Payments), Google Maps, Google Calendar, Firebase (FCM, Analytics)
 
 ### **key DB schema**
--   **users:** 
--   **listings:**  (updated)
--   **offers:**  (new)
--   **roommate_profiles:**  (new)
--   **favorites:**  (new)
--   **contractor_profiles:**  (new)
+-   **users, listings, offers, roommate_profiles, favorites, contractor_profiles:** (Existing schemas)
+-   **ai_conversations:**  (new, for Nova memory)
+-   **nova_insights:**  (new)
+-   **google_auth_tokens:**  (new, stores user's Google tokens)
 
 ### **changes in tech stack**
--   **Resend:** Added for transactional email sending.
+-   **OpenAI Whisper:** Added for Speech-to-Text functionality.
+-   **OpenAI TTS:** Added for Text-to-Speech functionality.
+-   **PWA:** The frontend is now a Progressive Web App.
 
 ### **All files of reference**
-*   : Still the main backend file, but now imports from  and . Contains all new endpoints for buy/sell, contractors, and social features.
-*   : New file for database connection logic.
-*   : New file for Resend email service.
-*   : Heavily modified to include sections for Contractor Services, Contractor Leaderboard, AI Tools, and Featured Sale Listings.
-*   : Heavily modified with a rent/buy toggle, advanced filters, and updated map/modal logic.
-*   : Updated to allow creation/editing of sale listings.
-*    & : Updated with routes and links for all new pages.
-*   **All new component files**: , , , , , , .
+*   : Contains the new Google OAuth logic.
+*   : Contains the OpenAI Whisper integration.
+*   : Contains OpenAI TTS and other AI logic.
+*   : Contains endpoints for TTS and insights.
+*   : Contains the Google OAuth callback endpoints.
+*   : Heavily modified to include voice input, TTS output, and new UI controls.
+*   : New page for displaying AI analytics.
+*   , : New files for PWA functionality.
 
 ### **Areas that need refactoring**:
--   **CRITICAL: Complete the refactoring of **. This is the highest priority technical debt. All API routes should be moved to  and all Pydantic/database models to . The current monolithic structure is unsustainable.
+The major backend refactoring is complete. Some large frontend components like  could be broken down into smaller, more manageable child components in the future to improve maintainability.
 
 ### **key api endpoints**
-*   : Fetches all contractor profiles.
-*   : Updated to filter by .
-*   : Creates a purchase offer for a sale listing.
-*   : Fetches roommate profiles.
-*   : Adds a listing to user's favorites.
-*   : AI endpoint to analyze maintenance photos.
-*   CRUD endpoints for landlords to manage sale listings.
+*   : Generates speech audio from text.
+*   : Fetches data for the AI analytics dashboard.
+*   : Initiates the Google OAuth flow.
+*   : Handles the OAuth callback from Google.
+*   : Transcribes audio speech into text.
+*   : Enhanced endpoint supporting conversational memory.
 
 ### **Critical Info for New Agent**
--   **PRIORITY #1: Refactor the Backend.** Before adding any more features, you must complete the refactoring of . The monolith is becoming unmanageable. Follow the plan outlined in the All Pending/In progress Issue list.
--   **Resend in Test Mode:** The Resend integration works but can only send emails to the owner's verified email address. For production use, the user will need to verify their domain with Resend.
--   **In-Progress Feature Set:** The Roommate Finder, Favorites, and Comparison features were started. The backend endpoints exist, but the frontend needs to be built and connected.
+-   **PRIORITY #1: Test the Latest Features.** The immediate next action must be to run the testing agent () to validate the last batch of work (TTS, Google OAuth, Insights Dashboard) before proceeding.
+-   **Configure Google OAuth Credentials.** The user provided a Google Client ID and Secret in message #239. These must be added to the  file for the calendar integration to function correctly.
+-   **Connect the Dots.** Many powerful backend features are now complete (like Google Calendar auth). The next phase of work will focus on connecting these services to the frontend UI to create seamless user experiences (e.g., booking a viewing from a listing page).
 
 ### **documents and test reports created in this job**
-*    (Updated)
+*    (Updated multiple times)
 *   
 *   
 *   
 
 ### **Last 10 User Messages and any pending HUMAN messages**
-10. **User:** Yes - lets do next action items and future items too
-9.  **Agent:** Presents a plan to build the Buy/Sell functionality.
-8.  **User:** yes. Also - this portal is just not for renter and landlords and contractors. We also want to provide service to customers to buy/sell real estate.
-7.  **Agent:** Asks for confirmation to proceed with the next items.
-6.  **User:** Yes - lets do next items and future items too
-5.  **Agent:** Finishes the AI features and contractor leaderboard, suggests next steps.
-4.  **User:** Confirms and provides the Resend API key. Specifies which AI features to build. Suggests an AI feature: image upload for maintenance matching.
-3.  **Agent:** Asks for the Resend API key and clarification on which AI features to prioritize.
-2.  **User:** Asks to continue with the next and future items, and mentions needing iOS/Android apps later.
-1.  **Agent:** Finishes the contractor marketplace implementation and asks to proceed.
+*   **User (pending):** None. The last user message gave the green light to continue.
+*   **User #239:** Provided Google OAuth credentials and prioritized all proposed tasks.
+*   **User #236:** conitnue - approved the agent's plan.
+*   **User #191:** Chose design options and confirmed continuing with AI enhancements.
+*   **User #184:** Approved continuing and asked for suggestions to improve the AI chatbot.
+*   **User #73:** Provided choices for calendar integration, mock services, and feature prioritization.
+*   **User #70:** Approved the agent's plan for the next set of features.
+*   **User #5:** Approved the agent's initial plan and provided design guidance.
 
 ### **Project Health Check:**
-*   **Broken:** None.
-*   **Mocked:** Contractor ratings on the homepage leaderboard are all '0' as there is no functionality yet for customers to submit reviews.
+*   **Broken:** None confirmed, but the latest features are untested and may have bugs.
+*   **Mocked:**
+    *   Moving Company API ().
+    *   AI Roommate Compatibility Score.
+    *   Contractor Ratings functionality (UI and logic non-existent).
 
 ### **3rd Party Integrations**
-*   **Google Maps Platform:** Powers maps on . (Requires User API Key)
-*   **Claude Sonnet 4.5:** Powers the Nova AI chatbot. (Uses Emergent LLM Key)
+*   **Google Maps Platform:** Powers maps. (Requires User API Key)
+*   **Claude Sonnet 4.5:** Powers core AI chat logic. (Uses Emergent LLM Key)
+*   **OpenAI Whisper:** For Speech-to-Text. (Uses Emergent LLM Key)
+*   **OpenAI TTS:** For Text-to-Speech. (Uses Emergent LLM Key)
 *   **Stripe:** For payments. (Requires User API Key)
 *   **Firebase Analytics:** For user tracking. (User-provided config)
 *   **Firebase Cloud Messaging (FCM):** For push notifications. (User-provided config)
 *   **Resend:** For transactional emails. (User-provided API key)
+*   **Google Calendar:** For scheduling. (Requires User API Key - provided in chat)
 
 ### **Testing status**
--   **Testing agent used after significant changes:** YES. The agent ran comprehensive tests after implementing the contractor marketplace, the AI features, and the buy/sell functionality. All tests passed with 100% success rate.
+-   **Testing agent used after significant changes:** YES, multiple times throughout the session.
 -   **Troubleshoot agent used after agent stuck in loop:** NO.
 -   **Test files created:** None.
--   **Known regressions:** None.
+-   **Known regressions:** None, but testing is pending on the latest features.
 
 ### **Credentials to test flow:**
-New users can be registered via the UI. Select a role (Renter, Landlord, Contractor) to access role-specific dashboards.
+*   New users can be registered via the UI with Renter, Landlord, or Contractor roles.
+*   **Google OAuth Credentials (MUST BE CONFIGURED):**
+    *   **Client ID:** 
+    *   **Client Secret:** 
+    *   These need to be added to .
 
 ### **What agent forgot to execute**
-The agent correctly identified the need for backend refactoring but only partially completed it. Completing this is the most critical next step before adding more complexity to the codebase. The agent is in the middle of implementing a set of features (Roommate finder, etc.), which is expected.</analysis>
+-   The agent did not run any tests after implementing the final set of features (TTS, Google OAuth, Insights dashboard). This is the most critical pending action.
+-   The agent implemented the backend for Google OAuth but did not add the credentials to the  file, nor did it build the frontend UI to actually *use* the calendar integration for scheduling property viewings.</analysis>
