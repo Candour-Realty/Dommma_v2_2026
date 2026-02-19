@@ -93,6 +93,12 @@ const NovaChat = () => {
   const [analyzingImage, setAnalyzingImage] = useState(false);
   const fileInputRef = useRef(null);
   
+  // TTS state
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState('nova');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const audioRef = useRef(null);
+  
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
