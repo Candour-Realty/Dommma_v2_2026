@@ -100,6 +100,10 @@ const NovaChat = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const audioRef = useRef(null);
   
+  // Memory state
+  const [userMemory, setUserMemory] = useState(null);
+  const [memoryLoaded, setMemoryLoaded] = useState(false);
+  
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -110,19 +114,34 @@ const NovaChat = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Fetch user memory when chat opens
+  const fetchUserMemory = async () => {
+    if (!user?.id) return;
+    try {
+      const response = await axios.get(`${API}/nova/memory/${user.id}`);
+      if (response.data.has_preferences) {
+        setUserMemory(response.data);
+        setMemoryLoaded(true);
+      }
+    } catch (error) {
+      console.error('Error fetching user memory:', error);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && messages.length === 0) {
+      // First, try to fetch user memory
+      if (user?.id) {
+        fetchUserMemory();
+        fetchProactiveSuggestions();
+        fetchVoicePreference();
+      }
+      
       setMessages([{
         role: 'assistant',
         content: "Hi! I'm Nova, your AI real estate assistant. I can help you with:\n\n🏠 **Property Search** - Find your perfect home\n💰 **Financial Advice** - Budget calculators & negotiation tips\n📄 **Application Help** - Rental resumes & cover letters\n🏘️ **Neighborhood Intel** - Safety, amenities & vibes\n🎤 **Voice Input** - Just click the mic and talk to me!\n📷 **Image Analysis** - Upload property photos for instant insights\n\nWhat can I help you with today?",
         suggestions: ['Find apartments near SkyTrain', 'Calculate my budget', 'Help with application']
       }]);
-      
-      // Fetch proactive suggestions if user is logged in
-      if (user?.id) {
-        fetchProactiveSuggestions();
-        fetchVoicePreference();
-      }
     }
   }, [isOpen, messages.length, user]);
 
