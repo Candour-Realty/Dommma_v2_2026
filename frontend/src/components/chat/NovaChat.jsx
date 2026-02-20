@@ -605,26 +605,35 @@ const NovaChat = () => {
                     {/* Listing Cards */}
                     {msg.listings?.length > 0 && (
                       <div className="mt-3 space-y-2">
+                        <p className="text-xs text-gray-500 font-medium">📍 Matching Properties:</p>
                         {msg.listings.slice(0, 3).map((listing, idx) => (
-                          <div 
+                          <Link 
                             key={idx}
-                            className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow"
+                            to={`/browse?property=${listing.id}`}
+                            onClick={() => setIsOpen(false)}
+                            className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-3 cursor-pointer hover:shadow-md hover:bg-blue-50 transition-all border border-transparent hover:border-blue-200"
                           >
                             <img 
                               src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=100'}
                               alt={listing.title}
                               className="w-16 h-16 rounded-lg object-cover"
                             />
-                            <div className="flex-1">
-                              <p className="font-medium text-[#1A2F3A] text-sm">{listing.title}</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-[#1A2F3A] text-sm truncate">{listing.title}</p>
                               <p className="text-xs text-gray-500 flex items-center gap-1">
-                                <MapPin size={10} /> {listing.city}
+                                <MapPin size={10} /> {listing.address}, {listing.city}
                               </p>
-                              <p className="text-sm font-semibold text-[#1A2F3A] mt-1">
-                                ${listing.price?.toLocaleString()}/mo
-                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <p className="text-sm font-semibold text-[#1A2F3A]">
+                                  ${listing.price?.toLocaleString()}/mo
+                                </p>
+                                <span className="text-xs text-gray-400">
+                                  {listing.bedrooms}bd • {listing.bathrooms}ba
+                                </span>
+                              </div>
                             </div>
-                          </div>
+                            <ExternalLink size={16} className="text-gray-400 flex-shrink-0" />
+                          </Link>
                         ))}
                       </div>
                     )}
