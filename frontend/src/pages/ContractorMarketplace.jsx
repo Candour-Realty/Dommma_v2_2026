@@ -117,8 +117,16 @@ const ContractorMarketplace = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
-        {/* Categories */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        {/* Leaderboard Sidebar on larger screens */}
+        <div className="lg:hidden mb-6">
+          <ContractorLeaderboard limit={3} compact={false} />
+        </div>
+
+        <div className="flex gap-8">
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Categories */}
+            <div className="flex flex-wrap gap-2 mb-8">
           <button onClick={() => setSelectedCategory('')} className={`px-4 py-2 rounded-full text-sm transition-colors ${!selectedCategory ? 'bg-[#1A2F3A] text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}>
             All
           </button>
