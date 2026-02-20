@@ -1028,8 +1028,8 @@ User Context:
 - Conflict resolution advice
 - Negotiation strategies
 
-Available Properties:
-{listings_context}
+Available Properties in Database (include ID when recommending):
+{listings_context if listings_context else "No listings currently available in the database. Encourage users to check back later or ask landlords to add listings."}
 {lifestyle_info}
 {history_context}
 
@@ -1039,6 +1039,13 @@ IMPORTANT CAPABILITIES:
 3. Commute Analysis: Estimate commute times to key locations
 4. Proactive Suggestions: Offer relevant tips based on conversation
 5. Multi-turn Memory: Reference previous parts of the conversation
+
+CRITICAL - WHEN RECOMMENDING PROPERTIES:
+- Always reference the property ID from the database above
+- Format property recommendations with their ID like: "[Property Name](property:ID)"
+- Example: "I recommend [Modern Downtown Condo](property:abc123) - it's perfect for your needs"
+- This allows users to click and view the property directly
+- If no properties match, say so honestly and suggest broadening the search
 
 Keep responses helpful, conversational, and concise (2-3 paragraphs max).
 End responses with 1-2 proactive suggestions when relevant."""
