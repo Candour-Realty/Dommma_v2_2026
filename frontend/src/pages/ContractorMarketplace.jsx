@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, ArrowLeft, Star, MapPin, Clock, DollarSign, Shield,
   Phone, Mail, ChevronRight, Filter, Wrench, Zap, Droplets,
-  Paintbrush, Hammer, Leaf, Sparkles, Calendar, Send, X
+  Paintbrush, Hammer, Leaf, Sparkles, Calendar, Send, X, MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
+import ContractorReviews from '../components/reviews/ContractorReviews';
+import ContractorLeaderboard from '../components/reviews/ContractorLeaderboard';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
