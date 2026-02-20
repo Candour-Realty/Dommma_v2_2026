@@ -33,6 +33,9 @@ import CalendarPage from "@/pages/CalendarPage";
 import ContractorPortfolio from "@/pages/ContractorPortfolio";
 import NovaInsights from "@/pages/NovaInsights";
 
+// Layout
+import DashboardLayout from "@/components/layout/DashboardLayout";
+
 // Firebase Analytics
 import { initializeFirebase, trackPageView, trackLogin } from "@/lib/firebase";
 
