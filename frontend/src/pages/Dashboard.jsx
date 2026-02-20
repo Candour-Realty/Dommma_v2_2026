@@ -421,7 +421,7 @@ const Dashboard = () => {
 
         {/* Content */}
         <main className="flex-1 p-6">
-          {user.user_type === 'renter' && <RenterDashboard />}
+          {user.user_type === 'renter' && <RenterDashboard userId={user.id} />}
           {user.user_type === 'landlord' && <LandlordDashboard />}
           {user.user_type === 'contractor' && <ContractorDashboard />}
         </main>
