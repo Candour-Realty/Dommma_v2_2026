@@ -271,6 +271,18 @@ const ContractorMarketplace = () => {
                 </div>
               )}
 
+              {/* Reviews Section */}
+              <div className="mb-6">
+                <p className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  <MessageSquare size={14} /> Customer Reviews
+                </p>
+                <ContractorReviews 
+                  contractorId={selectedContractor.user_id}
+                  rating={selectedContractor.rating}
+                  reviewCount={selectedContractor.review_count}
+                />
+              </div>
+
               <button onClick={() => openBooking(null, selectedContractor)} className="w-full py-4 bg-[#1A2F3A] text-white rounded-xl hover:bg-[#2C4A52] flex items-center justify-center gap-2" data-testid="book-contractor-btn">
                 <Calendar size={18} /> Request Booking
               </button>
