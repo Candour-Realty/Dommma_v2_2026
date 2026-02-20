@@ -150,6 +150,25 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
   - Full breakdown bars in profile modal
   - "Get AI Insights" button for on-demand analysis
   - AI insights display with strengths/challenges/tips
+
+### AI Moving Assistant (V12) - NEW - VERIFIED WORKING - REAL AI
+- [x] **Real Cost Calculator** - Based on:
+  - Distance (Haversine formula between Vancouver areas)
+  - Home size → estimated hours + truck size + crew
+  - Special items surcharges (piano $300, pool table $250, etc.)
+  - Floor surcharges when no elevator ($50/floor)
+  - Packing service (+40%), storage options
+- [x] **AI-Powered Tips** - Claude Sonnet 4.5:
+  - Move summary
+  - 3 money-saving tips
+  - 5-item preparation checklist
+  - 3 moving day tips
+  - Neighborhood information
+  - Timing advice
+- [x] **Frontend Updates** - MovingQuote.jsx:
+  - "AI Moving Assistant" expandable section
+  - All 6 tip categories displayed with icons
+  - On-demand AI tips via button
   - Refresh compatibility scores button
 
 ### Nova AI Enhancements (V7) - VERIFIED WORKING
