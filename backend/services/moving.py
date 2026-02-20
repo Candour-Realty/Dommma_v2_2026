@@ -114,6 +114,7 @@ class MovingQuoteService:
         """Get AI-powered moving tips and recommendations"""
         try:
             from emergentintegrations.llm.chat import LlmChat, UserMessage
+            import re
             
             api_key = os.environ.get("EMERGENT_LLM_KEY")
             if not api_key:
@@ -152,21 +153,14 @@ JSON only, no markdown:"""
                 system_message=system_prompt
             ).with_model("anthropic", "claude-sonnet-4-5-20250929")
             
-            response = await chat.chat(messages=[UserMessage(content=prompt)])
+            response = await chat.send_message(UserMessage(text=prompt))
             
-            # Parse AI response
-            content = response.content
-            try:
-                # Handle potential markdown code blocks
-                if "```json" in content:
-                    content = content.split("```json")[1].split("```")[0]
-                elif "```" in content:
-                    content = content.split("```")[1].split("```")[0]
-                
-                return json.loads(content.strip())
-            except json.JSONDecodeError:
-                logger.warning("Failed to parse AI tips response")
-                return None
+            # Parse AI response - find JSON in response
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group())
+            
+            return None
                 
         except Exception as e:
             logger.error(f"AI tips generation error: {e}")
