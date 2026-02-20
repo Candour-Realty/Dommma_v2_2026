@@ -132,6 +132,26 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
   - GET /api/notifications/{user_id}
   - POST /api/notifications/mark-read/{id}
 
+### AI Roommate Compatibility (V11) - NEW - VERIFIED WORKING - REAL AI
+- [x] **Compatibility Scoring** - Multi-factor algorithm:
+  - Budget overlap calculation (0-25 pts)
+  - Location/area intersection (0-25 pts)
+  - Lifestyle alignment + conflict detection (0-30 pts)
+  - Habits matching (pets, smoking) (0-20 pts)
+  - Compatibility levels: excellent/good/moderate/fair/low
+- [x] **AI-Enhanced Insights** - Claude Sonnet 4.5 powered:
+  - One-sentence compatibility summary
+  - Strengths list (shared traits)
+  - Potential challenges to discuss
+  - Tips for living together
+  - Conversation starters
+- [x] **Frontend Integration** - RoommateFinder.jsx:
+  - Percentage badges on profile cards with color coding
+  - Full breakdown bars in profile modal
+  - "Get AI Insights" button for on-demand analysis
+  - AI insights display with strengths/challenges/tips
+  - Refresh compatibility scores button
+
 ### Nova AI Enhancements (V7) - VERIFIED WORKING
 - [x] **Voice Input (STT)** - OpenAI Whisper transcription
   - Mic button in chat interface
