@@ -422,6 +422,9 @@ const Dashboard = () => {
 
         {/* Content */}
         <main className="flex-1 p-6">
+          {/* Notification Prompt for new users */}
+          <NotificationPrompt userId={user.id} />
+          
           {user.user_type === 'renter' && <RenterDashboard userId={user.id} />}
           {user.user_type === 'landlord' && <LandlordDashboard />}
           {user.user_type === 'contractor' && <ContractorDashboard />}
