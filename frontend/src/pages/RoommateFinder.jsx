@@ -174,6 +174,16 @@ const RoommateFinder = () => {
             <button onClick={() => setShowProfile(true)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm" data-testid="edit-roommate-profile">
               {myProfile ? 'Edit Profile' : 'Create Profile'}
             </button>
+            {myProfile && (
+              <button 
+                onClick={() => fetchCompatibilityScores(myProfile.id)}
+                disabled={loadingCompatibility}
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-full"
+                title="Refresh compatibility scores"
+              >
+                <RefreshCw size={16} className={loadingCompatibility ? 'animate-spin' : ''} />
+              </button>
+            )}
           </div>
         </div>
       </header>
