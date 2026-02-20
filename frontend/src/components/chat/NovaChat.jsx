@@ -3,8 +3,9 @@ import {
   X, Send, Loader2, Bot, User, Sparkles, Calculator, Home, 
   MapPin, DollarSign, FileText, Briefcase, Heart, Lightbulb,
   Settings, ChevronDown, ChevronUp, Building2, Mic, MicOff, 
-  Image, Bell, Camera, Volume2, VolumeX
+  Image, Bell, Camera, Volume2, VolumeX, ExternalLink
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../App';
 
