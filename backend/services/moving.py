@@ -264,7 +264,12 @@ Respond ONLY with valid JSON, no other text."""
                 quote_dict["ai_tips"] = ai_tips
         
         # Save quote to database
-        await self.db.moving_quotes.insert_one(quote_dict)
+        quote_for_db = quote_dict.copy()
+        await self.db.moving_quotes.insert_one(quote_for_db)
+        
+        # Remove any _id that got added
+        if '_id' in quote_dict:
+            del quote_dict['_id']
         
         return quote_dict
     
