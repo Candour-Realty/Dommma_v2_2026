@@ -113,7 +113,7 @@ class MovingQuoteService:
     async def _get_ai_tips(self, request_data: dict, quote_data: dict) -> Optional[Dict]:
         """Get AI-powered moving tips and recommendations"""
         try:
-            from emergentintegrations.llm.chat import chat, UserMessage
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
             
             api_key = os.environ.get("EMERGENT_LLM_KEY")
             if not api_key:
@@ -125,7 +125,7 @@ MOVE DETAILS:
 - From: {request_data.get('origin_address')}
 - To: {request_data.get('destination_address')}
 - Home Size: {request_data.get('home_size')}
-- Move Date: {request_data.get('preferred_date', 'Not specified')}
+- Move Date: {request_data.get('move_date', request_data.get('preferred_date', 'Not specified'))}
 - Distance: {quote_data.get('distance_km')} km
 - Special Items: {', '.join(request_data.get('special_items', [])) or 'None'}
 - Packing Service: {'Yes' if request_data.get('packing_service') else 'No'}
@@ -143,8 +143,8 @@ Provide a JSON response with:
 
 Respond ONLY with valid JSON, no other text."""
 
-            response = await chat(
-                api_key=api_key,
+            llm = LlmChat(api_key=api_key)
+            response = await llm.chat(
                 model="claude-sonnet-4-5-20250514",
                 messages=[UserMessage(content=prompt)]
             )
