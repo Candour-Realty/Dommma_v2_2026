@@ -230,73 +230,84 @@ const NotificationBell = ({ userId }) => {
                     Notifications are not supported in this browser
                   </p>
                 </div>
-              ) : permission !== 'granted' ? (
-                <div className="p-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#1A2F3A]/10 flex items-center justify-center">
-                    <BellRing className="text-[#1A2F3A]" size={28} />
-                  </div>
-                  <h4 className="font-semibold text-[#1A2F3A] mb-2">Stay Updated</h4>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Get instant alerts for messages, offers, bookings, and property updates
-                  </p>
-                  <button
-                    onClick={handleEnableNotifications}
-                    className="px-5 py-2.5 bg-[#1A2F3A] text-white rounded-full text-sm font-medium hover:bg-[#2C4A52] transition-colors"
-                    data-testid="enable-notifications-btn"
-                  >
-                    Enable Notifications
-                  </button>
-                </div>
-              ) : loading ? (
-                <div className="p-6 flex items-center justify-center">
-                  <Loader2 className="animate-spin text-gray-400" size={24} />
-                </div>
-              ) : notifications.length === 0 ? (
-                <div className="p-6 text-center">
-                  <Bell className="mx-auto mb-3 text-gray-300" size={32} />
-                  <p className="text-sm text-gray-500">
-                    No notifications yet
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    We'll notify you when something happens
-                  </p>
-                </div>
               ) : (
-                <div>
-                  {notifications.map((notif) => {
-                    const Icon = getIcon(notif.type);
-                    return (
-                      <div 
-                        key={notif.id}
-                        onClick={() => markAsRead(notif.id)}
-                        className={`px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${
-                          !notif.read ? 'bg-blue-50/50' : ''
-                        }`}
-                        data-testid={`notification-item-${notif.id}`}
-                      >
-                        <div className="flex gap-3">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${getIconStyle(notif.type)}`}>
-                            <Icon size={16} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm text-[#1A2F3A] truncate">
-                              {notif.title}
-                            </p>
-                            <p className="text-xs text-gray-500 line-clamp-2">
-                              {notif.body}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {formatTime(notif.time)}
-                            </p>
-                          </div>
-                          {!notif.read && (
-                            <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
-                          )}
+                <>
+                  {/* Push Notification Enable Prompt (compact) */}
+                  {permission !== 'granted' && (
+                    <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <BellRing className="text-blue-600" size={14} />
                         </div>
+                        <div className="flex-1">
+                          <p className="text-xs text-gray-700">
+                            Enable push notifications for instant alerts
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleEnableNotifications}
+                          className="px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-medium hover:bg-blue-700"
+                          data-testid="enable-notifications-btn"
+                        >
+                          Enable
+                        </button>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  )}
+                  
+                  {/* Notifications List */}
+                  {loading ? (
+                    <div className="p-6 flex items-center justify-center">
+                      <Loader2 className="animate-spin text-gray-400" size={24} />
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="p-6 text-center">
+                      <Bell className="mx-auto mb-3 text-gray-300" size={32} />
+                      <p className="text-sm text-gray-500">
+                        No notifications yet
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        We'll notify you when something happens
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      {notifications.map((notif) => {
+                        const Icon = getIcon(notif.type);
+                        return (
+                          <div 
+                            key={notif.id}
+                            onClick={() => markAsRead(notif.id)}
+                            className={`px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${
+                              !notif.read ? 'bg-blue-50/50' : ''
+                            }`}
+                            data-testid={`notification-item-${notif.id}`}
+                          >
+                            <div className="flex gap-3">
+                              <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${getIconStyle(notif.type)}`}>
+                                <Icon size={16} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm text-[#1A2F3A] truncate">
+                                  {notif.title}
+                                </p>
+                                <p className="text-xs text-gray-500 line-clamp-2">
+                                  {notif.body}
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {formatTime(notif.time)}
+                                </p>
+                              </div>
+                              {!notif.read && (
+                                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
