@@ -231,6 +231,7 @@ class ChatResponse(BaseModel):
     response: str
     listings: List[dict] = []
     suggestions: List[str] = []  # Nova's proactive suggestions
+    preferences_loaded: bool = False  # Whether user's saved preferences were loaded
 
 # FCM Token Model for Push Notifications
 class FCMTokenCreate(BaseModel):
