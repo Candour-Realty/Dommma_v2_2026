@@ -97,7 +97,7 @@ const NotificationBell = ({ userId }) => {
           user_id: userId,
           title: 'Notifications Enabled!',
           body: "You'll now receive real-time updates about messages, payments, and properties.",
-          type: 'system',
+          notification_type: 'system',
           data: { action: 'welcome' }
         });
         
