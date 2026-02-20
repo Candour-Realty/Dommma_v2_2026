@@ -63,13 +63,28 @@ const MovingQuote = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/moving/quote`, formData);
+      const response = await axios.post(`${API}/moving/quote?include_ai_tips=true`, formData);
       setQuote(response.data);
+      if (response.data.ai_tips) {
+        setAiTips(response.data.ai_tips);
+      }
       setStep(3);
     } catch (error) {
       console.error('Error getting quote:', error);
     }
     setLoading(false);
+  };
+
+  const fetchAITips = async () => {
+    if (!quote?.id) return;
+    setLoadingAI(true);
+    try {
+      const response = await axios.post(`${API}/moving/quote/${quote.id}/ai-tips`);
+      setAiTips(response.data);
+    } catch (error) {
+      console.error('Error getting AI tips:', error);
+    }
+    setLoadingAI(false);
   };
 
   const renderStep1 = () => (
