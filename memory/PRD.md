@@ -111,6 +111,27 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
   - One-click to open review modal
   - Auto-hides when no pending reviews
 
+### Push Notifications (V10) - NEW - VERIFIED WORKING
+- [x] **NotificationBell Component** - Enhanced dropdown with:
+  - Fetches notifications from backend API
+  - Compact "Enable push" banner (non-blocking)
+  - Notification list with type-specific icons
+  - Mark all read / individual mark as read
+  - Unread count badge (animated pulse)
+  - Refresh button
+- [x] **NotificationPrompt Banner** - Dashboard banner for new users:
+  - "Stay in the Loop" prompt
+  - Enable/Later buttons
+  - Session-based dismissal
+- [x] **FCM Token Management** - Backend integration:
+  - Token registration on permission grant
+  - Token update for existing users
+- [x] **Backend APIs** - Full notification CRUD:
+  - POST /api/notifications/register-token
+  - POST /api/notifications/send
+  - GET /api/notifications/{user_id}
+  - POST /api/notifications/mark-read/{id}
+
 ### Nova AI Enhancements (V7) - VERIFIED WORKING
 - [x] **Voice Input (STT)** - OpenAI Whisper transcription
   - Mic button in chat interface
