@@ -119,7 +119,9 @@ class MovingQuoteService:
             if not api_key:
                 return None
             
-            prompt = f"""You are a moving consultant helping someone plan their move. Based on their details, provide helpful tips.
+            system_prompt = """You are a professional moving consultant. Provide helpful, practical tips for people planning moves. Always respond with valid JSON only."""
+            
+            prompt = f"""Based on these move details, provide helpful tips:
 
 MOVE DETAILS:
 - From: {request_data.get('origin_address')}
@@ -133,21 +135,24 @@ MOVE DETAILS:
 - Has Elevator (Destination): {'Yes' if request_data.get('has_elevator_destination') else 'No'}
 - Estimated Cost: ${quote_data.get('estimated_cost_low')} - ${quote_data.get('estimated_cost_high')}
 
-Provide a JSON response with:
-1. "summary": A brief 1-2 sentence summary of their move
-2. "money_saving_tips": Array of 3 tips to save money on this move
-3. "preparation_checklist": Array of 5 key things to do before moving day
-4. "moving_day_tips": Array of 3 tips for the actual moving day
-5. "neighborhood_info": Brief info about the destination area (if identifiable)
-6. "timing_advice": Advice about the best time/day to move
+Provide a JSON response with these keys:
+- "summary": Brief 1-2 sentence summary
+- "money_saving_tips": Array of 3 tips to save money
+- "preparation_checklist": Array of 5 pre-move tasks
+- "moving_day_tips": Array of 3 moving day tips
+- "neighborhood_info": Info about destination area
+- "timing_advice": Best time/day advice
 
-Respond ONLY with valid JSON, no other text."""
+JSON only, no markdown:"""
 
-            llm = LlmChat(api_key=api_key)
-            response = await llm.chat(
-                model="claude-sonnet-4-5-20250514",
-                messages=[UserMessage(content=prompt)]
-            )
+            quote_id = quote_data.get('id', 'unknown')[:8]
+            chat = LlmChat(
+                api_key=api_key,
+                session_id=f"moving-tips-{quote_id}",
+                system_message=system_prompt
+            ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+            
+            response = await chat.chat(messages=[UserMessage(content=prompt)])
             
             # Parse AI response
             content = response.content
