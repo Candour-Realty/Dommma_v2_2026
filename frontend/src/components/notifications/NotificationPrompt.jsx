@@ -43,7 +43,7 @@ const NotificationPrompt = ({ userId, onDismiss }) => {
           user_id: userId,
           title: 'Welcome to DOMMMA Notifications!',
           body: "You'll now receive instant updates about messages, offers, and property alerts.",
-          type: 'system',
+          notification_type: 'system',
           data: { action: 'welcome' }
         });
       } catch (error) {
