@@ -53,10 +53,14 @@ const RoommateFinder = () => {
   const [activeTab, setActiveTab] = useState('browse');
   const [myProfile, setMyProfile] = useState(null);
   const [profiles, setProfiles] = useState([]);
+  const [compatibilityData, setCompatibilityData] = useState({});
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingCompatibility, setLoadingCompatibility] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [aiInsights, setAiInsights] = useState(null);
+  const [loadingAI, setLoadingAI] = useState(false);
   const [connectMessage, setConnectMessage] = useState('');
   const [form, setForm] = useState({
     name: '', age: '', gender: '', occupation: '', budget_min: 800, budget_max: 1800,
@@ -85,11 +89,51 @@ const RoommateFinder = () => {
           preferred_areas: profRes.data.preferred_areas || [], lifestyle: profRes.data.lifestyle || [],
           pets: profRes.data.pets || false, smoking: profRes.data.smoking || false, bio: profRes.data.bio || ''
         });
+        // Fetch compatibility scores if profile exists
+        fetchCompatibilityScores(profRes.data.id);
       }
       setProfiles(searchRes?.data || []);
       setConnections(connRes?.data || []);
     } catch (e) { console.error(e); }
     setLoading(false);
+  };
+
+  const fetchCompatibilityScores = async (profileId) => {
+    if (!profileId) return;
+    setLoadingCompatibility(true);
+    try {
+      const response = await axios.post(`${API}/compatibility/calculate/${profileId}?use_ai=false`);
+      const compatMap = {};
+      response.data.matches?.forEach(match => {
+        compatMap[match.profile_id] = match.compatibility;
+      });
+      setCompatibilityData(compatMap);
+    } catch (e) {
+      console.error('Failed to fetch compatibility:', e);
+    }
+    setLoadingCompatibility(false);
+  };
+
+  const fetchAIInsights = async (targetProfileId) => {
+    if (!myProfile?.id || !targetProfileId) return;
+    setLoadingAI(true);
+    try {
+      const response = await axios.get(
+        `${API}/compatibility/score/${myProfile.id}/${targetProfileId}?use_ai=true`
+      );
+      setAiInsights(response.data.ai_insights);
+      // Update compatibility data for this profile
+      if (response.data.compatibility) {
+        setCompatibilityData(prev => ({
+          ...prev,
+          [targetProfileId]: response.data.compatibility
+        }));
+      }
+    } catch (e) {
+      console.error('AI insights error:', e);
+      setAiInsights(null);
+    }
+    setLoadingAI(false);
   };
 
   const handleSaveProfile = async (e) => {
