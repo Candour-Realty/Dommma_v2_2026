@@ -203,6 +203,7 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
 - iteration_14.json — V9 Contractor Ratings System (100% backend, 100% frontend)
 - iteration_15.json — V10 Push Notifications (100% backend, 90% frontend)
 - iteration_16.json — V11 AI Roommate Compatibility (100% backend, 100% frontend)
+- iteration_17.json — V12 AI Moving Assistant (100% backend, 100% frontend)
 
 ## Key API Endpoints
 ### Nova AI
