@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, Routes, Route } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Home, Building2, Users, Wrench, FileText, DollarSign, MessageSquare, 
-  Settings, LogOut, Search, Menu, X, Plus, Calendar, TrendingUp,
-  ChevronRight, Heart, MapPin, Clock, Sparkles, Scale, Navigation, Users2, 
-  Truck, Briefcase, Image, BarChart2
+  Home, Building2, Users, Wrench, FileText, DollarSign, 
+  Search, Plus, Calendar, TrendingUp,
+  ChevronRight, Heart, MapPin, Clock, Sparkles, 
+  Briefcase, BarChart2
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
-import NotificationBell from '../components/notifications/NotificationBell';
 import PendingReviews from '../components/reviews/PendingReviews';
 import NotificationPrompt from '../components/notifications/NotificationPrompt';
 
