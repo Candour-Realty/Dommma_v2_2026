@@ -102,36 +102,53 @@ function App() {
       <BrowserRouter>
         <AnalyticsTracker />
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/services" element={<Services />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/browse" element={<Browse />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/payments" element={<Payments />} />
-          <Route path="/dashboard/documents" element={<Documents />} />
-          <Route path="/dashboard/messages" element={<Messages />} />
-          <Route path="/dashboard/applications" element={<Applications />} />
-          <Route path="/dashboard/maintenance" element={<Maintenance />} />
-          <Route path="/dashboard/jobs" element={<Jobs />} />
-          <Route path="/dashboard/my-properties" element={<MyProperties />} />
-          <Route path="/dashboard/contractor-profile" element={<ContractorProfile />} />
+          
+          {/* Public Browse - no sidebar (for non-logged in users) */}
+          <Route path="/browse" element={<Browse />} />
+          
+          {/* Public Contractor Pages */}
           <Route path="/contractors" element={<ContractorMarketplace />} />
-          <Route path="/report-issue" element={<SmartIssueReporter />} />
-          <Route path="/document-analyzer" element={<DocumentAnalyzer />} />
-          <Route path="/commute-optimizer" element={<CommuteOptimizer />} />
-          <Route path="/offers" element={<Offers />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/compare" element={<Compare />} />
-          <Route path="/roommates" element={<RoommateFinder />} />
-          <Route path="/moving-quote" element={<MovingQuote />} />
-          <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/portfolio" element={<ContractorPortfolio />} />
           <Route path="/portfolio/:contractorId" element={<ContractorPortfolio />} />
-          <Route path="/nova-insights" element={<NovaInsights />} />
-          <Route path="/dashboard/*" element={<Dashboard />} />
+          
+          {/* Dashboard Routes - All with persistent sidebar */}
+          <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
+          <Route path="/payments" element={<DashboardLayout><Payments /></DashboardLayout>} />
+          <Route path="/documents" element={<DashboardLayout><Documents /></DashboardLayout>} />
+          <Route path="/messages" element={<DashboardLayout><Messages /></DashboardLayout>} />
+          <Route path="/applications" element={<DashboardLayout><Applications /></DashboardLayout>} />
+          <Route path="/maintenance" element={<DashboardLayout><Maintenance /></DashboardLayout>} />
+          <Route path="/jobs" element={<DashboardLayout><Jobs /></DashboardLayout>} />
+          <Route path="/my-properties" element={<DashboardLayout><MyProperties /></DashboardLayout>} />
+          <Route path="/contractor-profile" element={<DashboardLayout><ContractorProfile /></DashboardLayout>} />
+          <Route path="/report-issue" element={<DashboardLayout><SmartIssueReporter /></DashboardLayout>} />
+          <Route path="/document-analyzer" element={<DashboardLayout><DocumentAnalyzer /></DashboardLayout>} />
+          <Route path="/commute-optimizer" element={<DashboardLayout><CommuteOptimizer /></DashboardLayout>} />
+          <Route path="/offers" element={<DashboardLayout><Offers /></DashboardLayout>} />
+          <Route path="/favorites" element={<DashboardLayout><Favorites /></DashboardLayout>} />
+          <Route path="/compare" element={<DashboardLayout><Compare /></DashboardLayout>} />
+          <Route path="/roommates" element={<DashboardLayout><RoommateFinder /></DashboardLayout>} />
+          <Route path="/moving-quote" element={<DashboardLayout><MovingQuote /></DashboardLayout>} />
+          <Route path="/calendar" element={<DashboardLayout><CalendarPage /></DashboardLayout>} />
+          <Route path="/portfolio" element={<DashboardLayout><ContractorPortfolio /></DashboardLayout>} />
+          <Route path="/nova-insights" element={<DashboardLayout><NovaInsights /></DashboardLayout>} />
+          <Route path="/settings" element={<DashboardLayout><div className="p-6"><h1 className="text-2xl font-semibold">Settings</h1><p className="text-gray-500 mt-2">Settings page coming soon...</p></div></DashboardLayout>} />
+          
+          {/* Legacy routes - redirect to new paths */}
+          <Route path="/dashboard/payments" element={<DashboardLayout><Payments /></DashboardLayout>} />
+          <Route path="/dashboard/documents" element={<DashboardLayout><Documents /></DashboardLayout>} />
+          <Route path="/dashboard/messages" element={<DashboardLayout><Messages /></DashboardLayout>} />
+          <Route path="/dashboard/applications" element={<DashboardLayout><Applications /></DashboardLayout>} />
+          <Route path="/dashboard/maintenance" element={<DashboardLayout><Maintenance /></DashboardLayout>} />
+          <Route path="/dashboard/jobs" element={<DashboardLayout><Jobs /></DashboardLayout>} />
+          <Route path="/dashboard/my-properties" element={<DashboardLayout><MyProperties /></DashboardLayout>} />
+          <Route path="/dashboard/contractor-profile" element={<DashboardLayout><ContractorProfile /></DashboardLayout>} />
         </Routes>
       </BrowserRouter>
     </AuthContext.Provider>
