@@ -154,6 +154,7 @@ class ChatSession(BaseModel):
 class ChatRequest(BaseModel):
     session_id: Optional[str] = None
     message: str
+    user_id: Optional[str] = None  # For logged-in users to enable long-term memory
     user_context: Optional[Dict[str, Any]] = None  # For lifestyle/budget info
 
 class UserCreate(BaseModel):
