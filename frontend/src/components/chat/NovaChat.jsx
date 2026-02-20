@@ -391,10 +391,58 @@ const NovaChat = () => {
   };
 
   const renderMessageContent = (content) => {
+    // Parse property links like [Property Name](property:ID)
+    const parsePropertyLinks = (text) => {
+      const propertyLinkRegex = /\[([^\]]+)\]\(property:([^)]+)\)/g;
+      const parts = [];
+      let lastIndex = 0;
+      let match;
+
+      while ((match = propertyLinkRegex.exec(text)) !== null) {
+        // Add text before the link
+        if (match.index > lastIndex) {
+          parts.push(text.slice(lastIndex, match.index));
+        }
+        // Add the link component
+        parts.push(
+          <Link
+            key={match.index}
+            to={`/browse?property=${match[2]}`}
+            className="text-blue-600 hover:text-blue-800 underline font-medium inline-flex items-center gap-1"
+            onClick={() => setIsOpen(false)}
+          >
+            {match[1]}
+            <ExternalLink size={12} />
+          </Link>
+        );
+        lastIndex = match.index + match[0].length;
+      }
+      // Add remaining text
+      if (lastIndex < text.length) {
+        parts.push(text.slice(lastIndex));
+      }
+      return parts.length > 0 ? parts : text;
+    };
+
     // Basic markdown-like formatting
     return content.split('\n').map((line, i) => {
       // Bold text
       const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      // Parse for property links
+      const parsedContent = parsePropertyLinks(formattedLine);
+      
+      if (Array.isArray(parsedContent)) {
+        return (
+          <span key={i} className="block">
+            {parsedContent.map((part, j) => 
+              typeof part === 'string' 
+                ? <span key={j} dangerouslySetInnerHTML={{ __html: part }} />
+                : part
+            )}
+          </span>
+        );
+      }
+      
       return (
         <span 
           key={i} 
