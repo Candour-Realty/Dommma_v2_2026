@@ -15,7 +15,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // Renter Dashboard
-const RenterDashboard = () => {
+const RenterDashboard = ({ userId }) => {
   const [listings, setListings] = useState([]);
 
   useEffect(() => {
