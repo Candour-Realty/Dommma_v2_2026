@@ -1143,6 +1143,20 @@ async def get_chat_history(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found")
     return session
 
+# Nova Memory endpoint - Get saved preferences for a user
+@api_router.get("/nova/memory/{user_id}")
+async def get_nova_memory(user_id: str):
+    """Get Nova's memory of user preferences for display in chat"""
+    from services.nova_memory import NovaMemoryService
+    memory_service = NovaMemoryService(db)
+    memory = await memory_service.get_user_memory(user_id)
+    context_summary = await memory_service.get_context_summary(user_id)
+    return {
+        "preferences": memory.get("preferences", {}),
+        "context_summary": context_summary,
+        "has_preferences": bool(memory.get("preferences"))
+    }
+
 # User Preferences for Nova Memory
 @api_router.post("/user/preferences/{user_id}")
 async def save_user_preferences(user_id: str, preferences: Dict[str, Any]):
