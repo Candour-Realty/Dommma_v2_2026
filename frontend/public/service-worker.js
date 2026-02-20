@@ -1,12 +1,18 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = 'dommma-v1';
+const CACHE_NAME = 'dommma-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/logo192.png',
   '/logo512.png'
+];
+
+// API endpoints to cache for offline support
+const CACHEABLE_API_ROUTES = [
+  '/api/listings',
+  '/api/contractors/search'
 ];
 
 // Install event - cache static assets
@@ -33,16 +39,52 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Check if URL is a cacheable API route
+const isCacheableApiRoute = (url) => {
+  return CACHEABLE_API_ROUTES.some(route => url.includes(route));
+};
+
 // Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
   
-  // Skip API requests (let them go through normally)
-  if (event.request.url.includes('/api/')) return;
+  const url = event.request.url;
+  
+  // Handle cacheable API routes (listings, contractors)
+  if (isCacheableApiRoute(url)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
+            }
+            // Return empty array for offline API requests
+            return new Response(JSON.stringify([]), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          });
+        })
+    );
+    return;
+  }
+  
+  // Skip other API requests (let them fail naturally when offline)
+  if (url.includes('/api/')) return;
   
   // Skip external resources
-  if (!event.request.url.startsWith(self.location.origin)) return;
+  if (!url.startsWith(self.location.origin)) return;
 
   event.respondWith(
     fetch(event.request)
