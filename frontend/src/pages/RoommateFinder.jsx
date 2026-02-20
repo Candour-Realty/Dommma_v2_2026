@@ -203,30 +203,53 @@ const RoommateFinder = () => {
               </div>
             ) : (
               <div className="grid md:grid-cols-2 gap-4">
-                {profiles.map(p => (
-                  <div key={p.id} className="bg-white rounded-2xl p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedProfile(p)} data-testid={`roommate-${p.id}`}>
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1A2F3A] to-[#2C4A52] flex items-center justify-center text-white text-xl font-bold">
-                        {p.name?.charAt(0) || '?'}
+                {profiles.map(p => {
+                  const compat = compatibilityData[p.id];
+                  return (
+                    <div key={p.id} className="bg-white rounded-2xl p-6 hover:shadow-lg transition-shadow cursor-pointer relative overflow-hidden" onClick={() => { setSelectedProfile(p); setAiInsights(null); }} data-testid={`roommate-${p.id}`}>
+                      {/* Compatibility Badge */}
+                      {compat && (
+                        <div className={`absolute top-0 right-0 px-3 py-1.5 rounded-bl-xl ${getCompatibilityColor(compat.compatibility_level)} text-white text-sm font-medium`}>
+                          {Math.round(compat.percentage)}% Match
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1A2F3A] to-[#2C4A52] flex items-center justify-center text-white text-xl font-bold">
+                          {p.name?.charAt(0) || '?'}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-[#1A2F3A]">{p.name}</h3>
+                          <p className="text-sm text-gray-500">{p.age ? `${p.age} · ` : ''}{p.occupation || ''}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-[#1A2F3A]">{p.name}</h3>
-                        <p className="text-sm text-gray-500">{p.age ? `${p.age} · ` : ''}{p.occupation || ''}</p>
+                      
+                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                        <span className="flex items-center gap-1"><DollarSign size={14} />${p.budget_min}-${p.budget_max}/mo</span>
+                        {p.move_in_date && <span className="flex items-center gap-1"><Calendar size={14} />{p.move_in_date}</span>}
                       </div>
+                      
+                      {p.preferred_areas?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">{p.preferred_areas.slice(0, 3).map(a => <span key={a} className="px-2 py-0.5 bg-[#F5F5F0] text-gray-600 rounded text-xs">{a}</span>)}</div>
+                      )}
+                      
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {p.lifestyle?.slice(0, 4).map(l => <span key={l} className="px-2 py-0.5 bg-[#1A2F3A]/10 text-[#1A2F3A] rounded text-xs capitalize">{l.replace('_', ' ')}</span>)}
+                        {p.pets && <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">Has Pets</span>}
+                      </div>
+                      
+                      {/* Mini Compatibility Breakdown */}
+                      {compat && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <Sparkles size={12} className="text-purple-400" />
+                            <span>Top match: {compat.reasons?.[0]}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                      <span className="flex items-center gap-1"><DollarSign size={14} />${p.budget_min}-${p.budget_max}/mo</span>
-                      {p.move_in_date && <span className="flex items-center gap-1"><Calendar size={14} />{p.move_in_date}</span>}
-                    </div>
-                    {p.preferred_areas?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">{p.preferred_areas.slice(0, 3).map(a => <span key={a} className="px-2 py-0.5 bg-[#F5F5F0] text-gray-600 rounded text-xs">{a}</span>)}</div>
-                    )}
-                    <div className="flex flex-wrap gap-1">
-                      {p.lifestyle?.slice(0, 4).map(l => <span key={l} className="px-2 py-0.5 bg-[#1A2F3A]/10 text-[#1A2F3A] rounded text-xs capitalize">{l.replace('_', ' ')}</span>)}
-                      {p.pets && <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded text-xs">Has Pets</span>}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
