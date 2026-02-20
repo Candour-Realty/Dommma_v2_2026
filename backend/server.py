@@ -1043,6 +1043,7 @@ User Context:
 Available Properties in Database (include ID when recommending):
 {listings_context if listings_context else "No listings currently available in the database. Encourage users to check back later or ask landlords to add listings."}
 {lifestyle_info}
+{long_term_memory}
 {history_context}
 
 IMPORTANT CAPABILITIES:
@@ -1051,6 +1052,7 @@ IMPORTANT CAPABILITIES:
 3. Commute Analysis: Estimate commute times to key locations
 4. Proactive Suggestions: Offer relevant tips based on conversation
 5. Multi-turn Memory: Reference previous parts of the conversation
+6. Long-term Memory: If user context shows saved preferences, USE THEM to personalize recommendations
 
 CRITICAL - WHEN RECOMMENDING PROPERTIES:
 - Always reference the property ID from the database above
@@ -1058,6 +1060,7 @@ CRITICAL - WHEN RECOMMENDING PROPERTIES:
 - Example: "I recommend [Modern Downtown Condo](property:abc123) - it's perfect for your needs"
 - This allows users to click and view the property directly
 - If no properties match, say so honestly and suggest broadening the search
+- If user has saved preferences (pet-friendly, budget, area), prioritize those matches
 
 Keep responses helpful, conversational, and concise (2-3 paragraphs max).
 End responses with 1-2 proactive suggestions when relevant."""
