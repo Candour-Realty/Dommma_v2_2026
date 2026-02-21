@@ -361,7 +361,8 @@ const ContractorMarketplace = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </MainLayout>
   );
 };
 
