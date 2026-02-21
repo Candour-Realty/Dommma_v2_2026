@@ -94,34 +94,33 @@ const ContractorMarketplace = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F0]">
-      <header className="bg-[#1A2F3A] text-white px-6 py-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-4 mb-6">
-            <Link to={user ? "/dashboard" : "/"} className="text-white/70 hover:text-white"><ArrowLeft size={18} /></Link>
-            <div>
+    <MainLayout>
+      <div className="min-h-screen bg-[#F5F5F0]">
+        {/* Page Header */}
+        <header className="bg-[#1A2F3A] text-white px-6 py-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-6">
               <h1 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Find Contractors</h1>
               <p className="text-sm text-white/70">Verified professionals for every job</p>
             </div>
+            <div className="relative max-w-2xl">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text" value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search contractors by name, specialty..."
+                className="w-full pl-12 pr-4 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:bg-white/20 outline-none"
+                data-testid="contractor-search-input"
+              />
+            </div>
           </div>
-          <div className="relative max-w-2xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text" value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search contractors by name, specialty..."
-              className="w-full pl-12 pr-4 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:bg-white/20 outline-none"
-              data-testid="contractor-search-input"
-            />
-          </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        {/* Leaderboard Sidebar on larger screens */}
-        <div className="lg:hidden mb-6">
-          <ContractorLeaderboard limit={3} compact={false} />
-        </div>
+        <main className="max-w-6xl mx-auto px-6 py-8">
+          {/* Leaderboard Sidebar on larger screens */}
+          <div className="lg:hidden mb-6">
+            <ContractorLeaderboard limit={3} compact={false} />
+          </div>
 
         <div className="flex gap-8">
           {/* Main Content */}
