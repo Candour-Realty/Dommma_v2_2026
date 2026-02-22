@@ -4,7 +4,9 @@ Uses OpenAI TTS API
 """
 import os
 import logging
+import base64
 from typing import Optional
+from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,8 @@ DEFAULT_VOICE = "nova"  # Matches our Nova AI assistant name!
 class TextToSpeechService:
     def __init__(self, db):
         self.db = db
-        self.api_key = os.environ.get('EMERGENT_LLM_KEY', '')
+        self.api_key = os.environ.get('OPENAI_API_KEY', '')
+        self.client = AsyncOpenAI(api_key=self.api_key)
         self.max_text_length = 4096
     
     async def generate_speech(
@@ -49,18 +52,16 @@ class TextToSpeechService:
             voice = DEFAULT_VOICE
         
         try:
-            from emergentintegrations.llm.openai import OpenAITextToSpeech
-            
-            tts = OpenAITextToSpeech(api_key=self.api_key)
-            
-            audio_bytes = await tts.generate_speech(
-                text=text,
+            response = await self.client.audio.speech.create(
                 model=model,
                 voice=voice,
+                input=text,
                 speed=speed,
                 response_format=response_format
             )
             
+            # Get bytes from response
+            audio_bytes = response.content
             return audio_bytes
             
         except Exception as e:
@@ -76,17 +77,15 @@ class TextToSpeechService:
     ) -> str:
         """Generate speech and return as base64 string"""
         try:
-            from emergentintegrations.llm.openai import OpenAITextToSpeech
-            
-            tts = OpenAITextToSpeech(api_key=self.api_key)
-            
-            audio_base64 = await tts.generate_speech_base64(
+            audio_bytes = await self.generate_speech(
                 text=text,
-                model=model,
                 voice=voice,
-                speed=speed
+                model=model,
+                speed=speed,
+                response_format="mp3"
             )
             
+            audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
             return audio_base64
             
         except Exception as e:
