@@ -4,7 +4,9 @@ Image Analysis Service - Analyze property images using AI
 import os
 import base64
 import logging
+import json
 from typing import Dict, Any, List, Optional
+from anthropic import AsyncAnthropic
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 class ImageAnalysisService:
     def __init__(self, db):
         self.db = db
-        self.api_key = os.environ.get('EMERGENT_LLM_KEY', '')
+        self.api_key = os.environ.get('ANTHROPIC_API_KEY', '')
     
     def _extract_base64_and_type(self, image_data: str) -> tuple:
         """Extract base64 content and mime type from image data"""
