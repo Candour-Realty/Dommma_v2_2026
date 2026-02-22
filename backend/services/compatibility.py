@@ -6,6 +6,7 @@ import os
 import json
 import logging
 from datetime import datetime, timezone
+from anthropic import AsyncAnthropic
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 class RoommateCompatibilityService:
     def __init__(self, db):
         self.db = db
-        self.api_key = os.environ.get('EMERGENT_LLM_KEY', '')
+        self.api_key = os.environ.get('ANTHROPIC_API_KEY', '')
     
     def _calculate_basic_score(self, profile1: dict, profile2: dict) -> dict:
         """Calculate basic compatibility without AI"""
