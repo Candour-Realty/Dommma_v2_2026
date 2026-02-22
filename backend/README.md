@@ -16,7 +16,6 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
-pip install emergentintegrations --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
 
 # Create .env file (see Environment Variables below)
 
@@ -42,7 +41,8 @@ MONGO_URL=mongodb://localhost:27017
 DB_NAME=dommma
 
 # AI Features (required for AI to work)
-EMERGENT_LLM_KEY=your_key_here
+ANTHROPIC_API_KEY=your_anthropic_key_here
+OPENAI_API_KEY=your_openai_key_here
 
 # Optional Integrations
 GOOGLE_CLIENT_ID=
