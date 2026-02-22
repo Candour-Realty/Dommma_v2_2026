@@ -40,7 +40,7 @@ class ImageAnalysisService:
     ) -> Dict[str, Any]:
         """Analyze a property image using AI vision"""
         try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContent
+            anthropic_client = AsyncAnthropic(api_key=self.api_key)
             
             prompts = {
                 "general": """Analyze this property image and provide:
@@ -83,28 +83,37 @@ Respond in JSON format."""
             
             prompt = prompts.get(analysis_type, prompts["general"])
             
-            chat = LlmChat(
-                api_key=self.api_key,
-                session_id=f"img-analysis-{analysis_type}",
-                system_message="You are a professional real estate appraiser and interior designer. Analyze property images accurately and provide actionable insights."
-            ).with_model("anthropic", "claude-sonnet-4-5-20250929")
-            
             # Extract base64 content and mime type
             base64_content, mime_type = self._extract_base64_and_type(image_data)
             
-            # Create message with image using file_contents
-            file_content = FileContent(content_type=mime_type, file_content_base64=base64_content)
-            message = UserMessage(
-                text=prompt,
-                file_contents=[file_content]
+            # Create message with image using Anthropic's format
+            claude_response = await anthropic_client.messages.create(
+                model="claude-sonnet-4-5-20250929",
+                max_tokens=1024,
+                system="You are a professional real estate appraiser and interior designer. Analyze property images accurately and provide actionable insights.",
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": mime_type,
+                                "data": base64_content
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": prompt
+                        }
+                    ]
+                }]
             )
             
-            response = await chat.send_message(message)
+            response = claude_response.content[0].text
             
             # Parse JSON response
             import re
-            import json
-            
             json_match = re.search(r'\{.*\}', response, re.DOTALL)
             if json_match:
                 analysis = json.loads(json_match.group())
