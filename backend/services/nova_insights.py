@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 class NovaInsightsService:
     def __init__(self, db):
         self.db = db
-        self.api_key = os.environ.get('EMERGENT_LLM_KEY', '')
     
     async def get_user_insights(self, user_id: str) -> Dict[str, Any]:
         """Get comprehensive insights for a user"""
