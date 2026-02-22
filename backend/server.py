@@ -972,12 +972,21 @@ async def chat_with_nova(request: ChatRequest):
         session = {"id": session_id, "messages": [], "created_at": datetime.now(timezone.utc).isoformat(), "user_id": user_id}
         await db.chat_sessions.insert_one(session)
     
-    # Get available listings for context
-    listings = await db.listings.find({"status": "active"}, {"_id": 0}).to_list(50)
+    # Get available listings for context - fetch ALL active listings
+    listings = await db.listings.find({"status": "active"}, {"_id": 0}).to_list(200)
+    
+    # Build clear context with CITY prominently displayed
     listings_context = "\n".join([
-        f"- ID:{listing['id']} | {listing['title']}: {listing['bedrooms']}bd/{listing['bathrooms']}ba, ${listing['price']}/mo, {listing['address']}, {listing['city']}, {listing['sqft']}sqft, Pet-friendly: {listing.get('pet_friendly', False)}, Type: {listing.get('property_type', 'Apartment')}"
+        f"- ID:{listing['id']} | CITY: {listing.get('city', 'Vancouver')} | {listing['title']}: {listing.get('bedrooms', 0)}bd/{listing.get('bathrooms', 1)}ba, ${listing.get('price', 0)}/mo, {listing.get('address', '')}, {listing.get('sqft', 0)}sqft, Pet-friendly: {listing.get('pet_friendly', False)}, Type: {listing.get('property_type', 'Apartment')}, Listing: {listing.get('listing_type', 'rent')}"
         for listing in listings
     ])
+    
+    # Log for debugging
+    cities = {}
+    for l in listings:
+        c = l.get('city', 'Unknown')
+        cities[c] = cities.get(c, 0) + 1
+    logger.info(f"Chat context: {len(listings)} listings, cities: {cities}")
     
     # Build conversation context from history
     history_context = ""
