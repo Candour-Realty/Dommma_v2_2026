@@ -1352,7 +1352,6 @@ Score fairness from 1-10 (10 = very renter-friendly). Be thorough but practical.
 @api_router.post("/ai/commute-search")
 async def commute_search(req: CommuteSearchRequest):
     """Find properties optimized for commute to work locations"""
-    api_key = os.environ.get('EMERGENT_LLM_KEY')
     
     # Get all active listings
     all_listings = await db.listings.find({"status": "active"}, {"_id": 0}).to_list(100)
@@ -1378,18 +1377,20 @@ async def commute_search(req: CommuteSearchRequest):
 Score commute from 1-10 (10 = shortest/most convenient)."""
 
     try:
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"commute-{uuid.uuid4().hex[:8]}",
-            system_message=system_message
-        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+        anthropic_client = AsyncAnthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
         
-        user_message = UserMessage(
-            text=f"Work addresses: {', '.join(req.work_addresses)}\n"
-                 f"Max commute: {req.max_commute_minutes} min by {req.transport_mode}\n\n"
-                 f"Available properties:\n{listings_text}"
+        user_content = (f"Work addresses: {', '.join(req.work_addresses)}\n"
+                       f"Max commute: {req.max_commute_minutes} min by {req.transport_mode}\n\n"
+                       f"Available properties:\n{listings_text}")
+        
+        claude_response = await anthropic_client.messages.create(
+            model="claude-sonnet-4-5-20250929",
+            max_tokens=2048,
+            system=system_message,
+            messages=[{"role": "user", "content": user_content}]
         )
-        response = await chat.send_message(user_message)
+        
+        response = claude_response.content[0].text
         
         import re
         json_match = re.search(r'\{.*\}', response, re.DOTALL)
