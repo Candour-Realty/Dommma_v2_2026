@@ -142,7 +142,7 @@ Respond in JSON format."""
     ) -> Dict[str, Any]:
         """Compare multiple property images"""
         try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContent
+            anthropic_client = AsyncAnthropic(api_key=self.api_key)
             
             default_criteria = [
                 "natural light",
@@ -173,27 +173,38 @@ Respond in JSON format with structure:
     ]
 }}"""
             
-            chat = LlmChat(
-                api_key=self.api_key,
-                session_id="img-comparison",
-                system_message="You are a real estate expert helping buyers compare properties objectively."
-            ).with_model("anthropic", "claude-sonnet-4-5-20250929")
-            
             # For now, analyze first image (multi-image requires different approach)
             # In production, you'd send multiple images or analyze sequentially
             if images:
                 # Extract base64 content and mime type
                 base64_content, mime_type = self._extract_base64_and_type(images[0])
-                file_content = FileContent(content_type=mime_type, file_content_base64=base64_content)
-                message = UserMessage(
-                    text=prompt,
-                    file_contents=[file_content]
+                
+                claude_response = await anthropic_client.messages.create(
+                    model="claude-sonnet-4-5-20250929",
+                    max_tokens=1024,
+                    system="You are a real estate expert helping buyers compare properties objectively.",
+                    messages=[{
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": mime_type,
+                                    "data": base64_content
+                                }
+                            },
+                            {
+                                "type": "text",
+                                "text": prompt
+                            }
+                        ]
+                    }]
                 )
                 
-                response = await chat.send_message(message)
+                response = claude_response.content[0].text
                 
                 import re
-                import json
                 json_match = re.search(r'\{.*\}', response, re.DOTALL)
                 if json_match:
                     return json.loads(json_match.group())
