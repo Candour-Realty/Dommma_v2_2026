@@ -163,17 +163,16 @@ A **production-ready** real estate platform that rivals established players like
 
 | Service | Purpose |
 |---------|---------|
-| **Claude Sonnet 4.5** | Chatbot intelligence, compatibility scoring, memory extraction (via Emergent LLM Key) |
-| **OpenAI Whisper** | Voice-to-text transcription (via Emergent LLM Key) |
-| **OpenAI TTS** | Text-to-speech responses (via Emergent LLM Key) |
-| **Emergent LLM Key** | Universal API key for multi-provider AI access |
+| **Claude Sonnet 4.5** | Chatbot intelligence, compatibility scoring, memory extraction (Direct API) |
+| **OpenAI Whisper** | Voice-to-text transcription (Direct API) |
+| **OpenAI TTS** | Text-to-speech responses (Direct API) |
 | **Google Maps** | Property mapping & directions |
 | **Google Calendar** | Viewing appointments sync |
 | **Stripe** | Secure payment processing |
 | **Firebase** | Push notifications & analytics |
 | **Resend** | Transactional emails |
 
-> **Note:** The Emergent LLM Key is a universal API key that provides seamless access to multiple AI providers (Claude, OpenAI, Gemini) through a single integration. This simplifies development and allows easy switching between models.
+> **Note:** The platform uses direct integrations with Anthropic (Claude) and OpenAI APIs for full control over AI features, billing, and rate limits. This production-ready architecture ensures reliability and scalability.
 
 ### Quality Metrics
 
