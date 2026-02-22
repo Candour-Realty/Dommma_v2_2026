@@ -113,12 +113,14 @@ class MovingQuoteService:
     async def _get_ai_tips(self, request_data: dict, quote_data: dict) -> Optional[Dict]:
         """Get AI-powered moving tips and recommendations"""
         try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            from anthropic import AsyncAnthropic
             import re
             
-            api_key = os.environ.get("EMERGENT_LLM_KEY")
+            api_key = os.environ.get("ANTHROPIC_API_KEY")
             if not api_key:
                 return None
+            
+            anthropic_client = AsyncAnthropic(api_key=api_key)
             
             system_prompt = """You are a professional moving consultant. Provide helpful, practical tips for people planning moves. Always respond with valid JSON only."""
             
@@ -146,14 +148,14 @@ Provide a JSON response with these keys:
 
 JSON only, no markdown:"""
 
-            quote_id = quote_data.get('id', 'unknown')[:8]
-            chat = LlmChat(
-                api_key=api_key,
-                session_id=f"moving-tips-{quote_id}",
-                system_message=system_prompt
-            ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+            claude_response = await anthropic_client.messages.create(
+                model="claude-sonnet-4-5-20250929",
+                max_tokens=1024,
+                system=system_prompt,
+                messages=[{"role": "user", "content": prompt}]
+            )
             
-            response = await chat.send_message(UserMessage(text=prompt))
+            response = claude_response.content[0].text
             
             # Parse AI response - find JSON in response
             json_match = re.search(r'\{.*\}', response, re.DOTALL)
