@@ -1,45 +1,46 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../App';
 import NovaChat from '../chat/NovaChat';
-
-const navLinks = [
-  { path: '/', label: 'Home' },
-  { path: '/about', label: 'About' },
-  { path: '/properties', label: 'Properties' },
-  { path: '/contractors', label: 'Pros' },
-  { path: '/services', label: 'Services' },
-  { path: '/contact', label: 'Contact' },
-];
-
-const footerLinks = {
-  pages: [
-    { path: '/', label: 'Home' },
-    { path: '/about', label: 'About Us' },
-    { path: '/properties', label: 'Properties' },
-    { path: '/contractors', label: 'Find Pros' },
-    { path: '/services', label: 'Services' },
-    { path: '/contact', label: 'Contact' },
-  ],
-  services: [
-    { path: '/browse', label: 'Find Rentals' },
-    { path: '/browse?type=sale', label: 'Buy Property' },
-    { path: '/contractors', label: 'Find Contractors' },
-    { path: '/services', label: 'Property Management' },
-  ],
-  utility: [
-    { path: '#', label: 'Terms of Service' },
-    { path: '#', label: 'Privacy Policy' },
-    { path: '#', label: 'Cookie Policy' },
-    { path: '/login', label: 'Login' },
-  ]
-};
+import LanguageToggle from '../LanguageToggle';
 
 const MainLayout = ({ children, hideNovaButton = false }) => {
   const location = useLocation();
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navLinks = [
+    { path: '/', label: t('nav.home') },
+    { path: '/about', label: t('nav.about') },
+    { path: '/properties', label: t('nav.properties') },
+    { path: '/contractors', label: t('nav.pros') },
+    { path: '/services', label: t('nav.services') },
+    { path: '/contact', label: t('nav.contact') },
+  ];
+
+  const footerLinks = {
+    pages: [
+      { path: '/', label: t('nav.home') },
+      { path: '/about', label: t('nav.about') },
+      { path: '/properties', label: t('nav.properties') },
+      { path: '/contractors', label: t('nav.pros') },
+      { path: '/services', label: t('nav.services') },
+      { path: '/contact', label: t('nav.contact') },
+    ],
+    services: [
+      { path: '/browse', label: t('browse.rent') },
+      { path: '/browse?type=sale', label: t('browse.buy') },
+      { path: '/contractors', label: t('contractors.title') },
+    ],
+    utility: [
+      { path: '#', label: t('footer.terms') },
+      { path: '#', label: t('footer.privacy') },
+      { path: '/login', label: t('nav.login') },
+    ]
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F5F0]">
@@ -73,15 +74,16 @@ const MainLayout = ({ children, hideNovaButton = false }) => {
               ))}
             </div>
 
-            {/* Auth Button */}
+            {/* Auth Button + Language Toggle */}
             <div className="hidden md:flex items-center gap-4">
+              <LanguageToggle className="text-gray-300 hover:text-white" />
               {user ? (
                 <Link 
                   to="/dashboard"
                   className="btn-outline text-white border-white text-xs"
                   data-testid="dashboard-btn"
                 >
-                  Dashboard
+                  {t('nav.dashboard')}
                 </Link>
               ) : (
                 <Link 
@@ -89,7 +91,7 @@ const MainLayout = ({ children, hideNovaButton = false }) => {
                   className="btn-outline text-white border-white text-xs"
                   data-testid="login-btn"
                 >
-                  Login
+                  {t('nav.login')}
                 </Link>
               )}
             </div>
