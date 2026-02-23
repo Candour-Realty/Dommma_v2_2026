@@ -224,8 +224,75 @@ const NovaChat = () => {
     }
   };
 
-  // Voice recording functions
+  // Voice recording functions - Using Web Speech API for real-time transcription
   const startRecording = async () => {
+    // Check if Web Speech API is available
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      // Use Web Speech API for real-time transcription
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = i18n.language === 'fr' ? 'fr-CA' : 'en-US';
+        
+        recognition.onresult = (event) => {
+          let interim = '';
+          let final = '';
+          
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              final += transcript;
+            } else {
+              interim += transcript;
+            }
+          }
+          
+          // Update input field in real-time
+          if (final) {
+            setInput(prev => prev + final);
+            setInterimTranscript('');
+          } else {
+            setInterimTranscript(interim);
+          }
+        };
+        
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          setIsRecording(false);
+          setInterimTranscript('');
+          if (event.error === 'not-allowed') {
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              content: i18n.language === 'fr' 
+                ? "Je n'ai pas pu accéder à votre microphone. Veuillez vérifier les permissions."
+                : "I couldn't access your microphone. Please check your browser permissions."
+            }]);
+          }
+        };
+        
+        recognition.onend = () => {
+          setIsRecording(false);
+          setInterimTranscript('');
+        };
+        
+        recognitionRef.current = recognition;
+        recognition.start();
+        setIsRecording(true);
+      } catch (error) {
+        console.error('Error starting speech recognition:', error);
+        // Fallback to MediaRecorder
+        startMediaRecording();
+      }
+    } else {
+      // Fallback to MediaRecorder + Whisper API
+      startMediaRecording();
+    }
+  };
+  
+  const startMediaRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
@@ -247,16 +314,25 @@ const NovaChat = () => {
       console.error('Error starting recording:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "I couldn't access your microphone. Please check your browser permissions and try again."
+        content: i18n.language === 'fr'
+          ? "Je n'ai pas pu accéder à votre microphone. Veuillez vérifier les permissions."
+          : "I couldn't access your microphone. Please check your browser permissions and try again."
       }]);
     }
   };
 
   const stopRecording = () => {
+    // Stop Web Speech API
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    // Stop MediaRecorder
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
     }
+    setIsRecording(false);
+    setInterimTranscript('');
   };
 
   const transcribeAudio = async (audioBlob) => {
@@ -268,13 +344,11 @@ const NovaChat = () => {
         const base64Audio = reader.result;
         const response = await axios.post(`${API}/nova/transcribe`, {
           audio_data: base64Audio,
-          language: 'en'
+          language: i18n.language === 'fr' ? 'fr' : 'en'
         });
         
         if (response.data.text) {
           setInput(response.data.text);
-          // Auto-send after transcription
-          sendMessage(response.data.text);
         }
         setIsTranscribing(false);
       };
@@ -282,7 +356,9 @@ const NovaChat = () => {
       console.error('Transcription error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "I had trouble understanding that. Could you try again or type your message?"
+        content: i18n.language === 'fr'
+          ? "J'ai eu du mal à comprendre. Pourriez-vous réessayer ou taper votre message?"
+          : "I had trouble understanding that. Could you try again or type your message?"
       }]);
       setIsTranscribing(false);
     }
