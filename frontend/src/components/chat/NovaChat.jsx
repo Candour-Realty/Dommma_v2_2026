@@ -67,6 +67,7 @@ const preferenceFields = [
 
 const NovaChat = () => {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -84,9 +85,11 @@ const NovaChat = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [proactiveSuggestions, setProactiveSuggestions] = useState([]);
   
-  // Voice input state
+  // Voice input state - using Web Speech API for real-time transcription
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   
