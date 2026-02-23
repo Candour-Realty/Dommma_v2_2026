@@ -919,19 +919,30 @@ const NovaChat = () => {
                   )}
                 </button>
 
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder={isRecording ? "Listening..." : "Ask about properties, budgets, neighborhoods..."}
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] focus:ring-2 focus:ring-[#1A2F3A]/10 outline-none transition-all text-sm"
-                  data-testid="nova-input"
-                  disabled={isLoading || isRecording || isTranscribing}
-                />
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={input + interimTranscript}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder={isRecording 
+                      ? (i18n.language === 'fr' ? "Écoute en cours..." : "Listening...") 
+                      : (i18n.language === 'fr' ? "Demandez à propos de propriétés, budgets..." : "Ask about properties, budgets, neighborhoods...")}
+                    className={`w-full px-4 py-3 rounded-xl border focus:border-[#1A2F3A] focus:ring-2 focus:ring-[#1A2F3A]/10 outline-none transition-all text-sm ${
+                      isRecording ? 'border-red-400 bg-red-50 animate-pulse' : 'border-gray-200'
+                    }`}
+                    data-testid="nova-input"
+                    disabled={isLoading || isTranscribing}
+                  />
+                  {interimTranscript && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                      {i18n.language === 'fr' ? 'en train d\'écouter...' : 'listening...'}
+                    </span>
+                  )}
+                </div>
                 <button
                   onClick={() => sendMessage()}
-                  disabled={!input.trim() || isLoading}
+                  disabled={!(input.trim() || interimTranscript.trim()) || isLoading}
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-white transition-all disabled:opacity-50 bg-gradient-to-r from-[#1A2F3A] to-[#2C4A52] hover:shadow-lg"
                   data-testid="nova-send-button"
                 >
@@ -939,7 +950,7 @@ const NovaChat = () => {
                 </button>
               </div>
               <p className="text-xs text-gray-400 text-center mt-2">
-                🎤 Voice • 📷 Images • Powered by Claude AI
+                🎤 {i18n.language === 'fr' ? 'Voix' : 'Voice'} • 📷 Images • {i18n.language === 'fr' ? 'Propulsé par' : 'Powered by'} Claude AI
               </p>
             </div>
           </div>
