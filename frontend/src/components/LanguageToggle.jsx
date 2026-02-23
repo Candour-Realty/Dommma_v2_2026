@@ -8,6 +8,7 @@ const LanguageToggle = ({ className = '' }) => {
   const toggleLanguage = () => {
     const newLang = i18n.language === 'en' ? 'fr' : 'en';
     i18n.changeLanguage(newLang);
+    localStorage.setItem('i18nextLng', newLang);
   };
   
   return (
@@ -15,7 +16,7 @@ const LanguageToggle = ({ className = '' }) => {
       onClick={toggleLanguage}
       className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all hover:bg-white/10 ${className}`}
       data-testid="language-toggle"
-      title={i18n.language === 'en' ? 'Switch to French' : 'Passer en anglais'}
+      title={i18n.language === 'en' ? 'Passer en français' : 'Switch to English'}
     >
       <Globe size={16} />
       <span className="uppercase font-semibold">
