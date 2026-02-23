@@ -893,7 +893,9 @@ const NovaChat = () => {
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   } disabled:opacity-50`}
                   data-testid="nova-voice-button"
-                  title={isRecording ? 'Stop recording' : 'Voice input'}
+                  title={isRecording 
+                    ? (i18n.language === 'fr' ? 'Arrêter' : 'Stop recording') 
+                    : (i18n.language === 'fr' ? 'Parler' : 'Voice input')}
                 >
                   {isTranscribing ? (
                     <Loader2 size={18} className="animate-spin" />
@@ -910,7 +912,7 @@ const NovaChat = () => {
                   disabled={isLoading || analyzingImage}
                   className="w-12 h-12 rounded-xl flex items-center justify-center bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all disabled:opacity-50"
                   data-testid="nova-image-button"
-                  title="Upload property image"
+                  title={i18n.language === 'fr' ? 'Télécharger une image' : 'Upload property image'}
                 >
                   {analyzingImage ? (
                     <Loader2 size={18} className="animate-spin" />
