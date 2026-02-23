@@ -216,10 +216,10 @@ const Home = () => {
               className="display-xl text-white mb-6 uppercase"
               data-testid="hero-title"
             >
-              Home Made<br />Simple
+              {t('hero.title')}
             </h1>
             <p className="text-lg text-white/70 mb-8 max-w-md leading-relaxed">
-              Complete real estate marketplace for renting, buying, property management, and finding trusted contractors.
+              {t('hero.subtitle')}
             </p>
             <div className="flex items-center gap-6">
               <Link
@@ -227,14 +227,14 @@ const Home = () => {
                 className="flex items-center gap-2 text-white hover:text-white/80 transition-colors group"
                 data-testid="hero-cta"
               >
-                <span className="text-sm tracking-wider">Our Story</span>
+                <span className="text-sm tracking-wider">{t('hero.ourStory')}</span>
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link 
                 to="/browse"
                 className="px-6 py-3 bg-white text-[#1A2F3A] rounded-full text-sm font-medium hover:bg-white/90 transition-colors"
               >
-                Browse Properties
+                {t('hero.browseProperties')}
               </Link>
             </div>
           </div>
@@ -259,7 +259,7 @@ const Home = () => {
                 onKeyPress={handleKeyPress}
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                placeholder="Ask Nova AI: Find apartments, calculate budget, get neighborhood tips..."
+                placeholder={t('hero.askNova')}
                 className="w-full py-4 px-2 text-lg text-[#1A2F3A] placeholder-gray-400 outline-none bg-transparent"
                 data-testid="nova-search-input"
               />
@@ -268,7 +268,7 @@ const Home = () => {
               {showSuggestions && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 py-3 z-50">
                   <p className="px-4 text-xs text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <Sparkles size={12} /> Try asking
+                    <Sparkles size={12} /> {i18n.language === 'fr' ? 'Essayez de demander' : 'Try asking'}
                   </p>
                   {suggestedPrompts.map((prompt, i) => (
                     <button
