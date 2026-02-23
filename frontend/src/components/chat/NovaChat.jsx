@@ -6,6 +6,7 @@ import {
   Image, Bell, Camera, Volume2, VolumeX, ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useAuth } from '../../App';
 
