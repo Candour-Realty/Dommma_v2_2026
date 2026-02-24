@@ -126,7 +126,7 @@ const About = () => {
             className="display-lg text-white mb-12"
             style={{ fontFamily: 'Cormorant Garamond, serif' }}
           >
-            Meet the<br />Leaders
+            Meet the<br />Founders
           </h2>
           <div className="grid md:grid-cols-4 gap-8">
             {team.map((member, i) => (
