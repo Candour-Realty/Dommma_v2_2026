@@ -2,12 +2,14 @@
 
 Complete real estate platform with AI chatbot, property listings, contractor marketplace, and more.
 
+**Live Demo:** https://dommma-rental-hub.preview.emergentagent.com
+
 ## 🚀 Quick Start (Local Development)
 
 ### Prerequisites
 - **Python 3.10+** 
 - **Node.js 18+**
-- **MongoDB** (running locally)
+- **MongoDB** (local or Atlas cloud - we use Atlas)
 
 ### 1. Clone and Setup
 
@@ -30,8 +32,13 @@ venv\Scripts\activate
 # Activate (Mac/Linux)
 source venv/bin/activate
 
-# Run setup script (installs packages, configures env, seeds database)
-python setup_local.py
+# Install dependencies
+pip install -r requirements.txt
+pip install bcrypt==4.0.1  # Fix for bcrypt compatibility
+
+# Copy environment file
+copy .env.local .env   # Windows
+cp .env.local .env     # Mac/Linux
 
 # Start backend
 uvicorn server:app --reload --host 0.0.0.0 --port 8001
@@ -47,7 +54,7 @@ copy .env.local .env   # Windows
 cp .env.local .env     # Mac/Linux
 
 # Install dependencies
-npm install
+npm install --legacy-peer-deps
 
 # Start frontend
 npm start
