@@ -173,3 +173,16 @@ python seed_database.py
 ## 📞 Support
 
 For issues, create a GitHub issue or contact the development team.
+
+---
+
+## 👥 Founders
+
+- Jayraj Panchal
+- Monika Aggarwal  
+- Geoffrey Routledge
+- Rishabh Goswami
+
+---
+
+*Built with React, FastAPI, MongoDB Atlas, Claude AI, and OpenAI*
