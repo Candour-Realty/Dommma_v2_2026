@@ -169,6 +169,54 @@ const NovaChat = ({ isOpenProp = false, onClose = null, initialQuery = '' }) => 
     }
   }, [isOpen, messages.length, user]);
 
+  // Process pending query from homepage after welcome message is shown
+  useEffect(() => {
+    if (isOpen && messages.length === 1 && pendingQueryRef.current) {
+      const query = pendingQueryRef.current;
+      pendingQueryRef.current = ''; // Clear it so it doesn't run again
+      
+      // Small delay to let the welcome message render
+      const timer = setTimeout(() => {
+        if (query.trim()) {
+          // Directly add user message and call API
+          setInput('');
+          setShowQuickActions(false);
+          setMessages(prev => [...prev, { role: 'user', content: query.trim() }]);
+          setIsLoading(true);
+          setSuggestions([]);
+          
+          axios.post(`${API}/chat`, {
+            session_id: sessionId,
+            message: query.trim(),
+            user_id: user?.id || null,
+            user_context: null
+          }).then(response => {
+            setSessionId(response.data.session_id);
+            const assistantMessage = { 
+              role: 'assistant', 
+              content: response.data.response,
+              listings: response.data.listings,
+              suggestions: response.data.suggestions
+            };
+            setMessages(prev => [...prev, assistantMessage]);
+            if (response.data.suggestions?.length > 0) {
+              setSuggestions(response.data.suggestions);
+            }
+          }).catch(error => {
+            console.error('Chat error:', error);
+            setMessages(prev => [...prev, { 
+              role: 'assistant', 
+              content: "I'm having a moment! Try asking about:\n• Apartments in Vancouver\n• Budget advice\n• Rental application tips\n• Neighborhood recommendations" 
+            }]);
+          }).finally(() => {
+            setIsLoading(false);
+          });
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, messages.length, sessionId, user?.id]);
+
   const fetchVoicePreference = async () => {
     if (!user?.id) return;
     try {
