@@ -782,7 +782,7 @@ const NovaChat = ({ isOpenProp = false, onClose = null, initialQuery = '' }) => 
                           <Link 
                             key={idx}
                             to={`/browse?property=${listing.id}`}
-                            onClick={() => setIsOpen(false)}
+                            onClick={handleClose}
                             className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-3 cursor-pointer hover:shadow-md hover:bg-blue-50 transition-all border border-transparent hover:border-blue-200"
                           >
                             <img 
