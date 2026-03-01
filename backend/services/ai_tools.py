@@ -375,17 +375,17 @@ class AIToolsService:
             "count": len(listings),
             "listings": [
                 {
-                    "id": l["id"],
-                    "title": l.get("title", "Untitled"),
-                    "address": f"{l.get('address', '')}, {l.get('city', '')}",
-                    "price": l.get("price", 0),
-                    "bedrooms": l.get("bedrooms", 0),
-                    "bathrooms": l.get("bathrooms", 1),
-                    "property_type": l.get("property_type", "apartment"),
-                    "pet_friendly": l.get("pet_friendly", False),
-                    "special_offers": l.get("offers", [])
+                    "id": listing["id"],
+                    "title": listing.get("title", "Untitled"),
+                    "address": f"{listing.get('address', '')}, {listing.get('city', '')}",
+                    "price": listing.get("price", 0),
+                    "bedrooms": listing.get("bedrooms", 0),
+                    "bathrooms": listing.get("bathrooms", 1),
+                    "property_type": listing.get("property_type", "apartment"),
+                    "pet_friendly": listing.get("pet_friendly", False),
+                    "special_offers": listing.get("offers", [])
                 }
-                for l in listings
+                for listing in listings
             ]
         }
     
