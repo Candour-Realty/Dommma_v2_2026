@@ -201,25 +201,16 @@ const Home = () => {
 
   return (
     <MainLayout hideNovaButton={true}>
-      {/* Nova Chat Modal for Homepage Search */}
+      {/* Nova Chat Modal triggered from Homepage Search */}
       {showNovaChat && (
-        <div className="fixed inset-0 z-50 flex items-end justify-end p-4 md:p-8" data-testid="homepage-nova-modal">
-          <div 
-            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-            onClick={() => {
-              setShowNovaChat(false);
-              sessionStorage.removeItem('novaInitialQuery');
-            }}
-          />
-          <NovaChat 
-            isOpenProp={true} 
-            onClose={() => {
-              setShowNovaChat(false);
-              sessionStorage.removeItem('novaInitialQuery');
-            }}
-            initialQuery={sessionStorage.getItem('novaInitialQuery') || searchQuery}
-          />
-        </div>
+        <NovaChat 
+          isOpenProp={true} 
+          onClose={() => {
+            setShowNovaChat(false);
+            sessionStorage.removeItem('novaInitialQuery');
+          }}
+          initialQuery={sessionStorage.getItem('novaInitialQuery') || searchQuery}
+        />
       )}
 
       {/* Hero Section */}
