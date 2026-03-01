@@ -676,7 +676,7 @@ const NovaChat = ({ isOpenProp = false, onClose = null, initialQuery = '' }) => 
                   <Settings size={16} />
                 </button>
                 <button 
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
                   data-testid="nova-close-button"
                 >
