@@ -139,6 +139,8 @@ class ListingCreate(BaseModel):
     garage: Optional[int] = None
     mls_number: Optional[str] = None
     open_house_dates: List[str] = []
+    lease_duration: Optional[int] = 12  # New: lease duration in months
+    offers: List[str] = []  # New: special offers/promotions
 
 class ChatMessage(BaseModel):
     role: str
