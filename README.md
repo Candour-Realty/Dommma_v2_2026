@@ -2,7 +2,7 @@
 
 Complete real estate platform with AI chatbot, property listings, contractor marketplace, and more.
 
-**Live Demo:** https://dommma-rental-hub.preview.emergentagent.com
+**Live Demo:** https://rental-ai-3.preview.emergentagent.com
 
 ## 🚀 Quick Start (Local Development)
 
