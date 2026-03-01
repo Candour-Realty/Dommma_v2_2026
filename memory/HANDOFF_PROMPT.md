@@ -144,15 +144,17 @@ The user wants DOMMMA to compete with liv.rent by making AI the primary interfac
 |------|--------|-------------|
 | Homepage search → chat | ✅ DONE | Search bar opens Nova chat |
 | Contractor link rendering | ✅ DONE | Clickable contractor links in chat |
-| `search_listings()` tool | ✅ EXISTS | Natural language property search |
-| `find_contractors()` tool | ✅ EXISTS | Natural language contractor search |
-| `create_listing()` tool | 🔲 TODO | Guide landlords through listing via chat |
-| `triage_maintenance()` tool | 🔲 TODO | Analyze maintenance photos, suggest contractors |
-| `price_assignment()` tool | 🔲 TODO | Help tenants price lease assignments |
+| `search_listings()` tool | ✅ DONE | Claude tool calling for property search |
+| `find_contractors()` tool | ✅ DONE | Claude tool calling for contractor search |
+| `create_listing()` tool | ✅ DONE | Claude tool calling for listing creation |
+| `triage_maintenance()` tool | ✅ DONE | Claude tool calling for maintenance requests |
+| `calculate_budget()` tool | ✅ DONE | Claude tool calling for budget calculations |
+| `schedule_viewing()` tool | ✅ DONE | Claude tool calling for viewing appointments |
 
-**Implementation Options for Tools:**
-- **Option A (Quick):** Enhance existing chat with conversational flows in the system prompt
-- **Option B (Robust):** Implement Claude's native tool use API for structured actions
+**Implementation: Option B (Full Tool Calling) - COMPLETED**
+- Created `/app/backend/services/ai_tools.py` with 6 tool definitions
+- Created `/api/ai/concierge` endpoint with Claude tool use API
+- Frontend updated to use new endpoint with fallback to original
 
 ### Phase 2: liv.rent Feature Parity
 | Feature | Description |
