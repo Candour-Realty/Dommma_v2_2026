@@ -401,14 +401,24 @@ const MyProperties = () => {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-2">Address</label>
-                <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" placeholder="1200 West Georgia St, Unit 2505" required />
+                <label className="block text-sm text-gray-600 mb-2">Address (start typing to autocomplete)</label>
+                <input 
+                  ref={addressInputRef}
+                  type="text" 
+                  value={form.address} 
+                  onChange={e => setForm({ ...form, address: e.target.value })} 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" 
+                  placeholder="Start typing address..." 
+                  required 
+                  data-testid="property-address-input"
+                />
+                <p className="text-xs text-gray-400 mt-1">Address will auto-fill city, province & postal code</p>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
-                <input type="text" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} className="px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" placeholder="City" required />
-                <input type="text" value={form.province} onChange={e => setForm({ ...form, province: e.target.value })} className="px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" placeholder="Province" required />
-                <input type="text" value={form.postal_code} onChange={e => setForm({ ...form, postal_code: e.target.value })} className="px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" placeholder="Postal Code" required />
+                <input type="text" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} className="px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none bg-gray-50" placeholder="City" required />
+                <input type="text" value={form.province} onChange={e => setForm({ ...form, province: e.target.value })} className="px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none bg-gray-50" placeholder="Province" required />
+                <input type="text" value={form.postal_code} onChange={e => setForm({ ...form, postal_code: e.target.value })} className="px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none bg-gray-50" placeholder="Postal Code" required />
               </div>
 
               <div className="grid grid-cols-3 gap-4">
