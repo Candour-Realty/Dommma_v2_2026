@@ -852,7 +852,7 @@ const NovaChat = ({ isOpenProp = false, onClose = null, initialQuery = '' }) => 
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-[#1A2F3A] text-sm truncate">{listing.title}</p>
                               <p className="text-xs text-gray-500 flex items-center gap-1">
-                                <MapPin size={10} /> {listing.address}, {listing.city}
+                                <MapPin size={10} /> {listing.address}
                               </p>
                               <div className="flex items-center gap-2 mt-1">
                                 <p className="text-sm font-semibold text-[#1A2F3A]">
@@ -861,6 +861,40 @@ const NovaChat = ({ isOpenProp = false, onClose = null, initialQuery = '' }) => 
                                 <span className="text-xs text-gray-400">
                                   {listing.bedrooms}bd • {listing.bathrooms}ba
                                 </span>
+                              </div>
+                              {listing.special_offers?.length > 0 && (
+                                <span className="text-xs text-green-600 font-medium">🎁 {listing.special_offers[0]}</span>
+                              )}
+                            </div>
+                            <ExternalLink size={16} className="text-gray-400 flex-shrink-0" />
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Contractor Cards */}
+                    {msg.contractors?.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-xs text-gray-500 font-medium">🔧 Recommended Contractors:</p>
+                        {msg.contractors.slice(0, 3).map((contractor, idx) => (
+                          <Link 
+                            key={idx}
+                            to={`/contractors/${contractor.id}`}
+                            onClick={handleClose}
+                            className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-3 cursor-pointer hover:shadow-md hover:bg-emerald-50 transition-all border border-transparent hover:border-emerald-200"
+                          >
+                            <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-lg">
+                              {contractor.business_name?.charAt(0) || '?'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-[#1A2F3A] text-sm truncate">{contractor.business_name}</p>
+                              <p className="text-xs text-gray-500">
+                                {contractor.specialties?.join(', ')}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-yellow-600">⭐ {contractor.rating || 'New'}</span>
+                                <span className="text-xs text-gray-400">${contractor.hourly_rate}/hr</span>
+                                {contractor.verified && <span className="text-xs text-green-600">✓ Verified</span>}
                               </div>
                             </div>
                             <ExternalLink size={16} className="text-gray-400 flex-shrink-0" />
