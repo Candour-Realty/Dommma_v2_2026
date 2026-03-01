@@ -110,6 +110,31 @@ const NovaChat = ({ isOpenProp = false, onClose = null, initialQuery = '' }) => 
   
   const messagesEndRef = useRef(null);
 
+  // Sync with external control
+  useEffect(() => {
+    setIsOpen(isOpenProp);
+  }, [isOpenProp]);
+
+  // Handle initial query from homepage search
+  useEffect(() => {
+    if (isOpen && initialQuery && messages.length <= 1) {
+      // Auto-send the initial query after a short delay
+      const timer = setTimeout(() => {
+        if (initialQuery.trim()) {
+          sendMessage(initialQuery);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, initialQuery]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onClose) {
+      onClose();
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
