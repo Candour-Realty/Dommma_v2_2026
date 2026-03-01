@@ -1,28 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2, ArrowLeft, Plus, MapPin, Bed, Bath, Edit, Trash2,
-  Image as ImageIcon, X, DollarSign, Check, Eye, EyeOff, Loader2
+  Image as ImageIcon, X, DollarSign, Check, Eye, EyeOff, Loader2,
+  Gift, Calendar
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const GOOGLE_MAPS_KEY = process.env.REACT_APP_GOOGLE_MAPS_KEY;
 
 // Geocode address using Google Maps API
 const geocodeAddress = async (address, city, province, postalCode) => {
   const fullAddress = `${address}, ${city}, ${province} ${postalCode}, Canada`;
-  const apiKey = process.env.REACT_APP_GOOGLE_MAPS_KEY;
   
-  if (!apiKey) {
+  if (!GOOGLE_MAPS_KEY) {
     console.warn('Google Maps API key not found, using default coordinates');
     return null;
   }
   
   try {
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${apiKey}`
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${GOOGLE_MAPS_KEY}`
     );
     const data = await response.json();
     
@@ -35,6 +36,66 @@ const geocodeAddress = async (address, city, province, postalCode) => {
   }
   return null;
 };
+
+// Address autocomplete using Google Places API
+const useAddressAutocomplete = (inputRef, onSelect) => {
+  useEffect(() => {
+    if (!inputRef.current || !GOOGLE_MAPS_KEY || !window.google?.maps?.places) return;
+    
+    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
+      types: ['address'],
+      componentRestrictions: { country: 'ca' }
+    });
+    
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.formatted_address) {
+        const components = place.address_components || [];
+        let city = '', province = '', postalCode = '', streetNumber = '', streetName = '';
+        
+        components.forEach(c => {
+          if (c.types.includes('street_number')) streetNumber = c.long_name;
+          if (c.types.includes('route')) streetName = c.long_name;
+          if (c.types.includes('locality')) city = c.long_name;
+          if (c.types.includes('administrative_area_level_1')) province = c.short_name;
+          if (c.types.includes('postal_code')) postalCode = c.long_name;
+        });
+        
+        onSelect({
+          address: `${streetNumber} ${streetName}`.trim(),
+          city: city || 'Vancouver',
+          province: province || 'BC',
+          postal_code: postalCode,
+          lat: place.geometry?.location?.lat() || 49.2827,
+          lng: place.geometry?.location?.lng() || -123.1207
+        });
+      }
+    });
+  }, [inputRef, onSelect]);
+};
+
+// Lease duration options
+const LEASE_DURATIONS = [
+  { value: 3, label: '3 months' },
+  { value: 6, label: '6 months' },
+  { value: 9, label: '9 months' },
+  { value: 12, label: '12 months (1 year)' },
+  { value: 24, label: '24 months (2 years)' },
+];
+
+// Offer/promotion options
+const OFFER_OPTIONS = [
+  '1 month free rent',
+  '2 months free rent',
+  'Free parking',
+  'Free WiFi',
+  'Free utilities',
+  'No deposit required',
+  'Reduced deposit',
+  'Free storage locker',
+  'Gym membership included',
+  'Move-in bonus',
+];
 
 const MyProperties = () => {
   const { user } = useAuth();
