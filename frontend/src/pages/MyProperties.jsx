@@ -106,18 +106,32 @@ const MyProperties = () => {
   const [editingListing, setEditingListing] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
+  const addressInputRef = useRef(null);
   const [form, setForm] = useState({
     title: '', address: '', city: 'Vancouver', province: 'BC',
     postal_code: '', lat: 49.2827, lng: -123.1207, price: '',
     bedrooms: '', bathrooms: '', sqft: '', property_type: 'Apartment',
     description: '', amenities: [], images: [], available_date: '',
     pet_friendly: false, parking: false, listing_type: 'rent',
-    year_built: '', lot_size: '', garage: ''
+    year_built: '', lot_size: '', garage: '',
+    lease_duration: 12, // New: lease duration in months
+    offers: [], // New: special offers/promotions
   });
 
   const propertyTypes = ['Apartment', 'Condo', 'House', 'Townhouse', 'Loft', 'Studio', 'Duplex', 'Penthouse'];
   const amenityOptions = ['Gym', 'Pool', 'Rooftop Deck', 'In-suite Laundry', 'Bike Storage', 'Concierge',
     'Balcony', 'Fireplace', 'Dishwasher', 'Garage', 'Backyard', 'Home Office', 'Storage'];
+
+  // Address autocomplete handler
+  const handleAddressSelect = (addressData) => {
+    setForm(prev => ({
+      ...prev,
+      ...addressData
+    }));
+  };
+  
+  // Initialize autocomplete
+  useAddressAutocomplete(addressInputRef, handleAddressSelect);
 
   useEffect(() => {
     if (!user || user.user_type !== 'landlord') { navigate('/login'); return; }
