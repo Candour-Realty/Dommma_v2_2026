@@ -437,10 +437,62 @@ const MyProperties = () => {
               </div>
 
               {form.listing_type === 'rent' && (
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">Available Date</label>
-                  <input type="date" value={form.available_date} onChange={e => setForm({ ...form, available_date: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" />
-                </div>
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-2">Available Date</label>
+                      <input type="date" value={form.available_date} onChange={e => setForm({ ...form, available_date: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-2 flex items-center gap-1"><Calendar size={14} /> Lease Duration</label>
+                      <select 
+                        value={form.lease_duration} 
+                        onChange={e => setForm({ ...form, lease_duration: parseInt(e.target.value) })} 
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none"
+                      >
+                        {LEASE_DURATIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-2 flex items-center gap-1"><Gift size={14} /> Special Offers & Promotions</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {OFFER_OPTIONS.map(offer => (
+                        <label key={offer} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={form.offers?.includes(offer)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setForm({ ...form, offers: [...(form.offers || []), offer] });
+                              } else {
+                                setForm({ ...form, offers: form.offers?.filter(o => o !== offer) || [] });
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-gray-300 text-[#1A2F3A] focus:ring-[#1A2F3A]"
+                          />
+                          <span className="text-sm text-gray-700">{offer}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Add custom offer (e.g., 'Free cleaning service')"
+                      className="w-full mt-2 px-4 py-2 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none text-sm"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const value = e.target.value.trim();
+                          if (value && !form.offers?.includes(value)) {
+                            setForm({ ...form, offers: [...(form.offers || []), value] });
+                            e.target.value = '';
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </>
               )}
 
               {form.listing_type === 'sale' && (
