@@ -1294,21 +1294,16 @@ Keep responses concise and action-oriented. You're a helpful concierge that gets
     try:
         anthropic_client = AsyncAnthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
         
-        # Build messages from history (only text content, skip tool results)
+        # Build messages from history (only text content, skip tool results to avoid tool_use/tool_result pairing issues)
         messages = []
-        prev_messages = session.get("messages", [])[-10:]
+        prev_messages = session.get("messages", [])[-6:]  # Reduced to avoid long context issues
         for m in prev_messages:
-            # Only include plain text messages, skip any with tool_results
-            if m.get('tool_results'):
-                # For messages with tool results, only include the response text
+            # Only include simple text messages
+            content = m.get('content', '')
+            if isinstance(content, str) and content:
                 messages.append({
                     "role": m['role'], 
-                    "content": m['content'][:1000] if m['content'] else "I performed some actions."
-                })
-            else:
-                messages.append({
-                    "role": m['role'], 
-                    "content": m['content'][:1000] if isinstance(m['content'], str) else str(m['content'])[:1000]
+                    "content": content[:500]
                 })
         
         # Add current message
