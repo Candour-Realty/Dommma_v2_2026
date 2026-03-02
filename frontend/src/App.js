@@ -38,6 +38,7 @@ import ApplicantRanking from "@/pages/ApplicantRanking";
 import LeaseAssignments from "@/pages/LeaseAssignments";
 import ESign from "@/pages/ESign";
 import ListingSyndication from "@/pages/ListingSyndication";
+import AnalyticsDashboard from "@/pages/AnalyticsDashboard";
 
 // Layout
 import DashboardLayout from "@/components/layout/DashboardLayout";
