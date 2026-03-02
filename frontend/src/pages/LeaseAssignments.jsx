@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   ArrowRightLeft, Calendar, DollarSign, MapPin, Home, 
   Clock, Search, Filter, Plus, CheckCircle2, AlertCircle,
   Building, Bed, Bath, Car, Wifi, PawPrint, Sparkles,
-  MessageSquare, Phone, Mail, ExternalLink, TrendingUp
+  MessageSquare, Phone, Mail, ExternalLink, TrendingUp,
+  CreditCard, Loader2
 } from 'lucide-react';
 import { useAuth } from '../App';
 import MainLayout from '../components/layout/MainLayout';
@@ -15,11 +16,13 @@ const API = process.env.REACT_APP_BACKEND_URL;
 export default function LeaseAssignments() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [processingPayment, setProcessingPayment] = useState(null);
 
   // Form state for creating assignment
   const [newAssignment, setNewAssignment] = useState({
@@ -39,7 +42,42 @@ export default function LeaseAssignments() {
 
   useEffect(() => {
     fetchAssignments();
-  }, []);
+    
+    // Handle payment callback
+    const paymentStatus = searchParams.get('payment');
+    const sessionId = searchParams.get('session_id');
+    
+    if (paymentStatus === 'success' && sessionId) {
+      // Show success message
+      alert('Payment successful! The lease assignment fee has been paid.');
+      // Clear URL params
+      setSearchParams({});
+    } else if (paymentStatus === 'cancelled') {
+      alert('Payment was cancelled.');
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
+
+  const handlePayAssignmentFee = async (assignment) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    setProcessingPayment(assignment.id);
+    try {
+      const response = await axios.post(`${API}/api/lease-assignments/${assignment.id}/payment?buyer_id=${user.id}`);
+      
+      if (response.data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = response.data.url;
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Failed to initiate payment: ' + (error.response?.data?.detail || error.message));
+      setProcessingPayment(null);
+    }
+  };
 
   const fetchAssignments = async () => {
     try {
