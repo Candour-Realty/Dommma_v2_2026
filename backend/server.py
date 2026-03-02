@@ -1650,6 +1650,8 @@ async def create_lease_assignment(data: LeaseAssignmentInput):
     
     await db.lease_assignments.insert_one(assignment)
     
+    # Remove MongoDB _id before returning
+    assignment.pop("_id", None)
     return assignment
 
 @api_router.get("/lease-assignments/{assignment_id}")
