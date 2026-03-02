@@ -1759,6 +1759,65 @@ async def get_esign_document(doc_id: str):
         raise HTTPException(status_code=404, detail="Document not found")
     return document
 
+# ========== LISTING SYNDICATION ==========
+
+class SyndicationTrackInput(BaseModel):
+    listing_id: str
+    platform: str
+    user_id: str
+    timestamp: str
+
+@api_router.post("/syndication/track")
+async def track_syndication(data: SyndicationTrackInput):
+    """Track when a listing is syndicated to an external platform"""
+    track_id = str(uuid.uuid4())
+    
+    track_record = {
+        "id": track_id,
+        "listing_id": data.listing_id,
+        "platform": data.platform,
+        "user_id": data.user_id,
+        "syndicated_at": data.timestamp,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.syndication_history.insert_one(track_record)
+    
+    # Update listing with syndication info
+    await db.listings.update_one(
+        {"id": data.listing_id},
+        {"$addToSet": {"syndicated_to": data.platform}}
+    )
+    
+    return {"status": "tracked", "id": track_id}
+
+@api_router.get("/syndication/history/{listing_id}")
+async def get_syndication_history(listing_id: str):
+    """Get syndication history for a listing"""
+    history = await db.syndication_history.find(
+        {"listing_id": listing_id}, {"_id": 0}
+    ).sort("syndicated_at", -1).to_list(50)
+    return history
+
+@api_router.get("/syndication/stats/{user_id}")
+async def get_syndication_stats(user_id: str):
+    """Get syndication stats for a user"""
+    # Count by platform
+    pipeline = [
+        {"$match": {"user_id": user_id}},
+        {"$group": {"_id": "$platform", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    
+    stats = await db.syndication_history.aggregate(pipeline).to_list(10)
+    
+    total = sum(s["count"] for s in stats)
+    
+    return {
+        "total_syndications": total,
+        "by_platform": {s["_id"]: s["count"] for s in stats}
+    }
+
 # ========== AI-POWERED FEATURES ==========
 
 class IssueAnalysisRequest(BaseModel):
