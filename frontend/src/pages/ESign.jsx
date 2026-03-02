@@ -43,12 +43,22 @@ const BC_FORMS = [
 export default function ESign() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('documents');
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSignModal, setShowSignModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
+  
+  // DocuSign connection state
+  const [docusignStatus, setDocusignStatus] = useState({
+    connected: false,
+    email: null,
+    account_name: null,
+    loading: true
+  });
+  const [connectingDocusign, setConnectingDocusign] = useState(false);
   
   // New document form state
   const [newDoc, setNewDoc] = useState({
@@ -60,13 +70,119 @@ export default function ESign() {
     notes: ''
   });
 
+  // Handle DocuSign OAuth callback
+  const handleDocuSignCallback = useCallback(async () => {
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    
+    if (code && state && user) {
+      setConnectingDocusign(true);
+      try {
+        const response = await axios.post(`${API}/api/docusign/callback?code=${code}&state=${state}&user_id=${user.id}`);
+        
+        if (response.data.success) {
+          setDocusignStatus({
+            connected: true,
+            email: response.data.email,
+            account_name: response.data.account_name,
+            loading: false
+          });
+          // Clear URL params
+          setSearchParams({});
+          alert('DocuSign connected successfully!');
+        }
+      } catch (error) {
+        console.error('DocuSign callback error:', error);
+        alert('Failed to connect DocuSign: ' + (error.response?.data?.detail || error.message));
+      } finally {
+        setConnectingDocusign(false);
+        // Clear URL params
+        setSearchParams({});
+      }
+    }
+  }, [searchParams, user, setSearchParams]);
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
     fetchDocuments();
-  }, [user, navigate]);
+    fetchDocuSignStatus();
+    
+    // Handle OAuth callback if present
+    if (searchParams.get('docusign_callback') || searchParams.get('code')) {
+      handleDocuSignCallback();
+    }
+  }, [user, navigate, searchParams, handleDocuSignCallback]);
+
+  const fetchDocuSignStatus = async () => {
+    if (!user) return;
+    try {
+      const response = await axios.get(`${API}/api/docusign/status?user_id=${user.id}`);
+      setDocusignStatus({
+        connected: response.data.connected,
+        email: response.data.email,
+        account_name: response.data.account_name,
+        loading: false
+      });
+    } catch (error) {
+      console.error('Error fetching DocuSign status:', error);
+      setDocusignStatus(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleConnectDocuSign = async () => {
+    setConnectingDocusign(true);
+    try {
+      const response = await axios.get(`${API}/api/docusign/auth-url?user_id=${user.id}`, {
+        headers: { 'Origin': window.location.origin }
+      });
+      
+      // Redirect to DocuSign authorization
+      window.location.href = response.data.auth_url;
+    } catch (error) {
+      console.error('Error getting DocuSign auth URL:', error);
+      alert('Failed to initialize DocuSign connection: ' + (error.response?.data?.detail || error.message));
+      setConnectingDocusign(false);
+    }
+  };
+
+  const handleDisconnectDocuSign = async () => {
+    if (!window.confirm('Are you sure you want to disconnect DocuSign?')) return;
+    
+    try {
+      await axios.post(`${API}/api/docusign/disconnect?user_id=${user.id}`);
+      setDocusignStatus({
+        connected: false,
+        email: null,
+        account_name: null,
+        loading: false
+      });
+    } catch (error) {
+      console.error('Error disconnecting DocuSign:', error);
+      alert('Failed to disconnect DocuSign');
+    }
+  };
+
+  const handleSendViaDocuSign = async (docId) => {
+    if (!docusignStatus.connected) {
+      alert('Please connect your DocuSign account first');
+      return;
+    }
+    
+    try {
+      const response = await axios.post(`${API}/api/docusign/send-envelope?user_id=${user.id}&doc_id=${docId}`);
+      
+      if (response.data.success) {
+        alert(`Document sent via DocuSign! Envelope ID: ${response.data.envelope_id}`);
+        fetchDocuments(); // Refresh
+      }
+    } catch (error) {
+      console.error('Error sending via DocuSign:', error);
+      alert('Failed to send via DocuSign: ' + (error.response?.data?.detail || error.message));
+    }
+  };
 
   const fetchDocuments = async () => {
     try {
