@@ -398,6 +398,24 @@ export default function LeaseAssignments() {
 
                     {/* Actions */}
                     <div className="flex gap-2">
+                      {user && user.id !== assignment.owner_id && assignment.status === 'active' && (
+                        <button 
+                          onClick={() => handlePayAssignmentFee(assignment)}
+                          disabled={processingPayment === assignment.id}
+                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                          data-testid={`pay-assignment-${assignment.id}`}
+                        >
+                          {processingPayment === assignment.id ? (
+                            <>
+                              <Loader2 size={18} className="animate-spin" /> Processing...
+                            </>
+                          ) : (
+                            <>
+                              <CreditCard size={18} /> Pay ${assignment.assignment_fee?.toLocaleString()}
+                            </>
+                          )}
+                        </button>
+                      )}
                       <button className="flex-1 px-4 py-2 bg-[#1A2F3A] text-white rounded-lg font-medium hover:bg-[#2C4A52] transition-colors">
                         Contact
                       </button>
