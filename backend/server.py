@@ -1702,7 +1702,7 @@ async def create_assignment_payment(request: Request, assignment_id: str, buyer_
                 "type": "lease_assignment",
                 "assignment_id": assignment_id,
                 "buyer_id": buyer_id,
-                "seller_id": assignment.get("owner_id", ""),
+                "seller_id": assignment.get("owner_id") or "unknown",
                 "title": assignment.get("title", "Lease Assignment"),
             }
         )
