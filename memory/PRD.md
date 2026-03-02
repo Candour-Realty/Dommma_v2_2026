@@ -46,6 +46,17 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
   - Create, send, and sign documents digitally
   - Track document status (pending/signed)
   - Signature capture with legal agreement
+- [x] **Listing Syndication** (`/syndication`) - Cross-post to external platforms
+  - Facebook Marketplace, Craigslist, Kijiji support
+  - One-click formatted content generation
+  - Deep links to post on each platform
+  - Copy-ready titles, descriptions, and hashtags
+  - Syndication tracking and stats
+- [x] **Video Tours** - Cloudinary-powered video uploads
+  - VideoTourUploader component for listings
+  - VideoTourPlayer component for display
+  - Progress tracking during upload
+  - Backend signature generation for secure uploads
 
 ### Bug Fixes
 - [x] **Homepage Chat Search** - Fixed search bar to open chat modal
