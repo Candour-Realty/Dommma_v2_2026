@@ -406,6 +406,12 @@ class AIToolsService:
                 return await self._calculate_budget(tool_input)
             elif tool_name == "schedule_viewing":
                 return await self._schedule_viewing(tool_input, user_id)
+            elif tool_name == "price_lease_assignment":
+                return await self._price_lease_assignment(tool_input)
+            elif tool_name == "build_renter_resume":
+                return await self._build_renter_resume(tool_input, user_id)
+            elif tool_name == "get_renter_resume":
+                return await self._get_renter_resume(tool_input, user_id)
             else:
                 return {"error": f"Unknown tool: {tool_name}"}
         except Exception as e:
