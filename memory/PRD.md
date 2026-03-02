@@ -9,15 +9,23 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
 
 ### Claude Tool Calling Implementation ✅
 - [x] **AI Concierge Endpoint** - New `/api/ai/concierge` with Claude tool calling
-- [x] **6 AI Tools Implemented:**
+- [x] **9 AI Tools Implemented:**
   - `create_listing` - Create property listings via conversation
   - `search_listings` - Search properties with natural language
   - `find_contractors` - Find plumbers, electricians, cleaners, etc.
   - `triage_maintenance` - Handle maintenance requests with urgency
   - `calculate_budget` - Budget calculations using 30% rule
   - `schedule_viewing` - Book property viewings
-- [x] **Multiple Tool Support** - Claude can call multiple tools in one response (e.g., triage + find contractor)
-- [x] **Frontend Integration** - NovaChat uses new endpoint with fallback to original
+  - `price_lease_assignment` - Calculate fair lease assignment fees (NEW)
+  - `build_renter_resume` - Create/update tenant profiles (NEW)
+  - `get_renter_resume` - Retrieve saved tenant profiles (NEW)
+- [x] **Multiple Tool Support** - Claude can call multiple tools in one response
+- [x] **Frontend Integration** - NovaChat uses new endpoint with fallback
+
+### Sticky AI Concierge ✅
+- [x] Nova AI button now appears on ALL pages (not just homepage)
+- [x] Enhanced button with pulsing animation
+- [x] Shows capabilities on hover: Search, Contractors, Maintenance, Budget
 
 ### Bug Fixes
 - [x] **Homepage Chat Search** - Fixed search bar to open chat modal
