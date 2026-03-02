@@ -11,7 +11,7 @@ export default defineConfig({
     ['json', { outputFile: '/root/.emergent/automation_output/20260301_232046/results.json' }],
   ],
   use: {
-    baseURL: 'https://rental-ai-3.preview.emergentagent.com',
+    baseURL: 'https://property-nova.preview.emergentagent.com',
     screenshot: 'only-on-failure',
     trace: 'off',
     headless: true,

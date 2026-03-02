@@ -4,7 +4,7 @@
 
 **DOMMMA** is an AI-first real estate marketplace platform for Metro Vancouver. It serves Renters, Landlords, Buyers, Sellers, and Contractors with role-specific features. The platform is pivoting to an **AI-First Concierge Model** where users interact primarily through a conversational AI assistant (Nova) rather than traditional forms.
 
-**Live Preview:** https://rental-ai-3.preview.emergentagent.com
+**Live Preview:** https://property-nova.preview.emergentagent.com
 
 ---
 
