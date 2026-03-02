@@ -1759,6 +1759,240 @@ async def get_esign_document(doc_id: str):
         raise HTTPException(status_code=404, detail="Document not found")
     return document
 
+# ========== DOCUSIGN OAUTH 2.0 INTEGRATION ==========
+
+from services.docusign_service import DocuSignService, DocuSignError
+
+docusign_service = DocuSignService()
+
+@api_router.get("/docusign/status")
+async def get_docusign_status(user_id: str):
+    """Check if user has connected their DocuSign account"""
+    connection = await db.docusign_connections.find_one({"user_id": user_id}, {"_id": 0})
+    
+    if not connection:
+        return {
+            "connected": False,
+            "integration_key_configured": bool(docusign_service.integration_key),
+            "message": "DocuSign not connected. Click 'Connect DocuSign' to begin."
+        }
+    
+    return {
+        "connected": True,
+        "email": connection.get("email"),
+        "account_name": connection.get("account_name"),
+        "connected_at": connection.get("connected_at")
+    }
+
+@api_router.get("/docusign/auth-url")
+async def get_docusign_auth_url(request: Request, user_id: str):
+    """Generate DocuSign OAuth authorization URL"""
+    if not docusign_service.integration_key:
+        raise HTTPException(status_code=503, detail="DocuSign not configured. Integration key missing.")
+    
+    # Build redirect URI from request
+    origin = request.headers.get('origin', str(request.base_url).rstrip('/'))
+    redirect_uri = f"{origin}/esign?docusign_callback=true"
+    
+    auth_url, state = docusign_service.generate_authorization_url(redirect_uri)
+    
+    # Store state for CSRF validation
+    await db.docusign_oauth_states.insert_one({
+        "state": state,
+        "user_id": user_id,
+        "redirect_uri": redirect_uri,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": datetime.now(timezone.utc).isoformat()  # 10 min expiry handled client-side
+    })
+    
+    return {
+        "auth_url": auth_url,
+        "state": state
+    }
+
+@api_router.post("/docusign/callback")
+async def docusign_oauth_callback(
+    request: Request,
+    code: str,
+    state: str,
+    user_id: str
+):
+    """Handle DocuSign OAuth callback - exchange code for tokens"""
+    # Validate state
+    stored_state = await db.docusign_oauth_states.find_one({"state": state, "user_id": user_id})
+    if not stored_state:
+        raise HTTPException(status_code=400, detail="Invalid state parameter - possible CSRF attack")
+    
+    redirect_uri = stored_state.get("redirect_uri")
+    
+    try:
+        # Exchange code for tokens
+        token_data = await docusign_service.exchange_code_for_tokens(code, redirect_uri)
+        
+        access_token = token_data.get("access_token")
+        refresh_token = token_data.get("refresh_token")
+        expires_in = token_data.get("expires_in", 3600)
+        
+        # Get user info including account ID
+        user_info = await docusign_service.get_user_info(access_token)
+        
+        # Store connection
+        connection = {
+            "user_id": user_id,
+            "account_id": user_info.get("account_id"),
+            "account_name": user_info.get("account_name"),
+            "base_uri": user_info.get("base_uri"),
+            "email": user_info.get("email"),
+            "name": user_info.get("name"),
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_expires_in": expires_in,
+            "connected_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Upsert connection
+        await db.docusign_connections.update_one(
+            {"user_id": user_id},
+            {"$set": connection},
+            upsert=True
+        )
+        
+        # Clean up state
+        await db.docusign_oauth_states.delete_one({"state": state})
+        
+        return {
+            "success": True,
+            "email": user_info.get("email"),
+            "account_name": user_info.get("account_name"),
+            "message": "DocuSign connected successfully!"
+        }
+        
+    except DocuSignError as e:
+        logger.error(f"DocuSign OAuth error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/docusign/disconnect")
+async def disconnect_docusign(user_id: str):
+    """Disconnect user's DocuSign account"""
+    result = await db.docusign_connections.delete_one({"user_id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No DocuSign connection found")
+    
+    return {"success": True, "message": "DocuSign disconnected"}
+
+@api_router.post("/docusign/send-envelope")
+async def send_docusign_envelope(
+    request: Request,
+    user_id: str,
+    doc_id: str,
+):
+    """Send an existing e-sign document via DocuSign"""
+    # Get DocuSign connection
+    connection = await db.docusign_connections.find_one({"user_id": user_id})
+    if not connection:
+        raise HTTPException(status_code=401, detail="DocuSign not connected. Please connect your account first.")
+    
+    # Get the document
+    document = await db.esign_documents.find_one({"id": doc_id})
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Generate PDF content from the document
+    pdf_content = generate_document_pdf(document)
+    
+    try:
+        # Refresh token if needed (in production, check expiry)
+        access_token = connection.get("access_token")
+        account_id = connection.get("account_id")
+        base_uri = connection.get("base_uri")
+        
+        # Send via DocuSign
+        result = await docusign_service.create_and_send_envelope(
+            access_token=access_token,
+            account_id=account_id,
+            base_uri=base_uri,
+            subject=f"Please sign: {document.get('title')}",
+            document_content=pdf_content,
+            document_name=f"{document.get('title')}.pdf",
+            signer_email=document.get("recipient_email"),
+            signer_name=document.get("recipient_name"),
+        )
+        
+        # Update document with DocuSign info
+        await db.esign_documents.update_one(
+            {"id": doc_id},
+            {"$set": {
+                "docusign_envelope_id": result.get("envelope_id"),
+                "docusign_status": result.get("status"),
+                "docusign_sent_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return result
+        
+    except DocuSignError as e:
+        logger.error(f"DocuSign send error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/docusign/envelope-status/{envelope_id}")
+async def get_docusign_envelope_status(user_id: str, envelope_id: str):
+    """Get status of a DocuSign envelope"""
+    connection = await db.docusign_connections.find_one({"user_id": user_id})
+    if not connection:
+        raise HTTPException(status_code=401, detail="DocuSign not connected")
+    
+    try:
+        status = await docusign_service.get_envelope_status_async(
+            access_token=connection.get("access_token"),
+            account_id=connection.get("account_id"),
+            base_uri=connection.get("base_uri"),
+            envelope_id=envelope_id
+        )
+        return status
+        
+    except DocuSignError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def generate_document_pdf(document: Dict[str, Any]) -> bytes:
+    """Generate a simple PDF from document data (placeholder)"""
+    # In production, use reportlab or a proper PDF generation library
+    content = f"""
+    DOMMMA E-SIGN DOCUMENT
+    =====================
+    
+    Document: {document.get('title', 'Untitled')}
+    Form Type: {document.get('form_type', 'General')}
+    
+    Property Address: {document.get('property_address', 'N/A')}
+    
+    FROM:
+    {document.get('creator_name', 'Unknown')}
+    {document.get('creator_email', '')}
+    
+    TO:
+    {document.get('recipient_name', 'Unknown')}
+    {document.get('recipient_email', '')}
+    
+    Notes:
+    {document.get('notes', 'None')}
+    
+    Created: {document.get('created_at', '')}
+    
+    
+    SIGNATURE:
+    
+    /sig1/
+    
+    Date: _____________
+    
+    
+    This document was sent via DOMMMA's e-signature platform.
+    """
+    return content.encode('utf-8')
+
 # ========== LISTING SYNDICATION ==========
 
 class SyndicationTrackInput(BaseModel):
