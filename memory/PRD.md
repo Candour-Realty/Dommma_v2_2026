@@ -16,9 +16,9 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
   - `triage_maintenance` - Handle maintenance requests with urgency
   - `calculate_budget` - Budget calculations using 30% rule
   - `schedule_viewing` - Book property viewings
-  - `price_lease_assignment` - Calculate fair lease assignment fees (NEW)
-  - `build_renter_resume` - Create/update tenant profiles (NEW)
-  - `get_renter_resume` - Retrieve saved tenant profiles (NEW)
+  - `price_lease_assignment` - Calculate fair lease assignment fees
+  - `build_renter_resume` - Create/update tenant profiles
+  - `get_renter_resume` - Retrieve saved tenant profiles
 - [x] **Multiple Tool Support** - Claude can call multiple tools in one response
 - [x] **Frontend Integration** - NovaChat uses new endpoint with fallback
 
@@ -26,6 +26,21 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
 - [x] Nova AI button now appears on ALL pages (not just homepage)
 - [x] Enhanced button with pulsing animation
 - [x] Shows capabilities on hover: Search, Contractors, Maintenance, Budget
+
+### New Features (Mar 2026) ✅
+- [x] **My Resume Page** (`/my-resume`) - Visual dashboard for renters to create/edit profiles
+  - Employment, income, rental history, references
+  - Completeness score with tips to strengthen profile
+  - Accessible from renter sidebar
+- [x] **AI Applicant Ranking** (`/applicant-ranking`) - Landlord dashboard with AI-scored applicants
+  - Match percentage based on income, employment, rental history
+  - Strengths & concerns analysis
+  - Approve/Reject actions
+- [x] **Lease Assignment Marketplace** (`/lease-assignments`) - Public marketplace for lease transfers
+  - Search and filter lease takeover opportunities
+  - Create new assignment listings
+  - Savings calculations (current vs market rent)
+  - Accessible from main navigation
 
 ### Bug Fixes
 - [x] **Homepage Chat Search** - Fixed search bar to open chat modal
