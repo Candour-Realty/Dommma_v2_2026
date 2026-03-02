@@ -5,9 +5,44 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
 
 **Latest Direction (AI-First Pivot):** The platform is pivoting to an AI-first concierge model where users interact with a persistent chatbot (Nova) to perform all key actions via natural language (searching, listing, booking, maintenance requests).
 
-## Recent Updates (Mar 2026)
+**Related Documentation:**
+- `CHANGELOG.md` - Version history with dates
+- `ROADMAP.md` - Prioritized backlog and future plans
+- `HANDOFF_PROMPT.md` - Complete developer handoff document
 
-### Claude Tool Calling Implementation ✅
+---
+
+## V16 Updates (March 2, 2026) - LATEST
+
+### DocuSign OAuth 2.0 Integration ✅
+- [x] Full OAuth authorization code grant flow
+- [x] Connect/disconnect DocuSign account from E-Sign page
+- [x] Send documents via DocuSign for legally binding signatures
+- [x] Envelope status tracking
+- [x] New endpoints: `/api/docusign/*`
+- [ ] **NEEDS:** DocuSign Client Secret from user
+
+### Stripe Payment Processing ✅
+- [x] Lease assignment fee payments via Stripe Checkout
+- [x] "Pay $X" button on marketplace cards
+- [x] Transaction tracking in database
+- [x] New endpoints: `/api/lease-assignments/{id}/payment`
+
+### Advanced Analytics Dashboard ✅
+- [x] Platform overview with real-time stats
+- [x] 5 stat cards: Users, Listings, Revenue, Contractors, Documents
+- [x] Charts: Users by Type, Listings by City, Price Distribution
+- [x] Recent activity feed
+- [x] Available at `/analytics` (landlord sidebar)
+- [x] New endpoints: `/api/analytics/*`
+
+### Bug Fixes ✅
+- [x] MongoDB _id serialization error in POST /api/lease-assignments
+- [x] Pydantic validation error when owner_id was null
+
+---
+
+## Claude Tool Calling Implementation ✅
 - [x] **AI Concierge Endpoint** - New `/api/ai/concierge` with Claude tool calling
 - [x] **9 AI Tools Implemented:**
   - `create_listing` - Create property listings via conversation
@@ -442,3 +477,32 @@ March 2, 2026 - V16 DocuSign OAuth, Stripe Payments, Analytics Dashboard
 - iteration_18.json — Previous test run
 - iteration_19.json — V16 DocuSign OAuth, Stripe Payments, Analytics (100% backend - 35/35, 100% frontend - 13/13)
 
+---
+
+## Quick Reference
+
+### Documentation Files
+- `CHANGELOG.md` - Version history with dates
+- `ROADMAP.md` - Prioritized backlog (P0/P1/P2)
+- `HANDOFF_PROMPT.md` - Complete developer handoff
+
+### Key Backend Files
+- `/app/backend/server.py` (~4200 lines) - Main FastAPI app
+- `/app/backend/services/ai_tools.py` - AI tool definitions
+- `/app/backend/services/docusign_service.py` - DocuSign OAuth
+
+### Key Frontend Files
+- `/app/frontend/src/components/chat/NovaChat.jsx` - AI chatbot
+- `/app/frontend/src/pages/AnalyticsDashboard.jsx` - Analytics
+- `/app/frontend/src/pages/ESign.jsx` - E-sign with DocuSign
+- `/app/frontend/src/pages/LeaseAssignments.jsx` - Marketplace
+
+### Test Credentials
+- Landlord: testlandlord@test.com / test123
+- Database: MongoDB Atlas (dommma)
+
+### Immediate Action Items
+1. Get DocuSign Client Secret from user
+2. Build out My Resume page functionality
+3. Implement AI Applicant Ranking logic
+4. Integrate Cloudinary for video tours
