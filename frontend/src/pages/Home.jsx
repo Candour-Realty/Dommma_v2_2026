@@ -200,7 +200,7 @@ const Home = () => {
   };
 
   return (
-    <MainLayout hideNovaButton={true}>
+    <MainLayout>
       {/* Nova Chat Modal triggered from Homepage Search */}
       {showNovaChat && (
         <NovaChat 
