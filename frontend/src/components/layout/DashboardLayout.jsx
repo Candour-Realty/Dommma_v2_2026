@@ -4,7 +4,7 @@ import {
   Home, Building2, Users, Wrench, FileText, DollarSign, MessageSquare, 
   Settings, LogOut, Search, Menu, X, Calendar,
   Heart, Sparkles, Scale, Navigation, Users2, 
-  Truck, Briefcase, Image, BarChart2, ClipboardList, Share2
+  Truck, Briefcase, Image, BarChart2, ClipboardList, Share2, BarChart3
 } from 'lucide-react';
 import { useAuth } from '../../App';
 import NotificationBell from '../notifications/NotificationBell';
