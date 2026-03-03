@@ -4,7 +4,7 @@ from datetime import datetime
 import json
 
 class DOMMMAPITester:
-    def __init__(self, base_url="https://property-nova.preview.emergentagent.com"):
+    def __init__(self, base_url="https://dommma-preview-2.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
