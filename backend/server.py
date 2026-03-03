@@ -562,8 +562,24 @@ async def get_listings(
     pet_friendly: Optional[bool] = None,
     parking: Optional[bool] = None,
     listing_type: Optional[str] = None,
-    q: Optional[str] = None
+    q: Optional[str] = None,
+    owner_id: Optional[str] = None,
+    featured: Optional[bool] = None,
+    sort: Optional[str] = "newest",  # newest, price_low, price_high, featured
+    limit: int = 50,
+    skip: int = 0
 ):
+    """
+    Get listings with filters, sorting and pagination.
+    
+    Sort options:
+    - newest: Most recently created (default)
+    - price_low: Lowest price first
+    - price_high: Highest price first  
+    - featured: Featured/promoted listings first, then by newest
+    
+    For production, use 'featured' sort to show promoted/paid listings first.
+    """
     query = {"status": "active"}
     if listing_type:
         query["listing_type"] = listing_type
@@ -583,6 +599,10 @@ async def get_listings(
         query["pet_friendly"] = pet_friendly
     if parking is not None:
         query["parking"] = parking
+    if owner_id:
+        query["owner_id"] = owner_id
+    if featured is not None:
+        query["featured"] = featured
     if q:
         query["$or"] = [
             {"title": {"$regex": q, "$options": "i"}},
@@ -590,7 +610,16 @@ async def get_listings(
             {"description": {"$regex": q, "$options": "i"}}
         ]
     
-    listings = await db.listings.find(query, {"_id": 0}).to_list(100)
+    # Sorting
+    sort_options = {
+        "newest": [("created_at", -1)],
+        "price_low": [("price", 1)],
+        "price_high": [("price", -1)],
+        "featured": [("featured", -1), ("boost_score", -1), ("created_at", -1)]
+    }
+    sort_by = sort_options.get(sort, sort_options["newest"])
+    
+    listings = await db.listings.find(query, {"_id": 0}).sort(sort_by).skip(skip).limit(min(limit, 100)).to_list(min(limit, 100))
     return listings
 
 @api_router.get("/listings/map")

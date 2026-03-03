@@ -91,7 +91,12 @@ const RenterDashboard = ({ userId }) => {
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           {listings.map((listing) => (
-            <div key={listing.id} className="bg-white rounded-2xl overflow-hidden flex">
+            <Link 
+              key={listing.id} 
+              to={`/browse?listing=${listing.id}`}
+              className="bg-white rounded-2xl overflow-hidden flex hover:shadow-lg transition-shadow cursor-pointer"
+              data-testid={`recommended-listing-${listing.id}`}
+            >
               <img 
                 src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400'}
                 alt={listing.title}
@@ -104,7 +109,7 @@ const RenterDashboard = ({ userId }) => {
                 </p>
                 <p className="text-lg font-semibold text-[#1A2F3A]">${listing.price?.toLocaleString()}/mo</p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
