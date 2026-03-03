@@ -2529,7 +2529,7 @@ Respond in valid JSON format only:
 
 @api_router.post("/ai/analyze-document")
 async def analyze_document(req: DocumentAnalysisRequest):
-    """AI analyzes lease/rental documents for fairness and key terms"""
+    """AI analyzes lease/rental documents for fairness and key terms - using faster Haiku model"""
     
     system_message = f"""You are a {req.document_type} document analysis expert for Canadian real estate. Analyze the provided document and return a comprehensive review in valid JSON:
 {{
@@ -2555,11 +2555,12 @@ Score fairness from 1-10 (10 = very renter-friendly). Be thorough but practical.
     try:
         anthropic_client = AsyncAnthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
         
+        # Use Haiku for faster response (3-5x faster than Sonnet)
         claude_response = await anthropic_client.messages.create(
-            model="claude-sonnet-4-5-20250929",
+            model="claude-haiku-4-5",
             max_tokens=2048,
             system=system_message,
-            messages=[{"role": "user", "content": f"Analyze this {req.document_type} document:\n\n{req.document_text[:5000]}"}]
+            messages=[{"role": "user", "content": f"Analyze this {req.document_type} document:\n\n{req.document_text[:8000]}"}]
         )
         
         response = claude_response.content[0].text
@@ -2575,6 +2576,107 @@ Score fairness from 1-10 (10 = very renter-friendly). Be thorough but practical.
     except Exception as e:
         logging.error(f"Document analysis error: {e}")
         raise HTTPException(status_code=500, detail="Document analysis failed")
+
+
+# ========== DOCUMENT FILE UPLOAD ==========
+
+from fastapi import File, UploadFile
+import io
+
+@api_router.post("/ai/analyze-document-file")
+async def analyze_document_file(
+    file: UploadFile = File(...),
+    document_type: str = "lease"
+):
+    """Upload and analyze a document file (PDF, image, DOCX)"""
+    
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    
+    filename = file.filename.lower()
+    content = await file.read()
+    
+    extracted_text = ""
+    
+    try:
+        # PDF extraction
+        if filename.endswith('.pdf'):
+            from PyPDF2 import PdfReader
+            pdf_reader = PdfReader(io.BytesIO(content))
+            for page in pdf_reader.pages:
+                extracted_text += page.extract_text() or ""
+        
+        # Word document extraction
+        elif filename.endswith('.docx'):
+            from docx import Document
+            doc = Document(io.BytesIO(content))
+            for para in doc.paragraphs:
+                extracted_text += para.text + "\n"
+        
+        # Image OCR (PNG, JPG, etc.) - Use Claude Vision instead of pytesseract
+        elif filename.endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
+            import base64
+            image_base64 = base64.b64encode(content).decode('utf-8')
+            
+            # Determine media type
+            media_type = "image/png"
+            if filename.endswith('.jpg') or filename.endswith('.jpeg'):
+                media_type = "image/jpeg"
+            elif filename.endswith('.webp'):
+                media_type = "image/webp"
+            elif filename.endswith('.gif'):
+                media_type = "image/gif"
+            
+            # Use Claude Vision for OCR
+            anthropic_client = AsyncAnthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+            
+            ocr_response = await anthropic_client.messages.create(
+                model="claude-haiku-4-5",
+                max_tokens=4000,
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": media_type,
+                                "data": image_base64
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": "Extract ALL text from this document image. Return only the extracted text, preserving the document structure as much as possible."
+                        }
+                    ]
+                }]
+            )
+            extracted_text = ocr_response.content[0].text
+        
+        # Plain text files
+        elif filename.endswith('.txt'):
+            extracted_text = content.decode('utf-8', errors='ignore')
+        
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported file type: {filename}. Supported: PDF, DOCX, PNG, JPG, TXT")
+        
+        if not extracted_text.strip():
+            raise HTTPException(status_code=400, detail="Could not extract text from the file")
+        
+        # Now analyze the extracted text using existing function
+        analysis_request = DocumentAnalysisRequest(
+            document_text=extracted_text[:10000],
+            document_type=document_type
+        )
+        
+        return await analyze_document(analysis_request)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"File processing error: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+
 
 @api_router.post("/ai/commute-search")
 async def commute_search(req: CommuteSearchRequest):

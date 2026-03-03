@@ -379,6 +379,30 @@ NOVA_TOOLS = [
                 }
             }
         }
+    },
+    {
+        "name": "analyze_document",
+        "description": "Analyze a lease, rental agreement, or contract document for fairness, red flags, and compliance with Canadian tenant laws. Use when a user wants to review a document they paste or describe.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "document_text": {
+                    "type": "string",
+                    "description": "The full text of the document to analyze"
+                },
+                "document_type": {
+                    "type": "string",
+                    "enum": ["lease", "rental agreement", "contract"],
+                    "description": "Type of document being analyzed"
+                },
+                "specific_concerns": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Specific clauses or concerns the user wants reviewed"
+                }
+            },
+            "required": ["document_text"]
+        }
     }
 ]
 
@@ -412,6 +436,8 @@ class AIToolsService:
                 return await self._build_renter_resume(tool_input, user_id)
             elif tool_name == "get_renter_resume":
                 return await self._get_renter_resume(tool_input, user_id)
+            elif tool_name == "analyze_document":
+                return await self._analyze_document(tool_input)
             else:
                 return {"error": f"Unknown tool: {tool_name}"}
         except Exception as e:
@@ -900,3 +926,74 @@ class AIToolsService:
                 "You can share your resume when applying to any listing"
             ]
         }
+
+    async def _analyze_document(self, input: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze a lease or rental document for fairness and red flags"""
+        import os
+        import json
+        import re
+        from anthropic import AsyncAnthropic
+        
+        document_text = input.get("document_text", "")
+        document_type = input.get("document_type", "lease")
+        specific_concerns = input.get("specific_concerns", [])
+        
+        if not document_text or len(document_text.strip()) < 50:
+            return {
+                "error": "Please provide the document text to analyze. Paste the lease or rental agreement content."
+            }
+        
+        concerns_text = ""
+        if specific_concerns:
+            concerns_text = f"\n\nPay special attention to these concerns: {', '.join(specific_concerns)}"
+        
+        system_message = f"""You are a {document_type} document analysis expert for Canadian real estate. Analyze the document and return JSON:
+{{
+  "summary": "Brief summary",
+  "fairness_score": 7,
+  "key_terms": [{{"term": "Rent", "value": "$2000", "assessment": "fair"}}],
+  "red_flags": ["List concerning clauses"],
+  "green_flags": ["List tenant-friendly clauses"],
+  "recommendations": ["What to negotiate or clarify"],
+  "legal_notes": ["Relevant BC/Canadian tenancy law notes"]
+}}
+Score 1-10 (10=very renter-friendly). Be practical and highlight illegal clauses.{concerns_text}"""
+        
+        try:
+            anthropic_client = AsyncAnthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+            
+            # Use Haiku for faster response
+            response = await anthropic_client.messages.create(
+                model="claude-haiku-4-5",
+                max_tokens=1500,
+                system=system_message,
+                messages=[{"role": "user", "content": f"Analyze:\n\n{document_text[:6000]}"}]
+            )
+            
+            result_text = response.content[0].text
+            
+            # Parse JSON from response
+            json_match = re.search(r'\{.*\}', result_text, re.DOTALL)
+            if json_match:
+                try:
+                    analysis = json.loads(json_match.group())
+                    return {
+                        "success": True,
+                        "document_type": document_type,
+                        "analysis": analysis,
+                        "message": f"Document analyzed. Fairness score: {analysis.get('fairness_score', '?')}/10. " + 
+                                  (f"Found {len(analysis.get('red_flags', []))} red flags." if analysis.get('red_flags') else "No major red flags found.")
+                    }
+                except json.JSONDecodeError:
+                    pass
+            
+            return {
+                "success": True,
+                "document_type": document_type,
+                "analysis": {"summary": result_text},
+                "message": "Document analyzed. See summary for details."
+            }
+            
+        except Exception as e:
+            logger.error(f"Document analysis error: {e}")
+            return {"error": f"Analysis failed: {str(e)}"}

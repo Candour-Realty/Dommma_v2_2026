@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft, FileText, Sparkles, Loader2, Shield, AlertTriangle,
-  CheckCircle, DollarSign, Scale, ChevronDown, ChevronUp
+  CheckCircle, DollarSign, Scale, ChevronDown, ChevronUp, Upload, File, X
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -15,22 +15,64 @@ const DocumentAnalyzer = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [expandedSection, setExpandedSection] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [uploadMode, setUploadMode] = useState('paste'); // 'paste' or 'upload'
+  const fileInputRef = useRef(null);
 
   const analyze = async () => {
-    if (!text.trim()) return;
+    if (uploadMode === 'paste' && !text.trim()) return;
+    if (uploadMode === 'upload' && !uploadedFile) return;
+    
     setLoading(true);
     setResult(null);
+    
     try {
-      const res = await axios.post(`${API}/ai/analyze-document`, {
-        document_text: text,
-        document_type: docType
-      });
+      let res;
+      
+      if (uploadMode === 'upload' && uploadedFile) {
+        // File upload mode
+        const formData = new FormData();
+        formData.append('file', uploadedFile);
+        formData.append('document_type', docType);
+        
+        res = await axios.post(`${API}/ai/analyze-document-file`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        // Text paste mode
+        res = await axios.post(`${API}/ai/analyze-document`, {
+          document_text: text,
+          document_type: docType
+        });
+      }
+      
       setResult(res.data.analysis);
     } catch (e) {
       console.error(e);
-      alert('Analysis failed. Please try again.');
+      alert('Analysis failed: ' + (e.response?.data?.detail || 'Please try again.'));
     }
     setLoading(false);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File too large. Maximum size is 10MB.');
+        return;
+      }
+      setUploadedFile(file);
+      setUploadMode('upload');
+    }
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    setUploadMode('paste');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const fairnessColor = (score) => {
@@ -57,7 +99,8 @@ const DocumentAnalyzer = () => {
         {!result ? (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center gap-4 mb-6">
+              {/* Document Type Selection */}
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex gap-2">
                   {['lease', 'rental agreement', 'contract'].map(type => (
                     <button key={type} onClick={() => setDocType(type)}
@@ -66,34 +109,114 @@ const DocumentAnalyzer = () => {
                     </button>
                   ))}
                 </div>
+                
+                {/* Input Mode Toggle */}
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => { setUploadMode('paste'); removeFile(); }}
+                    className={`px-3 py-1.5 rounded-md text-sm transition-colors ${uploadMode === 'paste' ? 'bg-white shadow text-[#1A2F3A]' : 'text-gray-600'}`}
+                  >
+                    Paste Text
+                  </button>
+                  <button
+                    onClick={() => setUploadMode('upload')}
+                    className={`px-3 py-1.5 rounded-md text-sm transition-colors ${uploadMode === 'upload' ? 'bg-white shadow text-[#1A2F3A]' : 'text-gray-600'}`}
+                  >
+                    Upload File
+                  </button>
+                </div>
               </div>
 
-              <textarea
-                value={text}
-                onChange={e => setText(e.target.value)}
-                rows={16}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] focus:ring-2 focus:ring-[#1A2F3A]/10 outline-none resize-none font-mono text-sm"
-                placeholder="Paste your lease or rental agreement text here...&#10;&#10;Example:&#10;RESIDENTIAL TENANCY AGREEMENT&#10;Between Landlord: John Smith&#10;And Tenant: Jane Doe&#10;&#10;1. The monthly rent shall be $2,500 CAD...&#10;2. The security deposit of $2,500 shall be held...&#10;..."
-                data-testid="document-text-input"
-              />
+              {/* Paste Text Mode */}
+              {uploadMode === 'paste' && (
+                <>
+                  <textarea
+                    value={text}
+                    onChange={e => setText(e.target.value)}
+                    rows={14}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] focus:ring-2 focus:ring-[#1A2F3A]/10 outline-none resize-none font-mono text-sm"
+                    placeholder="Paste your lease or rental agreement text here...&#10;&#10;Example:&#10;RESIDENTIAL TENANCY AGREEMENT&#10;Between Landlord: John Smith&#10;And Tenant: Jane Doe&#10;&#10;1. The monthly rent shall be $2,500 CAD...&#10;2. The security deposit of $2,500 shall be held...&#10;..."
+                    data-testid="document-text-input"
+                  />
+                  <div className="flex items-center justify-between mt-4">
+                    <p className="text-sm text-gray-400">{text.length} characters</p>
+                    <button 
+                      onClick={analyze} 
+                      disabled={!text.trim() || loading}
+                      className="px-8 py-3 bg-[#1A2F3A] text-white rounded-xl hover:bg-[#2C4A52] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                      data-testid="analyze-document-btn"
+                    >
+                      {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                      {loading ? 'Analyzing...' : 'Analyze Document'}
+                    </button>
+                  </div>
+                </>
+              )}
 
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-gray-400">{text.length} characters</p>
-                <button 
-                  onClick={analyze} 
-                  disabled={!text.trim() || loading}
-                  className="px-8 py-3 bg-[#1A2F3A] text-white rounded-xl hover:bg-[#2C4A52] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
-                  data-testid="analyze-document-btn"
-                >
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-                  {loading ? 'Analyzing...' : 'Analyze Document'}
-                </button>
-              </div>
+              {/* Upload File Mode */}
+              {uploadMode === 'upload' && (
+                <div className="space-y-4">
+                  {/* File Drop Zone */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.webp,.txt"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  
+                  {!uploadedFile ? (
+                    <label
+                      htmlFor="file-upload"
+                      className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:border-[#1A2F3A] hover:bg-gray-50 transition-colors"
+                    >
+                      <Upload size={48} className="text-gray-400 mb-4" />
+                      <p className="text-lg font-medium text-gray-600">Click to upload or drag & drop</p>
+                      <p className="text-sm text-gray-400 mt-2">PDF, Word, Images (PNG, JPG), Text files</p>
+                      <p className="text-xs text-gray-400 mt-1">Max size: 10MB</p>
+                    </label>
+                  ) : (
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-[#1A2F3A]/10 rounded-lg flex items-center justify-center">
+                          <File size={24} className="text-[#1A2F3A]" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-[#1A2F3A]">{uploadedFile.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {(uploadedFile.size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={removeFile}
+                        className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                      >
+                        <X size={20} className="text-gray-500" />
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end">
+                    <button 
+                      onClick={analyze} 
+                      disabled={!uploadedFile || loading}
+                      className="px-8 py-3 bg-[#1A2F3A] text-white rounded-xl hover:bg-[#2C4A52] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                      data-testid="analyze-file-btn"
+                    >
+                      {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                      {loading ? 'Analyzing...' : 'Analyze Document'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="bg-white/50 rounded-2xl p-6 text-center">
               <Scale className="mx-auto mb-3 text-gray-400" size={32} />
               <p className="text-sm text-gray-500">Our AI reviews your document for fairness, red flags, and compliance with BC Residential Tenancy Act.</p>
+              <p className="text-xs text-gray-400 mt-2">Tip: You can also ask Nova AI to analyze documents in the chat!</p>
             </div>
           </div>
         ) : (
