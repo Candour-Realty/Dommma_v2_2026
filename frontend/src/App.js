@@ -40,6 +40,7 @@ import ESign from "@/pages/ESign";
 import ListingSyndication from "@/pages/ListingSyndication";
 import AnalyticsDashboard from "@/pages/AnalyticsDashboard";
 import ListingOptimizer from "@/pages/ListingOptimizer";
+import SettingsPage from "@/pages/SettingsPage";
 
 // Layout
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -155,7 +156,7 @@ function App() {
           <Route path="/syndication" element={<DashboardLayout><ListingSyndication /></DashboardLayout>} />
           <Route path="/analytics" element={<DashboardLayout><AnalyticsDashboard /></DashboardLayout>} />
           <Route path="/listing-optimizer" element={<DashboardLayout><ListingOptimizer /></DashboardLayout>} />
-          <Route path="/settings" element={<DashboardLayout><div className="p-6"><h1 className="text-2xl font-semibold">Settings</h1><p className="text-gray-500 mt-2">Settings page coming soon...</p></div></DashboardLayout>} />
+          <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
           
           {/* Legacy routes - redirect to new paths */}
           <Route path="/dashboard/payments" element={<DashboardLayout><Payments /></DashboardLayout>} />

@@ -125,26 +125,29 @@ const DashboardLayout = ({ children }) => {
           ))}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10 space-y-2">
           <Link
             to="/settings"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               isActivePath('/settings')
                 ? 'bg-white/20 text-white'
                 : 'text-gray-300 hover:bg-white/10 hover:text-white'
             }`}
+            data-testid="settings-link"
           >
-            <Settings size={20} />
+            <Settings size={18} />
             <span className="text-sm">Settings</span>
           </Link>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
-            data-testid="logout-btn"
-          >
-            <LogOut size={20} />
-            <span className="text-sm">Logout</span>
-          </button>
+          <div>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-gray-300 hover:bg-red-500/20 hover:text-red-300 transition-colors"
+              data-testid="logout-btn"
+            >
+              <LogOut size={18} />
+              <span className="text-sm">Logout</span>
+            </button>
+          </div>
         </div>
       </aside>
 

@@ -3851,11 +3851,98 @@ async def get_user(user_id: str):
 @api_router.put("/users/{user_id}")
 async def update_user(user_id: str, updates: Dict[str, Any]):
     """Update user profile"""
-    allowed_fields = ["name", "phone", "avatar", "bio"]
+    allowed_fields = ["name", "phone", "avatar", "bio", "language"]
     update_dict = {k: v for k, v in updates.items() if k in allowed_fields}
     if update_dict:
         await db.users.update_one({"id": user_id}, {"$set": update_dict})
     return {"status": "updated"}
+
+@api_router.get("/users/{user_id}/preferences")
+async def get_user_preferences(user_id: str):
+    """Get user notification and privacy preferences"""
+    prefs = await db.user_preferences.find_one({"user_id": user_id}, {"_id": 0})
+    if not prefs:
+        return {
+            "notifications": {
+                "email_new_listings": True,
+                "email_messages": True,
+                "email_applications": True,
+                "push_enabled": True,
+                "sms_enabled": False
+            },
+            "privacy": {
+                "profile_visible": True,
+                "show_phone": False,
+                "allow_messages": True
+            }
+        }
+    return prefs
+
+@api_router.put("/users/{user_id}/preferences")
+async def update_user_preferences(user_id: str, updates: Dict[str, Any]):
+    """Update user notification and privacy preferences"""
+    existing = await db.user_preferences.find_one({"user_id": user_id})
+    
+    if existing:
+        await db.user_preferences.update_one(
+            {"user_id": user_id},
+            {"$set": updates}
+        )
+    else:
+        await db.user_preferences.insert_one({
+            "user_id": user_id,
+            **updates,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+    
+    return {"status": "updated"}
+
+@api_router.post("/auth/change-password")
+async def change_password(data: Dict[str, str]):
+    """Change user password"""
+    user_id = data.get("user_id")
+    current_password = data.get("current_password")
+    new_password = data.get("new_password")
+    
+    if not all([user_id, current_password, new_password]):
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not verify_password(current_password, user.get("password", "")):
+        raise HTTPException(status_code=400, detail="Invalid current password")
+    
+    # Hash and update new password
+    hashed = hash_password(new_password)
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"password": hashed, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"status": "password_changed"}
+
+@api_router.delete("/users/{user_id}")
+async def delete_user_account(user_id: str):
+    """Delete user account and associated data"""
+    # Delete user
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Delete associated data
+    await db.user_preferences.delete_many({"user_id": user_id})
+    await db.renter_resumes.delete_many({"user_id": user_id})
+    await db.roommate_profiles.delete_many({"user_id": user_id})
+    await db.favorites.delete_many({"user_id": user_id})
+    await db.chat_sessions.delete_many({"user_id": user_id})
+    
+    return {"status": "deleted"}
 
 # ========== IMAGE UPLOAD ==========
 
