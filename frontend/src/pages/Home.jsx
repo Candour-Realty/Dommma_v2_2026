@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Search, Sparkles, Bot, MapPin, Bed, Bath, Star, Shield, Trophy } from 'lucide-react';
+import { ArrowRight, Search, Sparkles, Bot, MapPin, Bed, Bath, Star, Shield, Trophy, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import MainLayout from '../components/layout/MainLayout';
 import NovaChat from '../components/chat/NovaChat';
@@ -162,11 +162,11 @@ const Home = () => {
     }).catch(() => {});
 
     // Fetch featured rental properties from database
-    axios.get(`${API}/listings?listing_type=rent`).then(res => {
+    axios.get(`${API}/listings?listing_type=rent&limit=50&sort=featured`).then(res => {
       const listings = res.data || [];
       if (listings.length > 0) {
-        // Use real listings from database (up to 8)
-        setFeaturedProperties(listings.slice(0, 8));
+        // Use real listings from database (up to 50 for 5x10 grid)
+        setFeaturedProperties(listings.slice(0, 50));
       } else {
         // Fallback to sample data if database is empty
         setFeaturedProperties(sampleFeaturedProperties);
@@ -346,14 +346,14 @@ const Home = () => {
             </Link>
           </div>
 
-          {/* Property Grid - 4 columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {/* Property Grid - 5 columns */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
             {loadingListings ? (
               // Loading skeleton
-              Array.from({ length: 8 }).map((_, i) => (
+              Array.from({ length: 20 }).map((_, i) => (
                 <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
-                  <div className="h-48 bg-gray-200" />
-                  <div className="p-4 space-y-3">
+                  <div className="h-40 bg-gray-200" />
+                  <div className="p-3 space-y-2">
                     <div className="h-4 bg-gray-200 rounded w-3/4" />
                     <div className="h-3 bg-gray-200 rounded w-1/2" />
                     <div className="h-3 bg-gray-200 rounded w-2/3" />
@@ -382,54 +382,58 @@ const Home = () => {
                   <Link
                     key={propertyId}
                     to={isSample ? "/browse" : `/browse?property=${propertyId}`}
-                    className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 relative"
+                    className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 relative"
                     data-testid={`property-card-${propertyId}`}
                   >
                     {/* Sample Badge */}
                     {isSample && (
                       <div className="absolute top-0 left-0 right-0 bg-amber-500 text-white text-xs text-center py-1 z-10">
-                        Sample - Add your own listings!
+                        Sample - Add your own!
                       </div>
                     )}
                     
                     {/* Image */}
-                    <div className={`relative h-48 overflow-hidden ${isSample ? 'mt-6' : ''}`}>
+                    <div className={`relative h-36 overflow-hidden ${isSample ? 'mt-5' : ''}`}>
                       <img 
                         src={image}
                         alt={title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      <div className="absolute top-3 left-3">
-                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-[#1A2F3A]">
+                      <div className="absolute top-2 left-2">
+                        <span className="px-2 py-0.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-[#1A2F3A]">
                           {propertyType}
                         </span>
                       </div>
-                      <div className="absolute top-3 right-3">
-                        <span className="px-3 py-1 bg-[#1A2F3A] rounded-full text-xs font-medium text-white">
+                      <div className="absolute top-2 right-2">
+                        <span className="px-2 py-0.5 bg-[#1A2F3A] rounded-full text-xs font-medium text-white">
                           ${price?.toLocaleString()}/mo
                         </span>
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-4">
-                      <h3 className="font-semibold text-[#1A2F3A] mb-1 group-hover:text-[#2C4A52] transition-colors line-clamp-1">
+                    <div className="p-3">
+                      <h3 className="font-medium text-sm text-[#1A2F3A] mb-1 group-hover:text-[#2C4A52] transition-colors line-clamp-1">
                         {title}
                       </h3>
-                      <p className="text-sm text-gray-500 flex items-center gap-1 mb-3">
-                        <MapPin size={12} />
-                        {location}
+                      <p className="text-xs text-gray-500 flex items-center gap-1 mb-2">
+                        <MapPin size={10} />
+                        <span className="truncate">{location}</span>
                       </p>
-                      <div className="flex items-center gap-4 text-xs text-gray-600">
+                      
+                      {/* Stats */}
+                      <div className="flex items-center gap-3 text-xs text-gray-600">
                         <span className="flex items-center gap-1">
-                          <Bed size={14} />
-                          {beds === 0 ? 'Studio' : `${beds} bed`}
+                          <Bed size={12} /> {beds}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Bath size={14} />
-                          {baths} bath
+                          <Bath size={12} /> {baths}
                         </span>
-                        <span>{sqft} sqft</span>
+                        {sqft > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Square size={12} /> {sqft}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Link>
