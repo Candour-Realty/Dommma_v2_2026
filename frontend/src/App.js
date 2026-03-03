@@ -7,7 +7,7 @@ import { useState, useEffect, createContext, useContext } from "react";
 // Pages
 import Home from "@/pages/Home";
 import About from "@/pages/About";
-import Properties from "@/pages/PropertiesPage";
+import Properties from "@/pages/Properties";
 import Services from "@/pages/Services";
 import Contact from "@/pages/Contact";
 import Browse from "@/pages/Browse";
