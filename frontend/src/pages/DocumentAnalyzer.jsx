@@ -42,26 +42,26 @@ const DocumentAnalyzer = () => {
   const toggle = (section) => setExpandedSection(expandedSection === section ? null : section);
 
   return (
-    <div className="min-h-screen bg-[#F5F5F0]">
-      <header className="bg-[#1A2F3A] text-white px-6 py-6">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <Link to="/dashboard" className="text-white/70 hover:text-white"><ArrowLeft size={18} /></Link>
-          <div>
-            <h1 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Document Analyzer</h1>
-            <p className="text-sm text-white/70">AI-powered lease & rental document review</p>
-          </div>
+    <div className="min-h-screen bg-[#F5F5F0] py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold text-[#1A2F3A] flex items-center gap-3" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+            <Scale className="text-[#1A2F3A]" />
+            Lease Analyzer
+          </h1>
+          <p className="text-gray-600 mt-2">
+            AI-powered lease & rental document review for BC Residential Tenancy Act compliance
+          </p>
         </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-6 py-8">
         {!result ? (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl p-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex gap-2">
                   {['lease', 'rental agreement', 'contract'].map(type => (
                     <button key={type} onClick={() => setDocType(type)}
-                      className={`px-4 py-2 rounded-full text-sm capitalize ${docType === type ? 'bg-[#1A2F3A] text-white' : 'bg-gray-100 text-gray-600'}`}>
+                      className={`px-4 py-2 rounded-full text-sm capitalize ${docType === type ? 'bg-[#1A2F3A] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                       {type}
                     </button>
                   ))}
@@ -72,16 +72,19 @@ const DocumentAnalyzer = () => {
                 value={text}
                 onChange={e => setText(e.target.value)}
                 rows={16}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none resize-none font-mono text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] focus:ring-2 focus:ring-[#1A2F3A]/10 outline-none resize-none font-mono text-sm"
                 placeholder="Paste your lease or rental agreement text here...&#10;&#10;Example:&#10;RESIDENTIAL TENANCY AGREEMENT&#10;Between Landlord: John Smith&#10;And Tenant: Jane Doe&#10;&#10;1. The monthly rent shall be $2,500 CAD...&#10;2. The security deposit of $2,500 shall be held...&#10;..."
                 data-testid="document-text-input"
               />
 
               <div className="flex items-center justify-between mt-4">
                 <p className="text-sm text-gray-400">{text.length} characters</p>
-                <button onClick={analyze} disabled={!text.trim() || loading}
-                  className="px-8 py-3 bg-[#1A2F3A] text-white rounded-xl hover:bg-[#2C4A52] disabled:opacity-40 flex items-center gap-2"
-                  data-testid="analyze-document-btn">
+                <button 
+                  onClick={analyze} 
+                  disabled={!text.trim() || loading}
+                  className="px-8 py-3 bg-[#1A2F3A] text-white rounded-xl hover:bg-[#2C4A52] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                  data-testid="analyze-document-btn"
+                >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
                   {loading ? 'Analyzing...' : 'Analyze Document'}
                 </button>
@@ -187,7 +190,7 @@ const DocumentAnalyzer = () => {
             )}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 };
