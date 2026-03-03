@@ -5,6 +5,7 @@ import {
   Navigation, Train, Car, Bike, Bed, Bath, DollarSign
 } from 'lucide-react';
 import axios from 'axios';
+import AddressAutocomplete from '../components/ui/AddressAutocomplete';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -64,13 +65,14 @@ const CommuteOptimizer = () => {
           <div className="space-y-3 mb-6">
             {addresses.map((addr, i) => (
               <div key={i} className="flex items-center gap-3">
-                <MapPin size={18} className="text-[#1A2F3A] shrink-0" />
-                <input
-                  type="text" value={addr}
-                  onChange={e => updateAddress(i, e.target.value)}
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none"
+                <AddressAutocomplete
+                  value={addr}
+                  onChange={(val) => updateAddress(i, val)}
+                  onSelect={(data) => updateAddress(i, data.formatted_address)}
                   placeholder={`Work address ${i + 1} (e.g., 200 Granville St, Vancouver)`}
-                  data-testid={`work-address-${i}`}
+                  testId={`work-address-${i}`}
+                  showIcon={true}
+                  className="flex-1"
                 />
                 {addresses.length > 1 && (
                   <button onClick={() => removeAddress(i)} className="text-gray-400 hover:text-red-500"><X size={18} /></button>

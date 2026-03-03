@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
+import AddressAutocomplete from '../components/ui/AddressAutocomplete';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -292,8 +293,14 @@ const SmartIssueReporter = () => {
               </div>
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Address</label>
-                <input type="text" value={bookingForm.address} onChange={e => setBookingForm({ ...bookingForm, address: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" placeholder="Service address" required />
+                <AddressAutocomplete 
+                  value={bookingForm.address} 
+                  onChange={(val) => setBookingForm({ ...bookingForm, address: val })}
+                  onSelect={(data) => setBookingForm({ ...bookingForm, address: data.formatted_address })}
+                  placeholder="Service address" 
+                  testId="issue-booking-address"
+                  showIcon={false}
+                />
               </div>
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Additional Notes</label>

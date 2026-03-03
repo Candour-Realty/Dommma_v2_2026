@@ -10,6 +10,7 @@ import axios from 'axios';
 import ContractorReviews from '../components/reviews/ContractorReviews';
 import ContractorLeaderboard from '../components/reviews/ContractorLeaderboard';
 import MainLayout from '../components/layout/MainLayout';
+import AddressAutocomplete from '../components/ui/AddressAutocomplete';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -348,8 +349,14 @@ const ContractorMarketplace = () => {
               </div>
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Address</label>
-                <input type="text" value={bookingForm.address} onChange={e => setBookingForm({ ...bookingForm, address: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" placeholder="Service address" required />
+                <AddressAutocomplete 
+                  value={bookingForm.address} 
+                  onChange={(val) => setBookingForm({ ...bookingForm, address: val })}
+                  onSelect={(data) => setBookingForm({ ...bookingForm, address: data.formatted_address })}
+                  placeholder="Service address" 
+                  testId="booking-address-input"
+                  showIcon={false}
+                />
               </div>
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setShowBooking(false)} className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>

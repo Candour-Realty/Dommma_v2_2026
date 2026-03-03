@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../App';
 import MainLayout from '../components/layout/MainLayout';
 import axios from 'axios';
+import AddressAutocomplete from '../components/ui/AddressAutocomplete';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -460,12 +461,17 @@ export default function LeaseAssignments() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-gray-600 block mb-1">Address</label>
-                    <input
-                      type="text"
+                    <AddressAutocomplete
                       value={newAssignment.address}
-                      onChange={(e) => setNewAssignment(prev => ({ ...prev, address: e.target.value }))}
+                      onChange={(val) => setNewAssignment(prev => ({ ...prev, address: val }))}
+                      onSelect={(data) => setNewAssignment(prev => ({ 
+                        ...prev, 
+                        address: data.address || data.formatted_address,
+                        city: data.city || prev.city
+                      }))}
                       placeholder="123 Main St"
-                      className="w-full px-4 py-2 border rounded-lg focus:border-[#1A2F3A] focus:ring-1 focus:ring-[#1A2F3A] outline-none"
+                      testId="lease-address-input"
+                      showIcon={false}
                     />
                   </div>
                   <div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Truck, Package, Calendar, MapPin, DollarSign, Clock, CheckCircle, Info, ChevronDown, ChevronUp, Plus, Minus, Sparkles, Lightbulb, ListChecks, MessageSquare, Loader2, Brain } from 'lucide-react';
 import axios from 'axios';
+import AddressAutocomplete from '../components/ui/AddressAutocomplete';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -99,14 +100,13 @@ const MovingQuote = () => {
           <MapPin size={14} className="inline mr-1" />
           Moving From
         </label>
-        <input
-          type="text"
-          name="origin_address"
+        <AddressAutocomplete
           value={formData.origin_address}
-          onChange={handleInputChange}
+          onChange={(val) => setFormData(prev => ({ ...prev, origin_address: val }))}
+          onSelect={(data) => setFormData(prev => ({ ...prev, origin_address: data.formatted_address }))}
           placeholder="Enter your current address"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1A2F3A]/20"
-          data-testid="origin-address-input"
+          testId="origin-address-input"
+          showIcon={false}
         />
         <div className="mt-3 grid grid-cols-2 gap-4">
           <div>
@@ -148,14 +148,13 @@ const MovingQuote = () => {
           <MapPin size={14} className="inline mr-1" />
           Moving To
         </label>
-        <input
-          type="text"
-          name="destination_address"
+        <AddressAutocomplete
           value={formData.destination_address}
-          onChange={handleInputChange}
+          onChange={(val) => setFormData(prev => ({ ...prev, destination_address: val }))}
+          onSelect={(data) => setFormData(prev => ({ ...prev, destination_address: data.formatted_address }))}
           placeholder="Enter your new address"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1A2F3A]/20"
-          data-testid="destination-address-input"
+          testId="destination-address-input"
+          showIcon={false}
         />
         <div className="mt-3 grid grid-cols-2 gap-4">
           <div>

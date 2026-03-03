@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../App';
 import MainLayout from '../components/layout/MainLayout';
 import axios from 'axios';
+import AddressAutocomplete from '../components/ui/AddressAutocomplete';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -593,12 +594,13 @@ export default function ESign() {
 
                 <div>
                   <label className="text-sm text-gray-600 block mb-1">Property Address</label>
-                  <input
-                    type="text"
+                  <AddressAutocomplete
                     value={newDoc.property_address}
-                    onChange={(e) => setNewDoc(prev => ({ ...prev, property_address: e.target.value }))}
+                    onChange={(val) => setNewDoc(prev => ({ ...prev, property_address: val }))}
+                    onSelect={(data) => setNewDoc(prev => ({ ...prev, property_address: data.formatted_address }))}
                     placeholder="123 Main St, Vancouver, BC"
-                    className="w-full px-4 py-2 border rounded-lg focus:border-[#1A2F3A] focus:ring-1 focus:ring-[#1A2F3A] outline-none"
+                    testId="esign-property-address"
+                    showIcon={false}
                   />
                 </div>
 

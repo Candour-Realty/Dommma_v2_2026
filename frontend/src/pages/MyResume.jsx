@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../App';
 import MainLayout from '../components/layout/MainLayout';
 import axios from 'axios';
+import AddressAutocomplete from '../components/ui/AddressAutocomplete';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -347,12 +348,13 @@ export default function MyResume() {
                       <MapPin size={12} /> Current Address
                     </label>
                     {editing ? (
-                      <input
-                        type="text"
+                      <AddressAutocomplete
                         value={editData.rental_history?.current_address || ''}
-                        onChange={(e) => updateField('rental_history', 'current_address', e.target.value)}
-                        className="w-full px-3 py-2 border rounded-lg focus:border-[#1A2F3A] focus:ring-1 focus:ring-[#1A2F3A] outline-none"
+                        onChange={(val) => updateField('rental_history', 'current_address', val)}
+                        onSelect={(data) => updateField('rental_history', 'current_address', data.formatted_address)}
                         placeholder="e.g., 123 Main St, Vancouver, BC"
+                        testId="resume-address-input"
+                        showIcon={false}
                       />
                     ) : (
                       <p className="text-[#1A2F3A]">{resume.rental_history?.current_address || 'Not provided'}</p>

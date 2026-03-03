@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../App';
 import { trackFeatureEngagement } from '../lib/firebase';
 import axios from 'axios';
+import AddressAutocomplete from '../components/ui/AddressAutocomplete';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -317,13 +318,13 @@ const Applications = () => {
                     className="px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none"
                     required
                   />
-                  <input
-                    type="text"
-                    placeholder="Current Address"
+                  <AddressAutocomplete
                     value={form.current_address}
-                    onChange={(e) => setForm({...form, current_address: e.target.value})}
-                    className="px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none"
-                    required
+                    onChange={(val) => setForm({...form, current_address: val})}
+                    onSelect={(data) => setForm({...form, current_address: data.formatted_address})}
+                    placeholder="Current Address"
+                    testId="application-address-input"
+                    showIcon={false}
                   />
                 </div>
               </div>
