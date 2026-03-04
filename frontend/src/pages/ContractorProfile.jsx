@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, X, Star,
-  Shield, DollarSign, Clock, Phone, Mail, Globe, Briefcase, CheckCircle
+  Shield, DollarSign, Clock, Phone, Mail, Globe, Briefcase, CheckCircle,
+  Upload, FileText, AlertCircle, Loader2
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
@@ -20,10 +21,17 @@ const ContractorProfile = () => {
   const [bookings, setBookings] = useState([]);
   const [activeTab, setActiveTab] = useState('profile');
   const [showServiceModal, setShowServiceModal] = useState(false);
+  const [wcbVerifying, setWcbVerifying] = useState(false);
+  const [insuranceVerifying, setInsuranceVerifying] = useState(false);
   const [form, setForm] = useState({
     business_name: '', description: '', specialties: [], service_areas: [],
     hourly_rate: '', years_experience: '', license_number: '', insurance: false,
-    phone: '', email: '', website: ''
+    phone: '', email: '', website: '',
+    wcb_clearance: null,
+    wcb_verified: false,
+    wcb_doc_url: '',
+    insurance_doc_url: '',
+    insurance_verified: false
   });
   const [serviceForm, setServiceForm] = useState({
     title: '', description: '', category: '', price_type: 'fixed', price: '', duration_estimate: ''
@@ -60,7 +68,11 @@ const ContractorProfile = () => {
           insurance: profRes.data.insurance || false,
           phone: profRes.data.phone || '',
           email: profRes.data.email || '',
-          website: profRes.data.website || ''
+          website: profRes.data.website || '',
+          wcb_verified: profRes.data.wcb_verified || false,
+          wcb_doc_url: profRes.data.wcb_doc_url || '',
+          insurance_verified: profRes.data.insurance_verified || false,
+          insurance_doc_url: profRes.data.insurance_doc_url || ''
         });
       }
       setServices(svcRes?.data || []);
@@ -83,6 +95,64 @@ const ContractorProfile = () => {
       alert('Profile saved!');
     } catch (e) { console.error(e); alert('Failed to save.'); }
     setSaving(false);
+  };
+
+  // Handle WCB document upload and AI verification
+  const handleWCBUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setWcbVerifying(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('document_type', 'wcb_clearance');
+    formData.append('contractor_id', user.id);
+
+    try {
+      const response = await axios.post(`${API}/contractors/verify-document`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (response.data.verified) {
+        setForm(prev => ({ ...prev, wcb_verified: true, wcb_doc_url: response.data.document_url }));
+        alert('WCB document verified successfully!');
+      } else {
+        alert(`Verification failed: ${response.data.reason || 'Document could not be verified'}`);
+      }
+    } catch (error) {
+      console.error('WCB verification error:', error);
+      alert('Failed to verify document. Please try again.');
+    }
+    setWcbVerifying(false);
+  };
+
+  // Handle Insurance document upload and AI verification
+  const handleInsuranceUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setInsuranceVerifying(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('document_type', 'insurance');
+    formData.append('contractor_id', user.id);
+
+    try {
+      const response = await axios.post(`${API}/contractors/verify-document`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (response.data.verified) {
+        setForm(prev => ({ ...prev, insurance_verified: true, insurance_doc_url: response.data.document_url, insurance: true }));
+        alert('Insurance document verified successfully!');
+      } else {
+        alert(`Verification failed: ${response.data.reason || 'Document could not be verified'}`);
+      }
+    } catch (error) {
+      console.error('Insurance verification error:', error);
+      alert('Failed to verify document. Please try again.');
+    }
+    setInsuranceVerifying(false);
   };
 
   const handleCreateService = async (e) => {
@@ -201,10 +271,81 @@ const ContractorProfile = () => {
               <input type="text" value={form.license_number} onChange={e => setForm({ ...form, license_number: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" />
             </div>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.insurance} onChange={e => setForm({ ...form, insurance: e.target.checked })} className="w-5 h-5 rounded" />
-              <span className="text-sm text-gray-700">I have liability insurance</span>
-            </label>
+
+            {/* WCB Clearance Section */}
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="text-blue-600" size={20} />
+                <h4 className="font-medium text-[#1A2F3A]">WCB Clearance Certificate</h4>
+                {form.wcb_verified && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
+                    <CheckCircle size={12} /> Verified
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Upload your WCB clearance certificate or letter from WorkSafeBC to verify your coverage.
+              </p>
+              {form.wcb_verified ? (
+                <div className="flex items-center gap-2 text-sm text-green-700">
+                  <FileText size={16} />
+                  <span>Document verified and on file</span>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors">
+                  {wcbVerifying ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      <span className="text-sm">Verifying document...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={18} className="text-blue-600" />
+                      <span className="text-sm text-blue-700">Upload WCB Certificate (PDF, JPG, PNG)</span>
+                    </>
+                  )}
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleWCBUpload} className="hidden" disabled={wcbVerifying} />
+                </label>
+              )}
+            </div>
+
+            {/* Insurance Document Section */}
+            <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="text-green-600" size={20} />
+                <h4 className="font-medium text-[#1A2F3A]">Commercial Liability Insurance</h4>
+                {form.insurance_verified && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
+                    <CheckCircle size={12} /> Verified
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Upload your 3rd party commercial liability insurance certificate.
+              </p>
+              {form.insurance_verified ? (
+                <div className="flex items-center gap-2 text-sm text-green-700">
+                  <FileText size={16} />
+                  <span>Insurance document verified and on file</span>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-green-300 rounded-xl cursor-pointer hover:bg-green-100 transition-colors">
+                  {insuranceVerifying ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      <span className="text-sm">Verifying document...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={18} className="text-green-600" />
+                      <span className="text-sm text-green-700">Upload Insurance Certificate (PDF, JPG, PNG)</span>
+                    </>
+                  )}
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleInsuranceUpload} className="hidden" disabled={insuranceVerifying} />
+                </label>
+              )}
+            </div>
+
             <div>
               <label className="block text-sm text-gray-600 mb-2">Specialties</label>
               <div className="flex flex-wrap gap-2">

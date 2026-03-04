@@ -261,9 +261,16 @@ const NovaChat = ({ isOpenProp = false, onClose = null, initialQuery = '' }) => 
   };
 
   const stopSpeaking = () => {
+    // Stop current audio
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.src = '';
       audioRef.current = null;
+    }
+    // Also try to stop any Web Speech API (fallback)
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
     }
     setIsSpeaking(false);
   };
@@ -271,6 +278,12 @@ const NovaChat = ({ isOpenProp = false, onClose = null, initialQuery = '' }) => 
   const toggleVoice = async () => {
     const newEnabled = !voiceEnabled;
     setVoiceEnabled(newEnabled);
+    
+    // If turning off voice, stop any current audio immediately
+    if (!newEnabled) {
+      stopSpeaking();
+    }
+    
     if (user?.id) {
       try {
         await axios.post(`${API}/nova/tts/preferences/${user.id}`, {

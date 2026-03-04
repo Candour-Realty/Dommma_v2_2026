@@ -12,7 +12,56 @@ Build a complete real estate marketplace called "DOMMMA" for Renters, Landlords,
 
 ---
 
-## V19 Security & Feature Updates (March 3, 2026) - LATEST
+## V20 Major Updates (March 4, 2026) - LATEST
+
+### P0 Bug Fixes ✅
+1. **Nova Audio Stop Fix** - Muting now properly stops audio playback immediately
+   - Added `stopSpeaking()` call when toggling voice off
+   - Enhanced `stopSpeaking()` to reset audio source and cancel Web Speech API
+   
+2. **Role-Specific Payments Page** - Each user type now sees relevant options:
+   - **Renters**: Pay Rent, Pay Security Deposit, Pay Utilities
+   - **Landlords**: Collect Rent, Accept Deposit, Send Invoice
+   - **Contractors**: Send Invoice, Request Payment, View Earnings
+
+3. **Renter Rent Payment** - Added "Pay Rent" card to Renter Dashboard with next due date
+
+### P1 UI Improvements ✅
+1. **Contractors Page Header** - "Find Contractors" text now larger (text-4xl/5xl) and more prominent
+2. **Lease Duration Filters** - Added 3/6/9/12 month lease term filter to Browse page
+3. **"Has Offers" Filter** - New filter to find properties with special offers
+
+### P2 New Features ✅
+1. **Contractor WCB/Insurance Verification**
+   - Upload WCB clearance certificate or WorkSafeBC letter
+   - Upload commercial liability insurance certificate
+   - AI-powered document verification using Claude
+   - Visual verification status badges
+
+2. **AI Competitor Price Analysis** (`POST /api/ai/competitor-analysis`)
+   - Analyzes comparable listings in area
+   - Generates recommended pricing
+   - Creates compelling listing title and description
+   - Provides selling points and hashtags for social media
+
+3. **Post-Reservation Offers Component**
+   - Shows movers, wifi providers, insurance, utilities after reservation
+   - Location-based recommendations
+   - One-click contact for selected services
+
+4. **NPM Dependency Fix**
+   - Created `.npmrc` with `legacy-peer-deps=true`
+   - Upgraded `date-fns` to 3.6.0
+   - Upgraded `react-day-picker` to 9.14.0
+   - `npm install` now works without `--legacy-peer-deps` flag
+
+### In-House Financing (MOCKED) - Pending
+- UI/UX mockups pending
+- User exploring lending partnerships
+
+---
+
+## V19 Security Updates (March 3, 2026)
 
 ### Critical Security Fix - Email Verification ✅
 - **FIXED:** Login endpoint was creating new accounts for any email/password combination

@@ -98,11 +98,13 @@ const ContractorMarketplace = () => {
     <MainLayout>
       <div className="min-h-screen bg-[#F5F5F0]">
         {/* Page Header */}
-        <header className="bg-[#1A2F3A] text-white px-6 py-6">
+        <header className="bg-[#1A2F3A] text-white px-6 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="mb-6">
-              <h1 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Find Contractors</h1>
-              <p className="text-sm text-white/70">Verified professionals for every job</p>
+              <h1 className="text-4xl md:text-5xl font-bold mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                Find Contractors
+              </h1>
+              <p className="text-lg text-white/80">Verified professionals for every job</p>
             </div>
             <div className="relative max-w-2xl">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />

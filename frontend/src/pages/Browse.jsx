@@ -47,12 +47,20 @@ const Browse = () => {
     petFriendly: false,
     parking: false,
     propertyType: '',
-    listingType: 'rent'
+    listingType: 'rent',
+    leaseDuration: '',
+    hasOffers: false
   });
   const [showFilters, setShowFilters] = useState(false);
   const [showViewingScheduler, setShowViewingScheduler] = useState(false);
   
   const propertyTypes = ['Apartment', 'Condo', 'House', 'Townhouse', 'Studio', 'Duplex', 'Penthouse'];
+  const leaseDurations = [
+    { value: 3, label: '3 months' },
+    { value: 6, label: '6 months' },
+    { value: 9, label: '9 months' },
+    { value: 12, label: '12 months' },
+  ];
 
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY });
 
@@ -206,7 +214,7 @@ const Browse = () => {
 
         {showFilters && (
           <div className="border-t border-white/10 p-4">
-            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-6 gap-3">
+            <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
               <select value={filters.propertyType} onChange={(e) => setFilters({...filters, propertyType: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm" data-testid="filter-property-type">
                 <option value="">All Types</option>
                 {propertyTypes.map(t => <option key={t} value={t}>{t}</option>)}
@@ -219,6 +227,10 @@ const Browse = () => {
                 <option value="3">3+</option>
                 <option value="4">4+</option>
               </select>
+              <select value={filters.leaseDuration} onChange={(e) => setFilters({...filters, leaseDuration: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm" data-testid="filter-lease-duration">
+                <option value="">Lease Term</option>
+                {leaseDurations.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+              </select>
               <input type="number" placeholder={filters.listingType === 'sale' ? 'Min ($)' : 'Min $/mo'} value={filters.minPrice} onChange={(e) => setFilters({...filters, minPrice: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white placeholder-gray-400 text-sm" data-testid="filter-min-price" />
               <input type="number" placeholder={filters.listingType === 'sale' ? 'Max ($)' : 'Max $/mo'} value={filters.maxPrice} onChange={(e) => setFilters({...filters, maxPrice: e.target.value})} className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white placeholder-gray-400 text-sm" data-testid="filter-max-price" />
               <label className="flex items-center gap-2 cursor-pointer">
@@ -228,6 +240,10 @@ const Browse = () => {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={filters.parking} onChange={(e) => setFilters({...filters, parking: e.target.checked})} className="w-4 h-4 rounded" data-testid="filter-parking" />
                 <span className="text-sm">Parking</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={filters.hasOffers} onChange={(e) => setFilters({...filters, hasOffers: e.target.checked})} className="w-4 h-4 rounded" data-testid="filter-has-offers" />
+                <span className="text-sm">Has Offers</span>
               </label>
             </div>
           </div>

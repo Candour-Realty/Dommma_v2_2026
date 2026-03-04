@@ -102,11 +102,31 @@ const Payments = () => {
     );
   };
 
-  const quickPaymentOptions = [
-    { amount: 1500, label: 'Monthly Rent', icon: Building2 },
-    { amount: 500, label: 'Security Deposit', icon: DollarSign },
-    { amount: 200, label: 'Utilities', icon: CreditCard },
-  ];
+  // Role-specific quick payment options
+  const getQuickPaymentOptions = () => {
+    if (user?.user_type === 'contractor') {
+      return [
+        { amount: 0, label: 'Send Invoice', icon: DollarSign, action: 'invoice' },
+        { amount: 0, label: 'Request Payment', icon: CreditCard, action: 'request' },
+        { amount: 0, label: 'View Earnings', icon: Building2, action: 'earnings' },
+      ];
+    } else if (user?.user_type === 'landlord') {
+      return [
+        { amount: 0, label: 'Collect Rent', icon: DollarSign, action: 'collect' },
+        { amount: 500, label: 'Accept Deposit', icon: CreditCard, action: 'deposit' },
+        { amount: 0, label: 'Send Invoice', icon: Building2, action: 'invoice' },
+      ];
+    } else {
+      // Renter
+      return [
+        { amount: 1500, label: 'Pay Rent', icon: Building2 },
+        { amount: 500, label: 'Pay Security Deposit', icon: DollarSign },
+        { amount: 200, label: 'Pay Utilities', icon: CreditCard },
+      ];
+    }
+  };
+
+  const quickPaymentOptions = getQuickPaymentOptions();
 
   return (
     <div className="min-h-screen bg-[#F5F5F0]">
@@ -118,8 +138,15 @@ const Payments = () => {
               <ArrowLeft size={18} />
             </Link>
             <div>
-              <h1 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Payments</h1>
-              <p className="text-sm text-white/70">Manage your payments and transactions</p>
+              <h1 className="text-2xl" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                {user?.user_type === 'contractor' ? 'Earnings & Invoices' : 
+                 user?.user_type === 'landlord' ? 'Rent Collection' : 'Payments'}
+              </h1>
+              <p className="text-sm text-white/70">
+                {user?.user_type === 'contractor' ? 'Manage your earnings and send invoices' : 
+                 user?.user_type === 'landlord' ? 'Collect rent and manage tenant payments' : 
+                 'Pay rent and manage your transactions'}
+              </p>
             </div>
           </div>
           <button
@@ -128,7 +155,8 @@ const Payments = () => {
             data-testid="new-payment-btn"
           >
             <Plus size={16} />
-            New Payment
+            {user?.user_type === 'contractor' ? 'New Invoice' : 
+             user?.user_type === 'landlord' ? 'Request Payment' : 'Make Payment'}
           </button>
         </div>
       </header>
@@ -172,22 +200,42 @@ const Payments = () => {
                   <button
                     key={option.label}
                     onClick={() => {
-                      setPaymentForm({
-                        ...paymentForm,
-                        amount: option.amount.toString(),
-                        description: option.label
-                      });
-                      setShowPaymentModal(true);
+                      if (option.action === 'earnings') {
+                        navigate('/contractor-earnings');
+                      } else if (option.action === 'invoice' || option.action === 'request') {
+                        setPaymentForm({
+                          ...paymentForm,
+                          amount: '',
+                          description: option.label
+                        });
+                        setShowPaymentModal(true);
+                      } else if (option.action === 'collect') {
+                        setPaymentForm({
+                          ...paymentForm,
+                          amount: '',
+                          description: 'Rent Collection'
+                        });
+                        setShowPaymentModal(true);
+                      } else {
+                        setPaymentForm({
+                          ...paymentForm,
+                          amount: option.amount.toString(),
+                          description: option.label
+                        });
+                        setShowPaymentModal(true);
+                      }
                     }}
                     className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-[#1A2F3A]/20 hover:bg-[#F5F5F0] transition-all"
-                    data-testid={`quick-pay-${option.label.toLowerCase().replace(' ', '-')}`}
+                    data-testid={`quick-pay-${option.label.toLowerCase().replace(/ /g, '-')}`}
                   >
                     <div className="w-10 h-10 rounded-xl bg-[#1A2F3A]/10 flex items-center justify-center">
                       <option.icon size={20} className="text-[#1A2F3A]" />
                     </div>
                     <div className="flex-1 text-left">
                       <p className="font-medium text-[#1A2F3A]">{option.label}</p>
-                      <p className="text-sm text-gray-500">${option.amount.toLocaleString()} CAD</p>
+                      {option.amount > 0 && (
+                        <p className="text-sm text-gray-500">${option.amount.toLocaleString()} CAD</p>
+                      )}
                     </div>
                     <ChevronRight size={18} className="text-gray-400" />
                   </button>

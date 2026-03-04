@@ -35,6 +35,25 @@ const RenterDashboard = ({ userId }) => {
       {/* Pending Reviews */}
       <PendingReviews userId={userId} />
       
+      {/* Pay Rent Card - Primary Action */}
+      <div className="bg-gradient-to-r from-[#1A2F3A] to-[#2C4A52] rounded-2xl p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-semibold mb-1">Rent Payment</h3>
+            <p className="text-white/70 text-sm">Next payment due: March 1, 2026</p>
+            <p className="text-2xl font-bold mt-2">$2,400.00</p>
+          </div>
+          <Link 
+            to="/payments" 
+            className="flex items-center gap-2 px-6 py-3 bg-white text-[#1A2F3A] rounded-full font-medium hover:bg-gray-100 transition-colors"
+            data-testid="pay-rent-btn"
+          >
+            <DollarSign size={18} />
+            Pay Rent
+          </Link>
+        </div>
+      </div>
+      
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-2xl">

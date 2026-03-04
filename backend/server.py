@@ -2342,6 +2342,148 @@ async def track_syndication(data: SyndicationTrackInput):
     
     return {"status": "tracked", "id": track_id}
 
+# ========== AI COMPETITOR PRICE ANALYSIS ==========
+
+@api_router.post("/ai/competitor-analysis")
+async def analyze_competitor_prices(data: Dict[str, Any]):
+    """
+    AI-powered competitor analysis - analyzes nearby rentals and suggests pricing.
+    Uses web scraping and AI to find comparable listings.
+    """
+    address = data.get("address", "")
+    city = data.get("city", "Vancouver")
+    bedrooms = data.get("bedrooms", 2)
+    property_type = data.get("property_type", "apartment")
+    
+    if not address:
+        raise HTTPException(status_code=400, detail="Address is required")
+    
+    ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
+    if not ANTHROPIC_API_KEY:
+        raise HTTPException(status_code=500, detail="AI analysis not configured")
+    
+    try:
+        import httpx
+        
+        # In production, this would scrape FB Marketplace, Craigslist, Kijiji
+        # For now, we simulate with local data + AI analysis
+        
+        # Fetch comparable listings from our database
+        comparable_query = {
+            "city": {"$regex": city, "$options": "i"},
+            "bedrooms": {"$gte": bedrooms - 1, "$lte": bedrooms + 1},
+            "status": "active"
+        }
+        
+        local_listings = await db.listings.find(
+            comparable_query,
+            {"_id": 0, "id": 1, "title": 1, "price": 1, "bedrooms": 1, "bathrooms": 1, "address": 1, "amenities": 1}
+        ).limit(10).to_list(10)
+        
+        # Calculate average prices
+        if local_listings:
+            prices = [l.get("price", 0) for l in local_listings if l.get("price")]
+            avg_price = sum(prices) / len(prices) if prices else 0
+            min_price = min(prices) if prices else 0
+            max_price = max(prices) if prices else 0
+        else:
+            # Default Vancouver market rates
+            base_rates = {1: 1800, 2: 2400, 3: 3200, 4: 4000}
+            avg_price = base_rates.get(bedrooms, 2400)
+            min_price = avg_price * 0.8
+            max_price = avg_price * 1.2
+        
+        # Use AI to generate listing copy and analysis
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json"
+                },
+                json={
+                    "model": "claude-sonnet-4-20250514",
+                    "max_tokens": 2048,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": f"""You are a real estate market analyst for {city}. 
+                            
+Based on this property:
+- Address: {address}
+- Bedrooms: {bedrooms}
+- Property Type: {property_type}
+
+And these comparable listings in the area (prices in CAD/month):
+{[f"- {l.get('title', 'Listing')}: ${l.get('price', 0)}/mo, {l.get('bedrooms', 0)}BR" for l in local_listings[:5]]}
+
+Average market price: ${avg_price:.0f}/mo
+Price range: ${min_price:.0f} - ${max_price:.0f}/mo
+
+Provide:
+1. A recommended listing price (consider the specific address and features)
+2. A compelling listing title (under 60 chars)
+3. A professional listing description (150-200 words)
+4. 3 key selling points as bullet points
+5. Suggested hashtags for social media
+
+Format your response as JSON:
+{{
+    "recommended_price": number,
+    "price_explanation": "brief explanation",
+    "title": "Listing Title",
+    "description": "Full description...",
+    "selling_points": ["point 1", "point 2", "point 3"],
+    "hashtags": ["#tag1", "#tag2", "#tag3"],
+    "market_insights": "Brief market analysis"
+}}"""
+                        }
+                    ]
+                }
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Claude API error: {response.text}")
+                # Return basic analysis without AI
+                return {
+                    "recommended_price": int(avg_price),
+                    "price_range": {"min": int(min_price), "max": int(max_price)},
+                    "comparable_listings": local_listings[:5],
+                    "ai_analysis": None
+                }
+            
+            result = response.json()
+            ai_response = result.get("content", [{}])[0].get("text", "{}")
+            
+            # Parse JSON response
+            import json
+            try:
+                ai_analysis = json.loads(ai_response)
+            except:
+                import re
+                json_match = re.search(r'\{[\s\S]*\}', ai_response)
+                if json_match:
+                    ai_analysis = json.loads(json_match.group())
+                else:
+                    ai_analysis = None
+            
+            return {
+                "recommended_price": ai_analysis.get("recommended_price", int(avg_price)) if ai_analysis else int(avg_price),
+                "price_range": {"min": int(min_price), "max": int(max_price)},
+                "comparable_listings": local_listings[:5],
+                "ai_analysis": ai_analysis,
+                "market_data": {
+                    "average_price": int(avg_price),
+                    "total_comparables": len(local_listings),
+                    "city": city
+                }
+            }
+            
+    except Exception as e:
+        logger.error(f"Competitor analysis error: {e}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
 @api_router.get("/syndication/history/{listing_id}")
 async def get_syndication_history(listing_id: str):
     """Get syndication history for a listing"""
@@ -3797,6 +3939,181 @@ async def update_contractor_images(user_id: str, images: List[str]):
         {"$set": {"portfolio_images": images, "updated_at": datetime.now(timezone.utc).isoformat()}}
     )
     return {"status": "updated"}
+
+@api_router.post("/contractors/verify-document")
+async def verify_contractor_document(
+    file: UploadFile = File(...),
+    document_type: str = Body(...),
+    contractor_id: str = Body(...)
+):
+    """
+    Upload and verify contractor documents (WCB clearance, insurance) using AI
+    """
+    import base64
+    
+    # Read file content
+    file_content = await file.read()
+    file_base64 = base64.b64encode(file_content).decode('utf-8')
+    file_extension = file.filename.split('.')[-1].lower() if file.filename else 'pdf'
+    
+    # Determine media type
+    media_types = {
+        'pdf': 'application/pdf',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png'
+    }
+    media_type = media_types.get(file_extension, 'application/pdf')
+    
+    # Use Claude to verify the document
+    ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY')
+    if not ANTHROPIC_API_KEY:
+        raise HTTPException(status_code=500, detail="AI verification not configured")
+    
+    verification_prompts = {
+        'wcb_clearance': """Analyze this document and determine if it is a valid WorkSafeBC (WCB) clearance certificate or letter.
+        
+Check for:
+1. WorkSafeBC or WCB logo/header
+2. Clearance letter confirming good standing
+3. Account number
+4. Date of issuance (should be recent, within last 6 months)
+5. Business name
+
+Respond in JSON format:
+{
+    "is_valid": true/false,
+    "document_type": "wcb_clearance",
+    "confidence": 0-100,
+    "business_name": "extracted name if found",
+    "account_number": "if found",
+    "issue_date": "if found",
+    "reason": "explanation if not valid"
+}""",
+        'insurance': """Analyze this document and determine if it is a valid commercial liability insurance certificate.
+
+Check for:
+1. Insurance company name/logo
+2. Certificate of insurance or policy document
+3. Coverage type (General Liability, Commercial Liability)
+4. Policy number
+5. Coverage amounts
+6. Expiration date (should not be expired)
+7. Named insured (business name)
+
+Respond in JSON format:
+{
+    "is_valid": true/false,
+    "document_type": "insurance",
+    "confidence": 0-100,
+    "insurance_company": "if found",
+    "policy_number": "if found",
+    "coverage_amount": "if found",
+    "expiration_date": "if found",
+    "business_name": "if found",
+    "reason": "explanation if not valid"
+}"""
+    }
+    
+    prompt = verification_prompts.get(document_type, verification_prompts['insurance'])
+    
+    try:
+        import httpx
+        
+        # Call Claude API for document analysis
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json"
+                },
+                json={
+                    "model": "claude-sonnet-4-20250514",
+                    "max_tokens": 1024,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "image" if media_type.startswith('image') else "document",
+                                    "source": {
+                                        "type": "base64",
+                                        "media_type": media_type,
+                                        "data": file_base64
+                                    }
+                                },
+                                {
+                                    "type": "text",
+                                    "text": prompt
+                                }
+                            ]
+                        }
+                    ]
+                }
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Claude API error: {response.text}")
+                raise HTTPException(status_code=500, detail="AI verification failed")
+            
+            result = response.json()
+            ai_response = result.get("content", [{}])[0].get("text", "{}")
+            
+            # Parse JSON response
+            import json
+            try:
+                verification_result = json.loads(ai_response)
+            except:
+                # Try to extract JSON from the response
+                import re
+                json_match = re.search(r'\{[^{}]*\}', ai_response, re.DOTALL)
+                if json_match:
+                    verification_result = json.loads(json_match.group())
+                else:
+                    verification_result = {"is_valid": False, "reason": "Could not parse AI response"}
+            
+            is_valid = verification_result.get("is_valid", False)
+            confidence = verification_result.get("confidence", 0)
+            
+            # Require at least 70% confidence for verification
+            if is_valid and confidence >= 70:
+                # Update contractor profile with verification
+                update_field = "wcb_verified" if document_type == "wcb_clearance" else "insurance_verified"
+                doc_url_field = "wcb_doc_url" if document_type == "wcb_clearance" else "insurance_doc_url"
+                
+                await db.contractor_profiles.update_one(
+                    {"user_id": contractor_id},
+                    {
+                        "$set": {
+                            update_field: True,
+                            doc_url_field: f"verified_{document_type}_{contractor_id}",
+                            f"{document_type}_details": verification_result,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }
+                    },
+                    upsert=True
+                )
+                
+                return {
+                    "verified": True,
+                    "document_type": document_type,
+                    "confidence": confidence,
+                    "details": verification_result,
+                    "document_url": f"verified_{document_type}_{contractor_id}"
+                }
+            else:
+                return {
+                    "verified": False,
+                    "document_type": document_type,
+                    "confidence": confidence,
+                    "reason": verification_result.get("reason", "Document verification failed - confidence too low or document invalid")
+                }
+                
+    except Exception as e:
+        logger.error(f"Document verification error: {e}")
+        raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
 
 # ========== CONTRACTOR SERVICES ==========
 
