@@ -4,6 +4,12 @@ All notable changes to the DOMMMA platform are documented in this file.
 
 ## [V21] - 2025-12-XX (Current)
 
+### Infrastructure
+- **Production Email System Live** - Resend integration fully configured
+  - Domain dommma.com verified with DNS records (DKIM, SPF, MX, DMARC)
+  - Emails now sent from noreply@dommma.com
+  - New user verification emails working in production
+
 ### Documentation
 - **Comprehensive PRD Generated** - Full product requirements document reverse-engineered from codebase
   - 42 frontend pages documented
