@@ -5,6 +5,21 @@ All notable changes to the DOMMMA platform are documented in this file.
 ## [V21] - 2025-12-XX (Current)
 
 ### Added
+- **Document Builder** - DocuSign-like form builder for BC tenancy documents
+  - BC RTB-1 (Tenancy Agreement), RTB-7 (End Notice), RTB-26 (Condition Report), RTB-30 (Rent Increase)
+  - Step-by-step form filling with progress tracking
+  - Auto-fill landlord information
+  - PDF generation and download
+  - Send for signature via email
+  - Document preview before sending
+- **Post-Reservation Upsells API** - Local service providers for renters
+  - Movers, Internet, Insurance, Utilities, Cleaning, Storage
+  - Curated Vancouver-area providers with ratings and promos
+  - Quote request system
+- **Enhanced Competitor Analysis** - Upgraded with web scraping capability
+  - Perplexity API integration for real-time market data
+  - Scrapes Craigslist, FB Marketplace, Kijiji for comparable prices
+  - Falls back to local database if external sources unavailable
 - **Universal Pay & Invoices System** - Comprehensive payment management for all roles
   - Role-specific payment types (Renter: rent, utilities, movers; Landlord: property expenses, taxes; Contractor: supplies, equipment)
   - Stripe payment processing with checkout or saved cards

@@ -43,6 +43,7 @@ import ListingOptimizer from "@/pages/ListingOptimizer";
 import SettingsPage from "@/pages/SettingsPage";
 import VerifyEmail from "@/pages/VerifyEmail";
 import ClaimListing from "@/pages/ClaimListing";
+import DocumentBuilder from "@/pages/DocumentBuilder";
 
 // Layout
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -161,6 +162,7 @@ function App() {
           <Route path="/my-resume" element={<DashboardLayout><MyResume /></DashboardLayout>} />
           <Route path="/applicant-ranking" element={<DashboardLayout><ApplicantRanking /></DashboardLayout>} />
           <Route path="/esign" element={<DashboardLayout><ESign /></DashboardLayout>} />
+          <Route path="/document-builder" element={<DocumentBuilder />} />
           <Route path="/syndication" element={<DashboardLayout><ListingSyndication /></DashboardLayout>} />
           <Route path="/analytics" element={<DashboardLayout><AnalyticsDashboard /></DashboardLayout>} />
           <Route path="/listing-optimizer" element={<DashboardLayout><ListingOptimizer /></DashboardLayout>} />

@@ -50,6 +50,7 @@ const DashboardLayout = ({ children }) => {
       { icon: Home, label: 'Dashboard', path: '/dashboard' },
       { icon: Building2, label: 'My Properties', path: '/my-properties' },
       { icon: DollarSign, label: 'Pay & Invoices', path: '/payments' },
+      { icon: FileText, label: 'Document Builder', path: '/document-builder' },
       { icon: Share2, label: 'Syndication', path: '/syndication' },
       { icon: Zap, label: 'AI Optimizer', path: '/listing-optimizer' },
       { icon: Users, label: 'Applications', path: '/applications' },
