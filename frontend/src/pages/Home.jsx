@@ -325,13 +325,13 @@ const Home = () => {
       </section>
 
       {/* Featured Properties Grid */}
-      <section className="section-lg bg-[#F5F5F0] pt-20" data-testid="featured-properties">
+      <section className="section-md bg-[#F5F5F0] pt-12" data-testid="featured-properties">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Featured Listings</p>
+              <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Featured Listings</p>
               <h2 
-                className="text-3xl md:text-4xl text-[#1A2F3A]"
+                className="text-xl md:text-2xl text-[#1A2F3A]"
                 style={{ fontFamily: 'Cormorant Garamond, serif' }}
               >
                 Discover Your Next Home
@@ -668,51 +668,19 @@ const Home = () => {
       {/* Team Section */}
       <section className="section-md bg-[#F5F5F0]" data-testid="team-section">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">Our Team</p>
-              <div className="space-y-0">
-                {team.map((member, i) => (
-                  <div key={i} className="team-card">
-                    <img src={member.image} alt={member.name} />
-                    <div className="flex-1">
-                      <p className="font-semibold text-[#1A2F3A]">{member.name}</p>
-                      <p className="text-sm text-gray-500">{member.role}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="text-gray-400 text-xs">in</span>
-                      <span className="text-gray-400 text-xs">tw</span>
-                    </div>
-                  </div>
-                ))}
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">Our Team</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {team.map((member, i) => (
+              <div key={i} className="bg-white rounded-xl p-4 text-center hover:shadow-lg transition-shadow">
+                <img 
+                  src={member.image} 
+                  alt={member.name} 
+                  className="w-20 h-20 rounded-full mx-auto mb-3 object-cover"
+                />
+                <p className="font-semibold text-[#1A2F3A]">{member.name}</p>
+                <p className="text-sm text-gray-500">{member.role}</p>
               </div>
-            </div>
-
-            {/* Hero Image */}
-            <div 
-              className="relative rounded-3xl overflow-hidden h-[500px] img-overlay"
-            >
-              <img 
-                src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800"
-                alt="Architecture"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-0 left-0 p-8 z-10">
-                <h3 
-                  className="text-4xl text-white uppercase mb-2"
-                  style={{ fontFamily: 'Cormorant Garamond, serif' }}
-                >
-                  Home Made<br />Simple
-                </h3>
-                <p className="text-white/70 text-sm mb-4">Your complete real estate solution</p>
-                <Link 
-                  to="/about"
-                  className="flex items-center gap-2 text-white text-sm"
-                >
-                  Our Story <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

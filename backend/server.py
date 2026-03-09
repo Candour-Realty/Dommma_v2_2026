@@ -1157,7 +1157,7 @@ async def create_checkout_setup_session(user_id: str):
         await db.users.update_one({"id": user_id}, {"$set": {"stripe_customer_id": customer_id}})
     
     try:
-        host_url = os.environ.get('FRONTEND_URL', 'https://rent-connect-25.preview.emergentagent.com')
+        host_url = os.environ.get('FRONTEND_URL', 'https://ai-concierge-fix.preview.emergentagent.com')
         
         session = stripe.checkout.Session.create(
             customer=customer_id,
@@ -1390,7 +1390,7 @@ async def create_payment(user_id: str, payment: PaymentRequest):
         
         if not default_pm:
             # Create a checkout session instead
-            host_url = os.environ.get('FRONTEND_URL', 'https://rent-connect-25.preview.emergentagent.com')
+            host_url = os.environ.get('FRONTEND_URL', 'https://ai-concierge-fix.preview.emergentagent.com')
             session = stripe.checkout.Session.create(
                 customer=customer_id,
                 payment_method_types=['card'],
@@ -1768,7 +1768,7 @@ async def send_builder_document(doc: DocumentBuilderSend):
         from services.email import send_email
         
         # Generate signing link
-        sign_link = f"https://rent-connect-25.preview.emergentagent.com/sign-document/{doc_id}"
+        sign_link = f"https://ai-concierge-fix.preview.emergentagent.com/sign-document/{doc_id}"
         
         email_html = f"""
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background: #F5F5F0; padding: 40px;">

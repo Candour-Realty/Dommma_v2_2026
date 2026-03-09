@@ -2,7 +2,7 @@
 
 A complete real estate platform with AI concierge chatbot, property listings, contractor marketplace, e-signing, payments, and more.
 
-**Live Demo:** https://rent-connect-25.preview.emergentagent.com
+**Live Demo:** https://ai-concierge-fix.preview.emergentagent.com
 
 ## Key Features
 

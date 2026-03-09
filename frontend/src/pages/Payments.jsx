@@ -6,7 +6,6 @@ import {
   ChevronRight, Loader2, AlertCircle, CheckCircle, Clock
 } from 'lucide-react';
 import { useAuth } from '../App';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import axios from 'axios';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -225,17 +224,14 @@ export default function Payments() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="animate-spin text-[#1A2F3A]" size={32} />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin text-[#1A2F3A]" size={32} />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-2xl font-semibold text-[#1A2F3A] flex items-center gap-3" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
@@ -469,6 +465,5 @@ export default function Payments() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 }
