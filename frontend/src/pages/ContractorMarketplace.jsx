@@ -143,8 +143,34 @@ const ContractorMarketplace = () => {
   const [submitting, setSubmitting] = useState(false);
   const [jobId, setJobId] = useState(null);
   const [error, setError] = useState(null);
+  const [detectingLocation, setDetectingLocation] = useState(false);
 
   const categories = ['plumbing', 'electrical', 'painting', 'renovation', 'landscaping', 'cleaning'];
+
+  // Load saved postal code from localStorage or user profile
+  useEffect(() => {
+    // First try user's saved address
+    if (user?.address) {
+      // Extract postal code from address if it exists
+      const postalMatch = user.address.match(/[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d/i);
+      if (postalMatch) {
+        setPostcode(postalMatch[0].toUpperCase());
+        return;
+      }
+    }
+    // Then try localStorage
+    const savedPostcode = localStorage.getItem('dommma_postcode');
+    if (savedPostcode) {
+      setPostcode(savedPostcode);
+    }
+  }, [user]);
+
+  // Save postal code to localStorage when it changes
+  useEffect(() => {
+    if (postcode && postcode.length >= 3) {
+      localStorage.setItem('dommma_postcode', postcode);
+    }
+  }, [postcode]);
 
   useEffect(() => { 
     fetchContractors();
@@ -160,6 +186,45 @@ const ContractorMarketplace = () => {
       }));
     }
   }, [user]);
+
+  // Detect location using browser geolocation
+  const detectLocation = async () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setDetectingLocation(true);
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes cache
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+      
+      // Use Google Maps Geocoding API to get postal code
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.REACT_APP_GOOGLE_MAPS_KEY || ''}`
+      );
+
+      if (response.data.results && response.data.results.length > 0) {
+        const addressComponents = response.data.results[0].address_components;
+        const postalComponent = addressComponents.find(c => c.types.includes('postal_code'));
+        if (postalComponent) {
+          setPostcode(postalComponent.short_name);
+          localStorage.setItem('dommma_postcode', postalComponent.short_name);
+        }
+      }
+    } catch (err) {
+      console.log('Location detection failed:', err);
+      // Silently fail - user can enter manually
+    } finally {
+      setDetectingLocation(false);
+    }
+  };
 
   const fetchContractors = async () => {
     try {
@@ -440,14 +505,25 @@ const ContractorMarketplace = () => {
                   )}
                 </div>
                 
-                <div className="flex items-center border-l border-gray-200 bg-white">
-                  <MapPin size={18} className="text-gray-400 ml-3" />
+                <div className="flex items-center border-l border-gray-200 bg-white relative group">
+                  <button 
+                    onClick={detectLocation}
+                    disabled={detectingLocation}
+                    className="ml-2 p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                    title="Use my location"
+                  >
+                    {detectingLocation ? (
+                      <Loader2 size={18} className="text-gray-400 animate-spin" />
+                    ) : (
+                      <MapPin size={18} className="text-gray-400 hover:text-[#1A2F3A]" />
+                    )}
+                  </button>
                   <input
                     type="text"
                     value={postcode}
-                    onChange={(e) => setPostcode(e.target.value)}
+                    onChange={(e) => setPostcode(e.target.value.toUpperCase())}
                     placeholder="Postal code"
-                    className="w-32 md:w-40 px-3 py-4 text-gray-800 text-lg border-none outline-none"
+                    className="w-28 md:w-36 px-2 py-4 text-gray-800 text-lg border-none outline-none uppercase"
                     data-testid="postcode-input"
                   />
                 </div>
@@ -460,6 +536,27 @@ const ContractorMarketplace = () => {
                   Search
                 </button>
               </div>
+              
+              {/* Use my location link */}
+              {!postcode && (
+                <button
+                  onClick={detectLocation}
+                  disabled={detectingLocation}
+                  className="mt-3 text-sm text-white/60 hover:text-white underline flex items-center gap-1 mx-auto"
+                >
+                  {detectingLocation ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      Detecting location...
+                    </>
+                  ) : (
+                    <>
+                      <MapPin size={14} />
+                      Use my current location
+                    </>
+                  )}
+                </button>
+              )}
               
               {/* Popular Services */}
               <div className="mt-4 text-sm text-white/50">
