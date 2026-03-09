@@ -129,7 +129,6 @@ function App() {
           {/* Public Contractor Pages */}
           <Route path="/contractors" element={<ContractorMarketplace />} />
           <Route path="/portfolio/:contractorId" element={<ContractorPortfolio />} />
-          <Route path="/get-quotes" element={<ServiceRequestWizard />} />
           
           {/* Lease Assignment Marketplace - Public */}
           <Route path="/lease-assignments" element={<LeaseAssignments />} />
