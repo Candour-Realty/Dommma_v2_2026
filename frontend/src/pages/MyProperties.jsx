@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2, ArrowLeft, Plus, MapPin, Bed, Bath, Edit, Trash2,
   Image as ImageIcon, X, DollarSign, Check, Eye, EyeOff, Loader2,
-  Gift, Calendar, Star, Zap, CheckCircle
+  Gift, Calendar, Star, Zap, CheckCircle, AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
@@ -11,6 +11,49 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const GOOGLE_MAPS_KEY = process.env.REACT_APP_GOOGLE_MAPS_KEY;
+
+// Custom Confirmation Modal Component
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText = 'Confirm', cancelText = 'Cancel', type = 'info' }) => {
+  if (!isOpen) return null;
+  
+  const icons = {
+    info: <Star className="text-yellow-500" size={32} />,
+    warning: <AlertTriangle className="text-orange-500" size={32} />,
+    success: <CheckCircle className="text-green-500" size={32} />
+  };
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" data-testid="confirm-modal">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+        <div className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-yellow-50 flex items-center justify-center">
+              {icons[type]}
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-[#1A2F3A] mb-2">{title}</h3>
+              <div className="text-gray-600 text-sm whitespace-pre-line">{message}</div>
+            </div>
+          </div>
+        </div>
+        <div className="px-6 pb-6 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 transition-colors font-medium"
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 px-4 py-3 bg-[#1A2F3A] text-white rounded-xl hover:bg-[#2C4A52] transition-colors font-medium"
+          >
+            {confirmText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Geocode address using Google Maps API
 const geocodeAddress = async (address, city, province, postalCode) => {
@@ -107,6 +150,10 @@ const MyProperties = () => {
   const [uploading, setUploading] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const addressInputRef = useRef(null);
+  
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, listing: null, action: null });
+  
   const [form, setForm] = useState({
     title: '', address: '', city: 'Vancouver', province: 'BC',
     postal_code: '', lat: 49.2827, lng: -123.1207, price: '',
@@ -248,11 +295,15 @@ const MyProperties = () => {
   };
 
   const handleDelete = async (listingId) => {
-    if (!window.confirm('Delete this listing?')) return;
-    try {
-      await axios.delete(`${API}/listings/${listingId}?landlord_id=${user.id}`);
-      fetchListings();
-    } catch (err) { console.error(err); }
+    setConfirmModal({
+      isOpen: true,
+      listing: { id: listingId },
+      action: 'delete',
+      title: 'Delete Listing',
+      message: 'Are you sure you want to delete this listing? This action cannot be undone.',
+      confirmText: 'Delete',
+      type: 'warning'
+    });
   };
 
   const toggleStatus = async (listing) => {
@@ -264,55 +315,70 @@ const MyProperties = () => {
   };
 
   const toggleFeatured = async (listing) => {
-    try {
-      if (listing.featured) {
-        // Disable featured
-        await axios.delete(`${API}/listings/${listing.id}/featured?landlord_id=${user.id}`);
-        alert('Featured status disabled');
-      } else {
-        // Enable featured (pay-per-success)
-        const confirmed = window.confirm(
-          'Enable Featured Listing?\n\n' +
-          '• Your listing will appear at the top of search results\n' +
-          '• Featured badge will be displayed\n' +
-          '• A $49.99 success fee will be charged only when your property is rented\n\n' +
-          'No upfront cost - you only pay when you succeed!'
-        );
-        if (!confirmed) return;
-        
-        const res = await axios.post(`${API}/listings/${listing.id}/featured?landlord_id=${user.id}`);
-        alert(res.data.message);
-      }
-      fetchListings();
-    } catch (err) { 
-      console.error(err);
-      alert('Failed to update featured status');
+    if (listing.featured) {
+      // Disable featured - show confirmation
+      setConfirmModal({
+        isOpen: true,
+        listing,
+        action: 'disable-featured',
+        title: 'Remove Featured Status',
+        message: 'Are you sure you want to remove the featured status from this listing?\n\nYour listing will no longer appear at the top of search results.',
+        confirmText: 'Remove Featured',
+        type: 'warning'
+      });
+    } else {
+      // Enable featured - show benefits modal
+      setConfirmModal({
+        isOpen: true,
+        listing,
+        action: 'enable-featured',
+        title: 'Enable Featured Listing',
+        message: '✨ Boost your listing visibility!\n\n• Your listing will appear at the top of search results\n• Featured badge will be displayed prominently\n• Increased visibility = faster rentals\n\n💰 Pay-Per-Success Model:\nA $49.99 success fee will only be charged when your property is rented. No upfront cost!',
+        confirmText: 'Enable Featured',
+        type: 'info'
+      });
     }
   };
 
-  const markAsRented = async (listing) => {
-    const confirmed = window.confirm(
-      `Mark "${listing.title}" as rented?\n\n` +
-      (listing.featured && listing.featured_fee_pending 
-        ? 'Note: A $49.99 featured listing fee will be charged to your saved payment method.'
-        : 'This will remove the listing from active searches.')
-    );
-    if (!confirmed) return;
+  const handleConfirmAction = async () => {
+    const { listing, action } = confirmModal;
     
     try {
-      const res = await axios.post(`${API}/listings/${listing.id}/mark-rented?landlord_id=${user.id}`);
-      if (res.data.featured_fee_charged) {
-        alert(`Property marked as rented!\n\nFeatured fee of $${res.data.fee_amount} has been charged.`);
-      } else if (res.data.fee_message) {
-        alert(`Property marked as rented.\n\nNote: ${res.data.fee_message}`);
-      } else {
-        alert('Property marked as rented!');
+      switch (action) {
+        case 'delete':
+          await axios.delete(`${API}/listings/${listing.id}?landlord_id=${user.id}`);
+          break;
+        case 'enable-featured':
+          await axios.post(`${API}/listings/${listing.id}/featured?landlord_id=${user.id}`);
+          break;
+        case 'disable-featured':
+          await axios.delete(`${API}/listings/${listing.id}/featured?landlord_id=${user.id}`);
+          break;
+        case 'mark-rented':
+          await axios.post(`${API}/listings/${listing.id}/mark-rented?landlord_id=${user.id}`);
+          break;
+        default:
+          break;
       }
       fetchListings();
     } catch (err) {
       console.error(err);
-      alert('Failed to mark as rented');
     }
+    setConfirmModal({ isOpen: false });
+  };
+
+  const markAsRented = async (listing) => {
+    setConfirmModal({
+      isOpen: true,
+      listing,
+      action: 'mark-rented',
+      title: 'Mark as Rented',
+      message: `Mark "${listing.title}" as rented?\n\n${listing.featured && listing.featured_fee_pending 
+        ? '💳 Note: A $49.99 featured listing fee will be charged to your saved payment method.'
+        : 'This will remove the listing from active searches.'}`,
+      confirmText: 'Mark as Rented',
+      type: 'success'
+    });
   };
 
   return (
@@ -655,6 +721,17 @@ const MyProperties = () => {
           </div>
         </div>
       )}
+      
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false })}
+        onConfirm={handleConfirmAction}
+        title={confirmModal.title || 'Confirm'}
+        message={confirmModal.message || ''}
+        confirmText={confirmModal.confirmText || 'Confirm'}
+        type={confirmModal.type || 'info'}
+      />
     </div>
   );
 };

@@ -46,6 +46,7 @@ import ClaimListing from "@/pages/ClaimListing";
 import DocumentBuilder from "@/pages/DocumentBuilder";
 import ServiceRequestWizard from "@/pages/ServiceRequestWizard";
 import Financing from "@/pages/Financing";
+import FindTenants from "@/pages/FindTenants";
 
 // Layout
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -172,6 +173,7 @@ function App() {
           <Route path="/analytics" element={<DashboardLayout><AnalyticsDashboard /></DashboardLayout>} />
           <Route path="/listing-optimizer" element={<DashboardLayout><ListingOptimizer /></DashboardLayout>} />
           <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
+          <Route path="/find-tenants" element={<DashboardLayout><FindTenants /></DashboardLayout>} />
           
           {/* Legacy routes - redirect to new paths */}
           <Route path="/dashboard/payments" element={<DashboardLayout><Payments /></DashboardLayout>} />

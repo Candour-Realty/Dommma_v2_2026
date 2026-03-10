@@ -105,6 +105,8 @@ class Listing(BaseModel):
     pet_friendly: bool = False
     parking: bool = False
     landlord_id: Optional[str] = None
+    user_id: Optional[str] = None  # Alias for landlord_id
+    owner_id: Optional[str] = None  # Another alias for compatibility
     listing_type: str = "rent"  # rent, sale
     sale_price: Optional[int] = None
     year_built: Optional[int] = None
@@ -113,6 +115,7 @@ class Listing(BaseModel):
     mls_number: Optional[str] = None
     open_house_dates: List[str] = []
     status: str = "active"
+    featured: bool = False
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 class ListingCreate(BaseModel):
@@ -605,7 +608,8 @@ async def get_listings(
     if parking is not None:
         query["parking"] = parking
     if owner_id:
-        query["owner_id"] = owner_id
+        # Support both owner_id and landlord_id for backwards compatibility
+        query["$or"] = [{"owner_id": owner_id}, {"landlord_id": owner_id}, {"user_id": owner_id}]
     if featured is not None:
         query["featured"] = featured
     if q:
@@ -5095,10 +5099,12 @@ async def select_bid(job_id: str, bid_id: str, landlord_id: str):
 @api_router.post("/listings/create")
 async def create_listing(landlord_id: str, listing: ListingCreate):
     """Create a new property listing (landlord only)"""
-    listing_obj = Listing(
-        **listing.model_dump(),
-        landlord_id=landlord_id
-    )
+    listing_data = listing.model_dump()
+    listing_data["landlord_id"] = landlord_id
+    listing_data["user_id"] = landlord_id  # Also set user_id for compatibility
+    listing_data["owner_id"] = landlord_id  # Also set owner_id for compatibility
+    
+    listing_obj = Listing(**listing_data)
     
     await db.listings.insert_one(listing_obj.model_dump())
     

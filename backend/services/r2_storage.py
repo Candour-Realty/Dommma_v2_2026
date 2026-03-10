@@ -136,13 +136,22 @@ async def upload_file(
             **extra_args
         )
         
-        # Generate public URL
-        public_url = f"{R2_ENDPOINT}/{R2_BUCKET}/{key}"
+        # Generate presigned URL for public access (valid for 7 days)
+        # For production, you should set up a custom domain with public access
+        presigned_url = client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': R2_BUCKET, 'Key': key},
+            ExpiresIn=604800  # 7 days
+        )
+        
+        # Also generate direct URL (for custom domain if configured)
+        direct_url = f"{R2_ENDPOINT}/{R2_BUCKET}/{key}"
         
         logger.info(f"File uploaded to R2: {key} ({file_size} bytes)")
         
         return {
-            "url": public_url,
+            "url": presigned_url,  # Use presigned URL for access
+            "direct_url": direct_url,
             "key": key,
             "size": file_size,
             "content_type": content_type,
