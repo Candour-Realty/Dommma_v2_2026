@@ -193,15 +193,27 @@ A guided job posting flow inspired by bark.com:
 
 ## 6. Files Reference
 
-### New/Modified Files
-- `/app/frontend/src/pages/ServiceRequestWizard.jsx` - Bark.com-style wizard (NEW)
-- `/app/frontend/src/components/ratings/StarRating.jsx` - Star rating component (NEW)
-- `/app/frontend/src/components/ratings/UserRatingCard.jsx` - User rating card (NEW)
-- `/app/frontend/src/components/jobs/JobComponents.jsx` - Job posting components (NEW)
+### New/Modified Files (March 10, 2026)
+- `/app/backend/services/r2_storage.py` - Cloudflare R2 storage service (UPDATED)
+- `/app/backend/server.py` - Updated upload endpoints to use R2
+- `/app/frontend/src/pages/Dashboard.jsx` - Added UserRatingCard to all dashboards
+
+### Previous Files
+- `/app/frontend/src/pages/ServiceRequestWizard.jsx` - Bark.com-style wizard
+- `/app/frontend/src/components/ratings/StarRating.jsx` - Star rating component
+- `/app/frontend/src/components/ratings/UserRatingCard.jsx` - User rating card
+- `/app/frontend/src/components/jobs/JobComponents.jsx` - Job posting components
 - `/app/frontend/src/pages/SettingsPage.jsx` - Enhanced notifications
-- `/app/frontend/src/pages/Home.jsx` - Removed "Our Story", fixed Featured text
-- `/app/frontend/src/pages/Payments.jsx` - Fixed double sidebar
-- `/app/backend/server.py` - Rating system, job posting APIs, route fixes
+- `/app/frontend/src/pages/Home.jsx` - Homepage
+- `/app/frontend/src/pages/Payments.jsx` - Fixed sidebar
+
+---
+
+## 7. Test Credentials
+
+- **Email:** test@dommma.com
+- **Password:** test123
+- **User Type:** Renter (verified)
 
 ---
 
