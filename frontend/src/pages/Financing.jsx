@@ -4,7 +4,7 @@ import {
   DollarSign, Calculator, Home, TrendingUp, Shield, 
   CheckCircle, Clock, FileText, ArrowRight, Percent,
   Building, Key, Wallet, PiggyBank, CreditCard, HelpCircle,
-  ChevronRight, Star, AlertCircle, Loader2
+  ChevronRight, Star, AlertCircle, Loader2, Send
 } from 'lucide-react';
 import { useAuth } from '../App';
 import MainLayout from '../components/layout/MainLayout';

@@ -3345,14 +3345,19 @@ async def create_esign_document(data: ESignDocumentInput):
         "created_at": datetime.now(timezone.utc).isoformat(),
         "signed_at": None,
         "signature_data": None,
-        "signer_name": None
+        "signer_name": None,
+        "audit_trail": [{
+            "event": "created",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "actor": data.creator_name or data.creator_email,
+            "details": f"Document created: {data.title}"
+        }]
     }
     
     await db.esign_documents.insert_one(document)
     
-    # TODO: Send email notification to recipient
-    
-    return document
+    # Return document without _id
+    return {k: v for k, v in document.items() if k != '_id'}
 
 @api_router.post("/esign/documents/{doc_id}/sign")
 async def sign_document(doc_id: str, data: SignatureInput):
