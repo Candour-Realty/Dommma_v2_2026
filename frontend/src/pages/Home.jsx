@@ -218,14 +218,20 @@ const Home = () => {
         className="relative h-[75vh] min-h-[500px] flex items-center"
         data-testid="hero-section"
       >
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ 
-            backgroundImage: 'url(https://customer-assets.emergentagent.com/job_property-ai-hub-3/artifacts/8ejxvmv4_1.jpg)',
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1A2F3A]/90 via-[#1A2F3A]/70 to-transparent" />
+        {/* Video Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute w-full h-full object-cover"
+            poster="https://customer-assets.emergentagent.com/job_property-ai-hub-3/artifacts/8ejxvmv4_1.jpg"
+          >
+            <source src="/videos/hero-vancouver.mp4" type="video/mp4" />
+          </video>
+          {/* Gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1A2F3A]/90 via-[#1A2F3A]/70 to-[#1A2F3A]/40" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 lg:py-28">
