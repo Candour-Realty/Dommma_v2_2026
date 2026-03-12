@@ -685,7 +685,7 @@ async def register_user(request: Request, user_data: UserCreate):
     await db.users.insert_one(user_doc)
     
     # Build verification link - use FRONTEND_URL env var or origin header
-    frontend_url = os.environ.get('FRONTEND_URL', 'https://storage-migration-3.preview.emergentagent.com')
+    frontend_url = os.environ.get('FRONTEND_URL', 'https://marketplace-prod-1.preview.emergentagent.com')
     origin = request.headers.get('origin', frontend_url).rstrip('/')
     verification_link = f"{origin}/verify-email?token={verification_token}"
     
@@ -780,7 +780,7 @@ async def resend_verification(request: Request, email: str = Body(..., embed=Tru
     )
     
     # Build verification link - use FRONTEND_URL env var or origin header
-    frontend_url = os.environ.get('FRONTEND_URL', 'https://storage-migration-3.preview.emergentagent.com')
+    frontend_url = os.environ.get('FRONTEND_URL', 'https://marketplace-prod-1.preview.emergentagent.com')
     origin = request.headers.get('origin', frontend_url).rstrip('/')
     verification_link = f"{origin}/verify-email?token={verification_token}"
     
@@ -1164,7 +1164,7 @@ async def create_checkout_setup_session(user_id: str):
         await db.users.update_one({"id": user_id}, {"$set": {"stripe_customer_id": customer_id}})
     
     try:
-        host_url = os.environ.get('FRONTEND_URL', 'https://storage-migration-3.preview.emergentagent.com')
+        host_url = os.environ.get('FRONTEND_URL', 'https://marketplace-prod-1.preview.emergentagent.com')
         
         session = stripe.checkout.Session.create(
             customer=customer_id,
@@ -1717,7 +1717,7 @@ async def create_payment(user_id: str, payment: PaymentRequest):
         
         if not default_pm:
             # Create a checkout session instead
-            host_url = os.environ.get('FRONTEND_URL', 'https://storage-migration-3.preview.emergentagent.com')
+            host_url = os.environ.get('FRONTEND_URL', 'https://marketplace-prod-1.preview.emergentagent.com')
             session = stripe.checkout.Session.create(
                 customer=customer_id,
                 payment_method_types=['card'],
@@ -2095,7 +2095,7 @@ async def send_builder_document(doc: DocumentBuilderSend):
         from services.email import send_email
         
         # Generate signing link
-        sign_link = f"https://storage-migration-3.preview.emergentagent.com/sign-document/{doc_id}"
+        sign_link = f"https://marketplace-prod-1.preview.emergentagent.com/sign-document/{doc_id}"
         
         email_html = f"""
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background: #F5F5F0; padding: 40px;">
