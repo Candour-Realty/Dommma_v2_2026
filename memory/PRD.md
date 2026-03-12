@@ -41,6 +41,20 @@ To revolutionize the real estate experience by providing an AI-powered platform 
 - Includes: Architecture diagrams, deployment commands, troubleshooting guide, all credentials locations
 - Non-technical friendly documentation for project handover
 
+#### GitHub Actions Auto-Deploy ✅ NEW
+- Created `.github/workflows/deploy.yml` for automatic deployments
+- Any push to `main` branch will auto-deploy to production
+- Requires GitHub secrets: `EC2_HOST` and `EC2_SSH_KEY`
+
+#### E-Sign Document Permanent Storage Fix ✅ NEW
+- **Issue:** Tenants couldn't see signed documents in their account
+- **Fix Applied:**
+  1. When tenant signs, their `user_id` is now saved as `recipient_id`
+  2. Document query now includes `signer_id` for backwards compatibility
+  3. Added startup migration to fix existing signed documents
+  4. Added audit trail entry when document is signed
+- **Result:** Both landlord AND tenant can now permanently access signed documents
+
 ### 2.2 Previous Session Updates (March 10, 2026)
 
 #### ALL TASKS COMPLETED ✅

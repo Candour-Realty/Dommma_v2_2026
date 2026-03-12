@@ -3324,9 +3324,13 @@ class SignatureInput(BaseModel):
 @api_router.get("/esign/documents")
 async def get_esign_documents(user_id: str):
     """Get all e-sign documents for a user"""
-    # Get documents where user is creator or recipient
+    # Get documents where user is creator, recipient, or signer
     documents = await db.esign_documents.find(
-        {"$or": [{"creator_id": user_id}, {"recipient_id": user_id}]},
+        {"$or": [
+            {"creator_id": user_id}, 
+            {"recipient_id": user_id},
+            {"signer_id": user_id}  # Include documents user has signed
+        ]},
         {"_id": 0}
     ).sort("created_at", -1).to_list(100)
     return documents
@@ -3375,15 +3379,31 @@ async def sign_document(doc_id: str, data: SignatureInput):
     if document["status"] == "signed":
         raise HTTPException(status_code=400, detail="Document already signed")
     
+    signed_at = datetime.now(timezone.utc).isoformat()
+    
+    # Create audit trail entry for signing
+    audit_entry = {
+        "event": "signed",
+        "timestamp": signed_at,
+        "actor": data.signer_name,
+        "details": f"Document signed by {data.signer_name}"
+    }
+    
     await db.esign_documents.update_one(
         {"id": doc_id},
-        {"$set": {
-            "status": "signed",
-            "signed_at": datetime.now(timezone.utc).isoformat(),
-            "signature_data": data.signature_data,
-            "signer_id": data.signer_id,
-            "signer_name": data.signer_name
-        }}
+        {
+            "$set": {
+                "status": "signed",
+                "signed_at": signed_at,
+                "signature_data": data.signature_data,
+                "signer_id": data.signer_id,
+                "signer_name": data.signer_name,
+                "recipient_id": data.signer_id  # Link document to signer's account
+            },
+            "$push": {
+                "audit_trail": audit_entry
+            }
+        }
     )
     
     return {"status": "signed", "message": "Document signed successfully"}
@@ -7946,6 +7966,26 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+@app.on_event("startup")
+async def startup_migrations():
+    """Run database migrations on startup"""
+    # Fix existing signed documents: set recipient_id from signer_id if not set
+    result = await db.esign_documents.update_many(
+        {
+            "status": "signed",
+            "signer_id": {"$exists": True, "$ne": None},
+            "$or": [
+                {"recipient_id": {"$exists": False}},
+                {"recipient_id": None}
+            ]
+        },
+        [
+            {"$set": {"recipient_id": "$signer_id"}}
+        ]
+    )
+    if result.modified_count > 0:
+        logger.info(f"Migration: Fixed {result.modified_count} e-sign documents - linked recipient_id to signer_id")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
