@@ -145,6 +145,65 @@ The `.pem` file (`dommma-key.pem`) is required to access the EC2 server.
 
 Store it securely and give it only to trusted team members.
 
+### Admin Credentials
+
+| Item | Value |
+|------|-------|
+| Admin Email | rgoswami@dommma.com |
+| Contact Form Email | support@dommma.com |
+| Admin Secret Key | pray1234 |
+
+---
+
+# 3.5 ADMIN TOOLS
+
+## Email Configuration
+
+| Purpose | Email Address |
+|---------|---------------|
+| Contact form submissions go to | support@dommma.com |
+| Admin notifications go to | rgoswami@dommma.com |
+
+## Admin API Endpoints
+
+These URLs let you manage the website data. Use them in your browser.
+
+### View Database Statistics
+See how many users, listings, messages, etc. are in the database:
+```
+https://dommma.com/api/admin/database-stats?admin_key=pray1234
+```
+
+### View Contact Form Messages
+See all messages submitted through the contact form:
+```
+https://dommma.com/api/admin/contact-messages
+```
+
+### Clear Test/Mock Data
+**USE WITH CAUTION** - This permanently deletes data!
+
+Delete all test listings (keeps user accounts):
+```
+https://dommma.com/api/admin/clear-test-data?admin_key=pray1234&clear_users=false&clear_listings=true
+```
+
+Delete EVERYTHING (full reset):
+```
+https://dommma.com/api/admin/clear-test-data?admin_key=pray1234&clear_users=true&clear_listings=true&clear_applications=true&clear_messages=true&clear_documents=true&clear_jobs=true
+```
+
+### Clear Data Options
+
+| Parameter | What it deletes |
+|-----------|-----------------|
+| clear_users=true | All user accounts (careful!) |
+| clear_listings=true | All property listings |
+| clear_applications=true | Rental & financing applications |
+| clear_messages=true | Chat messages & contact form messages |
+| clear_documents=true | E-sign documents |
+| clear_jobs=true | Contractor job posts |
+
 ---
 
 # 4. GITHUB REPOSITORY
