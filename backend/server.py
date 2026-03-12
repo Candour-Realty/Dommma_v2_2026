@@ -7966,12 +7966,12 @@ async def submit_contact_form(data: ContactFormInput):
     
     await db.contact_messages.insert_one(contact_message)
     
-    # Send notification email to admin
-    admin_email = os.environ.get('ADMIN_EMAIL', 'hello@dommma.com')
+    # Send notification email to support
+    contact_email = os.environ.get('CONTACT_EMAIL', 'support@dommma.com')
     
     try:
         await send_email(
-            admin_email,
+            contact_email,
             f"New Contact Form: {data.subject}",
             f"""
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
