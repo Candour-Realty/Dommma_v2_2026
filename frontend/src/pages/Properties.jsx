@@ -30,11 +30,14 @@ const Properties = () => {
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="relative min-h-[50vh] flex items-center bg-[#1A2F3A]" data-testid="properties-hero">
-        <div className="max-w-7xl mx-auto px-6 py-32 w-full">
+      <section className="bg-gradient-to-r from-[#1A2F3A] to-[#2C4A52] py-16 px-4" data-testid="properties-hero">
+        <div className="max-w-6xl mx-auto text-center text-white">
           <p className="text-xs text-white/50 uppercase tracking-widest mb-4">Properties</p>
-          <h1 className="display-xl text-white mb-8">Featured<br />Listings</h1>
-          <Link to="/browse" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#1A2F3A] font-medium hover:bg-gray-100 transition-colors">
+          <h1 className="text-4xl md:text-5xl font-semibold mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Featured Listings</h1>
+          <p className="text-xl text-white/80 max-w-2xl mx-auto mb-8">
+            Discover your perfect home from our curated selection
+          </p>
+          <Link to="/browse" className="inline-flex items-center gap-2 px-6 py-4 rounded-xl bg-white text-[#1A2F3A] font-medium hover:bg-gray-100 transition-colors">
             <Search size={18} />
             Browse All Properties
           </Link>

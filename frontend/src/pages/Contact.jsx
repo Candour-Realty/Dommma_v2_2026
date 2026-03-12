@@ -15,11 +15,11 @@ const Contact = () => {
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="relative min-h-[50vh] flex items-center bg-[#1A2F3A]" data-testid="contact-hero">
-        <div className="max-w-7xl mx-auto px-6 py-32">
+      <section className="bg-gradient-to-r from-[#1A2F3A] to-[#2C4A52] py-16 px-4" data-testid="contact-hero">
+        <div className="max-w-6xl mx-auto text-center text-white">
           <p className="text-xs text-white/50 uppercase tracking-widest mb-4">Contact</p>
-          <h1 className="display-xl text-white mb-6">Get In<br />Touch</h1>
-          <p className="text-lg text-white/70 max-w-md">Have questions? We'd love to hear from you.</p>
+          <h1 className="text-4xl md:text-5xl font-semibold mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Get In Touch</h1>
+          <p className="text-xl text-white/80 max-w-2xl mx-auto">Have questions? We'd love to hear from you.</p>
         </div>
       </section>
 
