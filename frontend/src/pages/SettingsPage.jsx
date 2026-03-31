@@ -8,6 +8,8 @@ import {
 import { useAuth } from '../App';
 import axios from 'axios';
 
+import { subscribeToPush, unsubscribeFromPush, isPushSupported } from '../lib/pushNotifications';
+
 const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function SettingsPage() {
@@ -134,6 +136,12 @@ export default function SettingsPage() {
   const handleSaveNotifications = async () => {
     setSaving(true);
     try {
+      // Handle Web Push subscription toggle
+      if (notifications.push_enabled && isPushSupported()) {
+        await subscribeToPush(user.id);
+      } else if (!notifications.push_enabled) {
+        await unsubscribeFromPush(user.id);
+      }
       await axios.put(`${API}/api/users/${user.id}/preferences`, {
         notifications
       });

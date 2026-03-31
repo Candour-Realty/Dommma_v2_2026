@@ -5,6 +5,7 @@ import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from '@react-google-m
 import axios from 'axios';
 import NovaChat from '../components/chat/NovaChat';
 import ViewingScheduler from '../components/scheduling/ViewingScheduler';
+import MatterportViewer from '../components/MatterportViewer';
 import { useAuth } from '../App';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -449,6 +450,11 @@ const Browse = () => {
               )}
               <div className="mb-6"><h3 className="font-semibold mb-2">Description</h3><p className="text-gray-600 leading-relaxed">{selectedListing.description}</p></div>
               {selectedListing.amenities?.length > 0 && (<div className="mb-6"><h3 className="font-semibold mb-2">Amenities</h3><div className="flex flex-wrap gap-2">{selectedListing.amenities.map((a, i) => <span key={i} className="px-3 py-1 rounded-full bg-[#F5F5F0] text-gray-700 text-sm">{a}</span>)}</div></div>)}
+              {selectedListing.matterport_id && (
+                <div className="mb-6">
+                  <MatterportViewer matterportId={selectedListing.matterport_id} title={selectedListing.title} />
+                </div>
+              )}
               <div className="flex gap-3">
                 {selectedListing.listing_type === 'sale' ? (
                   <>
