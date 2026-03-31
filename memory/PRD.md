@@ -1,18 +1,18 @@
 # DOMMMA - Product Requirements Document
 
 ## Original Problem Statement
-Build a complete real estate marketplace platform called "DOMMMA" featuring an AI concierge, property listings, e-signing, contractor services, rent payment collection, and AI document intelligence.
+Build a complete real estate marketplace platform called "DOMMMA" featuring an AI concierge, property listings, e-signing, contractor services, rent payment collection, AI document intelligence, property valuation, and neighborhood comparison tools.
 
 ## Tech Stack
-- **Frontend**: React (CRA), Tailwind CSS, Shadcn UI, Stripe Elements
-- **Backend**: FastAPI (Python), Motor (async MongoDB)
+- **Frontend**: React (CRA), Tailwind CSS, Shadcn UI, Stripe Elements, PWA
+- **Backend**: FastAPI (Python), Motor (async MongoDB), APScheduler
 - **Database**: MongoDB Atlas
 - **Storage**: Cloudflare R2
 - **CI/CD**: GitHub Actions
 - **Deployment**: AWS EC2
 - **3rd Party**: Stripe (Payments + Connect), DocuSign, Anthropic Claude, OpenAI, Perplexity, Resend, Google Maps/OAuth
 
-## Core Features (Implemented)
+## Core Features (All Implemented)
 
 ### Phase 1 - Foundation
 - Property browsing with Rent/Buy/Lease Takeover tabs
@@ -22,60 +22,58 @@ Build a complete real estate marketplace platform called "DOMMMA" featuring an A
 - AI concierge (Nova) with multi-model LLM
 - E-signature document builder with AI assistance
 - User auth (register/login/Google OAuth)
-- Messaging system
-- Renter resume builder
-- Property analytics dashboard
+- Messaging system, Renter resume builder, Property analytics dashboard
 
-### Phase 2 - Rent Payment System (Implemented Feb 2026)
-- **Rent Agreements** - Landlords create agreements, tenants accept/counter/decline
-- **Stripe Elements** - Tenants save payment methods for rent payments
-- **Stripe Connect** - Landlord onboarding for automatic payout receiving
-- **Platform Fee** - 2.5% platform fee on transfers
-- **AI Document Builder** - AI assistant panel with BC RTA guidance
-- **Lease Takeover Tab** - Consolidated into Browse page as 3rd tab
+### Phase 2 - Rent Payment System
+- Rent Agreements - Landlords create, tenants accept/counter/decline
+- Stripe Elements - Payment method setup
+- Stripe Connect - Landlord onboarding for automatic payouts (2.5% platform fee)
+- AI Document Builder - AI assistant panel with BC RTA guidance
+- Lease Takeover Tab - Consolidated into Browse page
 
-### Phase 3 - AI Document Intelligence (Implemented Feb 2026)
-- **Tenant Document Review** - AI-powered lease analysis highlighting:
-  - Payment terms, late fees, critical clauses
-  - BC Residential Tenancy Act compliance checks
-  - Risk scoring (low/medium/high)
-  - Tenant action checklist
-- **Lease Comparison** - Compare against BC standard terms & market averages
-- **Deposit Analysis** - Verify deposit is within BC RTA limits
+### Phase 3 - AI Document Intelligence
+- Tenant Document Review - AI-powered lease analysis (risk scoring, BC RTA compliance)
+- Lease Comparison - Compare against BC standard terms & market averages
+- Deposit Analysis - BC RTA compliance checking
 
-### Admin Panel
-- Database stats endpoint
-- Clear test data endpoint
-- Contact message viewer
-- Protected by admin_key parameter
+### Phase 4 - Recurring Payments & Automation
+- **Background Scheduler** (APScheduler) - 4 cron jobs:
+  - Daily invoice generation at 8am UTC
+  - Payment reminders 3 days before due (9am UTC)
+  - Late fee application check (10am UTC)
+  - Lease renewal reminders weekly (Mondays 8am UTC)
+- **Notifications System** - In-app notifications for payment reminders, late fees, lease renewals
+- **Payment Receipt PDF** - Professional PDF receipts generated via ReportLab
+- **Payment History** - Filterable payment history with receipt download
+
+### Phase 5 - AI Property Intelligence
+- **AI Property Valuation** - Comparable-based with AI analysis (Anthropic Claude)
+- **Neighborhood Comparison** - Side-by-side area comparison (rent, sale, amenities)
+- **Smart Rent Pricing** - Market-based price suggestions (competitive/suggested/premium)
+- **Virtual Tours** - Support for Matterport/video tour URLs
+
+### Infrastructure
+- **PWA** - Service worker for offline support, push notifications, app install
+- **Admin Panel** - Database stats, clear test data, contact messages
+- **Modular Routers** - Extracted into /backend/routers/ (admin, stripe_connect, ai_intelligence, ai_valuation, scheduler, receipts)
 
 ## Architecture
-- `/app/frontend/src/pages/` - React page components
-- `/app/frontend/src/components/` - Shared UI components
-- `/app/backend/server.py` - Main FastAPI application (~8600 lines)
-- `/app/backend/routers/` - Modular routers (stripe_connect, ai_intelligence, admin, calendar, etc.)
+- `/app/frontend/src/pages/` - 30+ React page components
+- `/app/frontend/src/components/` - Shared UI components (Shadcn)
+- `/app/frontend/public/sw.js` - PWA service worker
+- `/app/backend/server.py` - Main FastAPI application
+- `/app/backend/routers/` - 10+ modular routers
 
 ## Key API Endpoints
-- `POST /api/auth/login` - User login
-- `GET /api/listings` - Browse properties
-- `GET /api/lease-assignments` - Lease takeover listings
-- `POST /api/rent/agreements` - Create rent agreement
-- `GET /api/rent/agreements` - Get user's agreements
-- `POST /api/rent/payments/{id}/pay` - Pay rent
-- `POST /api/stripe-connect/create-account` - Landlord Stripe Connect setup
-- `GET /api/stripe-connect/status` - Check Connect account status
-- `POST /api/ai/tenant-document-review` - AI document analysis
-- `GET /api/ai/lease-comparison` - BC RTA compliance comparison
-- `POST /api/document-builder/ai-prompts` - AI lease writing prompts
-- `POST /api/document-builder/ai-review` - AI document review
-
-## Pending/Future Tasks
-- **Mobile App (PWA/React Native)** - P2
-- **Full Platform E2E Audit** - P2
-- **Multi-language support** - P3
-- **AI-powered property valuation** - P3
-- **Virtual property tours integration** - P3
-- **Further server.py modularization** - Ongoing refactoring
+- Auth: POST /api/auth/login, POST /api/auth/register
+- Listings: GET /api/listings, GET /api/lease-assignments
+- Rent: POST /api/rent/agreements, GET /api/rent/agreements, POST /api/rent/payments/{id}/pay
+- Connect: POST /api/stripe-connect/create-account, GET /api/stripe-connect/status
+- AI: POST /api/ai/tenant-document-review, POST /api/ai/property-valuation, POST /api/ai/smart-rent-pricing
+- Tools: GET /api/ai/neighborhood-comparison, GET /api/ai/virtual-tours
+- Payments: GET /api/payments/history, GET /api/payments/{id}/receipt
+- Scheduler: POST /api/scheduler/run-invoices, POST /api/scheduler/run-reminders
+- Notifications: GET /api/notifications, POST /api/notifications/{id}/read
 
 ## Test Credentials
 - Renter: test@dommma.com / test123

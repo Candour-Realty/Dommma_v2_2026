@@ -1,68 +1,66 @@
 # DOMMMA Changelog
 
-## Feb 2026 - Phase 2 & 3 Implementation
+## Feb 2026 (Session 3) - Phases 4 & 5
 
-### Rent Payment System (Phase 2)
-- Built `RentAgreements.jsx` with full tenant/landlord views
-- Landlord: Create Agreement modal with property selection, tenant search, late fee settings
-- Tenant: Accept/Counter/Decline agreement flow
-- Stripe Elements integration for payment method setup
-- Stripe Connect onboarding for landlord payouts (Express accounts)
-- Platform fee (2.5%) on transfers
-- Connected bank account status display
+### Recurring Payments & Automation (Phase 4)
+- Built APScheduler with 4 recurring cron jobs:
+  - Invoice generation (daily 8am UTC)
+  - Payment reminders (daily 9am UTC, 3 days before due)
+  - Late fee application (daily 10am UTC)
+  - Lease renewal reminders (weekly Mondays)
+- Notifications system with read/unread tracking
+- Payment receipt PDF generation (ReportLab - professional formatted)
+- Payment history page with status filters and receipt downloads
+- Manual trigger endpoints for admin: /api/scheduler/run-invoices, /api/scheduler/run-reminders
 
-### AI Document Intelligence (Phase 3)
-- Built `TenantDocReview.jsx` with document selection and manual paste input
-- AI-powered lease review using Anthropic Claude:
-  - Identifies excessive fees, non-compliant clauses
-  - BC Residential Tenancy Act compliance checks
-  - Risk scoring (low/medium/high) with explanations
-  - Tenant action checklist generation
-- Lease comparison against BC standards and market averages
-- Deposit analysis (BC RTA limits at 50% of monthly rent)
+### AI Property Intelligence (Phase 5)
+- Property Valuation: comparable-based analysis with Anthropic AI insights
+- Neighborhood Comparison: side-by-side area stats (rent/sale averages, pet-friendly %, sqft)
+- Smart Rent Pricing: competitive/suggested/premium pricing with market percentiles
+- Virtual Tours: API support for Matterport/video tour URLs on listings
 
-### Browse Page Enhancements
-- Added "Lease Takeover" as 3rd tab (Rent/Buy/Lease Takeover)
-- Fetches from lease-assignments endpoint when tab active
-- Dynamic search placeholder per tab
+### PWA & Infrastructure
+- Service worker (sw.js) for offline caching, push notifications
+- Manifest already configured from Phase 1
 
-### Document Builder AI
-- Added AI Assistant toggle panel with BC RTA guidance
-- AI prompts for required lease clauses
-- AI document review with highlights and concerns
-- Quick tips for legal compliance
+### Sidebar Navigation Expanded
+- Renter: +Property Valuation, +Compare Neighborhoods, +Payment History
+- Landlord: +Smart Pricing, +Property Valuation, +Compare Neighborhoods, +Payment History
 
-### Backend Refactoring
-- Created `/app/backend/routers/` directory
-- Extracted Stripe Connect into `routers/stripe_connect.py`
-- Extracted AI Intelligence into `routers/ai_intelligence.py`
-- Created Admin router template at `routers/admin.py`
-- Added User Search endpoint: `GET /api/users/search`
-
-### Sidebar Navigation Updates
-- Added "Rent Agreements" to both renter and landlord navigation
-- Added "AI Doc Review" to renter navigation
-- Added CreditCard and Shield icons
+### Backend Routers Created
+- `/backend/routers/scheduler.py` - Recurring jobs & notifications
+- `/backend/routers/receipts.py` - Payment history & PDF receipts
+- `/backend/routers/ai_valuation.py` - Property valuation, neighborhood comparison, smart pricing, virtual tours
 
 ---
 
-## Dec 2025 - Initial Platform & Phase 1
+## Feb 2026 (Session 2) - Phases 2 & 3
 
-### DevOps & Production
-- Fixed EC2 blank page (missing frontend .env)
-- Created GitHub Actions CI/CD pipeline
-- Automated deployment on push to main
+### Rent Payment System (Phase 2)
+- RentAgreements.jsx with landlord create + tenant accept/counter/decline
+- Stripe Elements for payment method setup
+- Stripe Connect landlord onboarding (2.5% platform fee)
+- AI Document Builder assistant panel
+- Lease Takeover tab on Browse page
 
-### Core Features
-- Property browsing with advanced filters
-- 16-category contractor marketplace
-- AI concierge (Nova)
-- E-signature document builder
-- Admin endpoints (stats, clear data, contact messages)
-- Hero height standardization across pages
+### AI Document Intelligence (Phase 3)
+- TenantDocReview.jsx with AI-powered lease analysis
+- BC RTA compliance checks, risk scoring, tenant checklists
+- Lease comparison against BC standards
 
-### API Key Migration
-- Updated MongoDB, Google Maps, Google OAuth, Anthropic, OpenAI, Perplexity, DocuSign, Resend keys on EC2
+### Backend Routers
+- `/backend/routers/stripe_connect.py`
+- `/backend/routers/ai_intelligence.py`
+
+---
+
+## Dec 2025 (Session 1) - Phase 1
+
+### Core Platform
+- Property browsing, advanced filters, 16-category contractor marketplace
+- AI concierge (Nova), E-signature document builder
+- GitHub Actions CI/CD, EC2 deployment fixes
+- Admin endpoints, API key migration
 
 ---
 
