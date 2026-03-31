@@ -5,10 +5,10 @@ import {
   Settings, LogOut, Search, Menu, X, Calendar,
   Heart, Sparkles, Scale, Navigation, Users2, 
   Truck, Briefcase, Image, BarChart2, ClipboardList, Share2, BarChart3, Zap, CreditCard, Shield,
-  TrendingUp, MapPin, Receipt, Calculator
+  TrendingUp, MapPin, Receipt, Calculator, Wand2
 } from 'lucide-react';
 import { useAuth } from '../../App';
-import NotificationBell from '../notifications/NotificationBell';
+import NotificationCenter from '../NotificationCenter';
 
 const DashboardLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -63,6 +63,7 @@ const DashboardLayout = ({ children }) => {
       { icon: TrendingUp, label: 'Property Valuation', path: '/property-valuation' },
       { icon: MapPin, label: 'Compare Neighborhoods', path: '/neighborhood-compare' },
       { icon: Shield, label: 'Credit Check', path: '/credit-check' },
+      { icon: Wand2, label: 'Virtual Staging', path: '/virtual-staging' },
       { icon: FileText, label: 'Document Builder', path: '/document-builder' },
       { icon: Share2, label: 'Syndication', path: '/syndication' },
       { icon: Zap, label: 'AI Optimizer', path: '/listing-optimizer' },
@@ -188,7 +189,7 @@ const DashboardLayout = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-4">
-            <NotificationBell userId={user.id} />
+            <NotificationCenter userId={user.id} />
             <div className="w-10 h-10 rounded-full bg-[#1A2F3A] flex items-center justify-center text-white font-medium">
               {user.name?.charAt(0) || 'U'}
             </div>

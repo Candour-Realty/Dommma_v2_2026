@@ -119,11 +119,28 @@ export default function CreditCheck() {
                 <h3 className="font-medium text-sm text-[#1A2F3A]">Credit Factors</h3>
                 {Object.entries(report.factors).map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm">
-                    <span className="text-gray-600">{k.replace(/_/g, ' ')}</span>
+                    <span className="text-gray-600 capitalize">{k.replace(/_/g, ' ')}</span>
                     <span className="font-medium">{v}</span>
                   </div>
                 ))}
               </div>
+              {report.affordability && (
+                <div className="mt-4 space-y-3">
+                  <h3 className="font-medium text-sm text-[#1A2F3A]">Affordability</h3>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm">
+                    <span className="text-gray-600">Est. Monthly Income</span>
+                    <span className="font-medium">${report.affordability.estimated_monthly_income?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm">
+                    <span className="text-gray-600">Max Recommended Rent</span>
+                    <span className="font-medium text-green-600">${report.affordability.recommended_max_rent?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm">
+                    <span className="text-gray-600">Debt-to-Income</span>
+                    <span className="font-medium">{report.affordability.debt_to_income_ratio}</span>
+                  </div>
+                </div>
+              )}
               <div className="mt-4 space-y-3">
                 <h3 className="font-medium text-sm text-[#1A2F3A]">Rental History</h3>
                 <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm">
@@ -137,6 +154,7 @@ export default function CreditCheck() {
               </div>
               <div className={`mt-4 p-4 rounded-xl text-center ${report.recommendation === 'Approve' ? 'bg-green-50 border border-green-200' : report.recommendation === 'Review' ? 'bg-yellow-50 border border-yellow-200' : 'bg-red-50 border border-red-200'}`}>
                 <p className="font-semibold">{report.recommendation === 'Approve' ? <CheckCircle size={20} className="inline text-green-600 mr-1" /> : <AlertTriangle size={20} className="inline text-yellow-600 mr-1" />}{report.recommendation}</p>
+                {report.recommendation_notes && <p className="text-xs text-gray-600 mt-2">{report.recommendation_notes}</p>}
               </div>
               <p className="text-xs text-gray-400 mt-3 italic">{report.disclaimer}</p>
             </div>

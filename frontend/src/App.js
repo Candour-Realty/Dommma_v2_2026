@@ -56,6 +56,7 @@ import SmartRentPricing from "@/pages/SmartRentPricing";
 import LandlordEarnings from "@/pages/LandlordEarnings";
 import PropertyChatbot from "@/pages/PropertyChatbot";
 import CreditCheck from "@/pages/CreditCheck";
+import VirtualStaging from "@/pages/VirtualStaging";
 
 // Layout
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -192,6 +193,7 @@ function App() {
           <Route path="/earnings" element={<DashboardLayout><LandlordEarnings /></DashboardLayout>} />
           <Route path="/property-search" element={<PropertyChatbot />} />
           <Route path="/credit-check" element={<DashboardLayout><CreditCheck /></DashboardLayout>} />
+          <Route path="/virtual-staging" element={<VirtualStaging />} />
           
           {/* Legacy routes - redirect to new paths */}
           <Route path="/dashboard/payments" element={<DashboardLayout><Payments /></DashboardLayout>} />

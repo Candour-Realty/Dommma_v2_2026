@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Bed, Bath, MapPin, Heart, X, SlidersHorizontal, ArrowLeft, Grid, List, Bot, FileText, MessageSquare, DollarSign, Home, Building2, CalendarCheck, Star } from 'lucide-react';
-import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from '@react-google-maps/api';
+import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import axios from 'axios';
 import NovaChat from '../components/chat/NovaChat';
 import ViewingScheduler from '../components/scheduling/ViewingScheduler';
@@ -12,17 +12,6 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 const GOOGLE_MAPS_API_KEY = 'AIzaSyBs_zxHIzIvin-zrYtr1Py1AuxxcFICggM';
 
-const mapContainerStyle = { width: '100%', height: '100%' };
-const mapOptions = {
-  disableDefaultUI: false,
-  zoomControl: true,
-  streetViewControl: false,
-  mapTypeControl: false,
-  fullscreenControl: true,
-  styles: [
-    { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
-  ]
-};
 const defaultCenter = { lat: 49.2827, lng: -123.1207 };
 
 const Browse = () => {
@@ -66,17 +55,11 @@ const Browse = () => {
     { value: 'flexible', label: 'Flexible' },
   ];
 
-  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: GOOGLE_MAPS_API_KEY });
-
-  const onMapLoad = useCallback((mapInstance) => setMap(mapInstance), []);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
-    if (map && listings.length > 0) {
-      const bounds = new window.google.maps.LatLngBounds();
-      listings.forEach(listing => bounds.extend({ lat: listing.lat, lng: listing.lng }));
-      map.fitBounds(bounds, { padding: 50 });
-    }
-  }, [map, listings]);
+    setMapLoaded(true);
+  }, []);
 
   // Update listingType when URL param changes
   useEffect(() => {
@@ -383,33 +366,46 @@ const Browse = () => {
           {/* Map */}
           {viewMode === 'split' && (
             <div className="hidden lg:block sticky top-0 h-full" data-testid="map-container">
-              {isLoaded ? (
-                <GoogleMap mapContainerStyle={mapContainerStyle} center={defaultCenter} zoom={12} options={mapOptions} onLoad={onMapLoad}>
-                  {listings.map((listing) => (
-                    <MarkerF
-                      key={listing.id}
-                      position={{ lat: listing.lat, lng: listing.lng }}
-                      onClick={() => { setActiveMarker(listing.id); setHoveredListing(listing); }}
-                      icon={{
-                        url: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="60" height="30"><rect x="0" y="0" width="60" height="30" rx="15" fill="${activeMarker === listing.id ? '#2C4A52' : '#1A2F3A'}"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold" font-size="12">${createPriceLabel(listing.price, listing.listing_type)}</text></svg>`)}`,
-                        scaledSize: new window.google.maps.Size(60, 30),
-                        anchor: new window.google.maps.Point(30, 15),
-                      }}
-                    >
-                      {activeMarker === listing.id && (
-                        <InfoWindowF position={{ lat: listing.lat, lng: listing.lng }} onCloseClick={() => setActiveMarker(null)}>
-                          <div className="p-2 min-w-[200px]">
-                            <img src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=300'} alt={listing.title} className="w-full h-24 object-cover rounded-lg mb-2" />
-                            <h3 className="font-semibold text-[#1A2F3A]">{listing.title}</h3>
-                            <p className="text-sm text-gray-500">{listing.address}</p>
-                            <p className="text-lg font-semibold text-[#1A2F3A] mt-1">${listing.price?.toLocaleString()}{listing.listing_type === 'sale' ? '' : '/mo'}</p>
-                            <button onClick={() => setSelectedListing(listing)} className="mt-2 w-full py-2 rounded-full text-sm font-medium text-white bg-[#1A2F3A]">View Details</button>
-                          </div>
-                        </InfoWindowF>
-                      )}
-                    </MarkerF>
-                  ))}
-                </GoogleMap>
+              {mapLoaded ? (
+                <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+                  <Map
+                    style={{ width: '100%', height: '100%' }}
+                    defaultCenter={defaultCenter}
+                    defaultZoom={12}
+                    mapId="dommma-browse-map"
+                    disableDefaultUI={false}
+                    zoomControl={true}
+                    streetViewControl={false}
+                    mapTypeControl={false}
+                    fullscreenControl={true}
+                  >
+                    {listings.map((listing) => (
+                      <AdvancedMarker
+                        key={listing.id}
+                        position={{ lat: listing.lat, lng: listing.lng }}
+                        onClick={() => { setActiveMarker(listing.id); setHoveredListing(listing); }}
+                      >
+                        <div
+                          className="px-3 py-1.5 rounded-full text-white text-xs font-bold cursor-pointer shadow-md whitespace-nowrap"
+                          style={{ backgroundColor: activeMarker === listing.id ? '#2C4A52' : '#1A2F3A' }}
+                        >
+                          {createPriceLabel(listing.price, listing.listing_type)}
+                        </div>
+                      </AdvancedMarker>
+                    ))}
+                    {activeMarker && hoveredListing && (
+                      <InfoWindow position={{ lat: hoveredListing.lat, lng: hoveredListing.lng }} onCloseClick={() => setActiveMarker(null)}>
+                        <div className="p-2 min-w-[200px]">
+                          <img src={hoveredListing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=300'} alt={hoveredListing.title} className="w-full h-24 object-cover rounded-lg mb-2" />
+                          <h3 className="font-semibold text-[#1A2F3A]">{hoveredListing.title}</h3>
+                          <p className="text-sm text-gray-500">{hoveredListing.address}</p>
+                          <p className="text-lg font-semibold text-[#1A2F3A] mt-1">${hoveredListing.price?.toLocaleString()}{hoveredListing.listing_type === 'sale' ? '' : '/mo'}</p>
+                          <button onClick={() => setSelectedListing(hoveredListing)} className="mt-2 w-full py-2 rounded-full text-sm font-medium text-white bg-[#1A2F3A]">View Details</button>
+                        </div>
+                      </InfoWindow>
+                    )}
+                  </Map>
+                </APIProvider>
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-100">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A2F3A]"></div>

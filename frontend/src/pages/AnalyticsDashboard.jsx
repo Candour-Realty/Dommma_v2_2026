@@ -4,7 +4,7 @@ import {
   BarChart3, Users, Home, DollarSign, FileText, Briefcase,
   TrendingUp, TrendingDown, Activity, Clock, RefreshCw,
   ArrowUpRight, ArrowDownRight, Building, CheckCircle2, Star,
-  Heart, Send, MessageSquare, Wrench, Award, Target, ChevronRight
+  Heart, Send, MessageSquare, Wrench, Award, Target, ChevronRight, Download
 } from 'lucide-react';
 import { useAuth } from '../App';
 import MainLayout from '../components/layout/MainLayout';
@@ -564,6 +564,28 @@ export default function AnalyticsDashboard() {
                 <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
                 Refresh
               </button>
+              <div className="relative group">
+                <button
+                  className="px-4 py-2 bg-[#1A2F3A] text-white rounded-lg shadow-sm hover:bg-[#2C4A52] transition-all flex items-center gap-2"
+                  data-testid="export-analytics"
+                >
+                  <Download size={18} />
+                  Export
+                </button>
+                <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-gray-100 py-1 w-48 hidden group-hover:block z-50">
+                  {['payments', 'listings', 'bookings', 'rent_agreements', 'overview'].map(type => (
+                    <a
+                      key={type}
+                      href={`${API}/api/analytics/export/csv/${user?.id}?report_type=${type}&period=90d`}
+                      download
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 capitalize"
+                      data-testid={`export-${type}`}
+                    >
+                      {type.replace('_', ' ')} (CSV)
+                    </a>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
           

@@ -2197,11 +2197,15 @@ async def mark_message_read(message_id: str):
     await db.messages.update_one({"id": message_id}, {"$set": {"read": True}})
     return {"status": "read"}
 
-# WebSocket endpoint for real-time messaging
+# WebSocket endpoint for real-time messaging & notifications
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
     await manager.connect(websocket, user_id)
     try:
+        # Send unread notification count on connect
+        unread = await db.notifications.count_documents({"user_id": user_id, "read": False})
+        await websocket.send_text(json.dumps({"type": "notification_count", "count": unread}))
+        
         while True:
             data = await websocket.receive_text()
             message_data = json.loads(data)
@@ -2220,8 +2224,29 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
                     message_data["recipient_id"]
                 )
                 
+                # Also send notification to recipient
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "user_id": message_data["recipient_id"],
+                    "title": "New Message",
+                    "body": f"Message from {user_id}: {message_data['content'][:50]}",
+                    "type": "message",
+                    "data": {"sender_id": user_id},
+                    "read": False,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                await db.notifications.insert_one(notification)
+                notification.pop("_id", None)
+                await manager.send_personal_message(
+                    json.dumps({"type": "notification", "notification": notification}),
+                    message_data["recipient_id"]
+                )
+                
                 # Confirm to sender
                 await websocket.send_text(json.dumps({"type": "sent", "message_id": msg.id}))
+            
+            elif message_data.get("type") == "ping":
+                await websocket.send_text(json.dumps({"type": "pong"}))
                 
     except WebSocketDisconnect:
         manager.disconnect(websocket, user_id)
@@ -7403,6 +7428,9 @@ from routers.auth import router as auth_router
 from routers.listings import router as listings_router
 from routers.contractors import router as contractors_router
 from routers.web_push import router as web_push_router
+from routers.virtual_staging import router as virtual_staging_router
+from routers.realtime_notifications import router as realtime_notifications_router
+from routers.analytics_export import router as analytics_export_router
 
 app.include_router(calendar_router, prefix="/api")
 app.include_router(moving_router, prefix="/api")
@@ -7420,6 +7448,9 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(listings_router, prefix="/api")
 app.include_router(contractors_router, prefix="/api")
 app.include_router(web_push_router, prefix="/api")
+app.include_router(virtual_staging_router, prefix="/api")
+app.include_router(realtime_notifications_router, prefix="/api")
+app.include_router(analytics_export_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,

@@ -150,7 +150,7 @@ class CreditCheckRequest(BaseModel):
 
 @router.post("/credit-check/request")
 async def request_credit_check(req: CreditCheckRequest):
-    """Request a tenant credit check (simulated for demo)"""
+    """Request a tenant credit check (enhanced simulation with realistic scoring)"""
     if not req.consent:
         raise HTTPException(status_code=400, detail="Tenant consent is required for credit checks")
     
@@ -159,10 +159,58 @@ async def request_credit_check(req: CreditCheckRequest):
         raise HTTPException(status_code=404, detail="Tenant not found")
     
     import random
-    credit_score = random.randint(580, 850)
+    import hashlib
+
+    # Deterministic base score from tenant ID (consistent for same tenant)
+    seed = int(hashlib.md5(req.tenant_id.encode()).hexdigest()[:8], 16)
+    rng = random.Random(seed)
+    
+    base_score = rng.randint(620, 820)
+    
+    # Factor calculations with realistic ranges
+    payment_history_score = rng.choice([95, 92, 88, 82, 75, 68, 55])
+    credit_utilization_pct = rng.randint(8, 72)
+    credit_age_years = rng.randint(1, 20)
+    recent_inquiries = rng.randint(0, 6)
+    derogatory_marks = rng.choices([0, 0, 0, 1, 1, 2, 3], k=1)[0]
+    open_accounts = rng.randint(2, 12)
+    total_debt = rng.randint(500, 85000)
+    
+    # Adjust score based on factors
+    score_adjustment = 0
+    if payment_history_score >= 90: score_adjustment += 30
+    elif payment_history_score >= 80: score_adjustment += 10
+    else: score_adjustment -= 20
+    
+    if credit_utilization_pct <= 30: score_adjustment += 20
+    elif credit_utilization_pct >= 60: score_adjustment -= 25
+    
+    if credit_age_years >= 7: score_adjustment += 15
+    elif credit_age_years <= 2: score_adjustment -= 15
+    
+    score_adjustment -= (recent_inquiries * 5)
+    score_adjustment -= (derogatory_marks * 30)
+    
+    credit_score = max(300, min(900, base_score + score_adjustment))
     
     risk_level = "low" if credit_score >= 720 else "medium" if credit_score >= 650 else "high"
     
+    # Payment history detail
+    payment_history_label = (
+        "Excellent" if payment_history_score >= 90 else 
+        "Good" if payment_history_score >= 80 else 
+        "Fair" if payment_history_score >= 70 else "Poor"
+    )
+    
+    # Rental history
+    evictions = 0 if credit_score >= 650 else rng.choice([0, 0, 1])
+    late_payments_12mo = max(0, rng.randint(0, 4) - (1 if credit_score >= 700 else 0))
+    landlord_rating = "Positive" if credit_score >= 700 else "Neutral" if credit_score >= 620 else rng.choice(["Neutral", "Negative"])
+    
+    # Income-to-rent ratio estimate
+    estimated_monthly_income = rng.randint(3000, 12000)
+    
+    # Detailed breakdown
     report = {
         "id": str(uuid.uuid4()),
         "tenant_id": req.tenant_id,
@@ -172,19 +220,42 @@ async def request_credit_check(req: CreditCheckRequest):
         "credit_score": credit_score,
         "risk_level": risk_level,
         "score_range": "300-900",
+        "score_breakdown": {
+            "payment_history": {"score": payment_history_score, "weight": "35%", "impact": "high" if payment_history_score < 80 else "positive"},
+            "credit_utilization": {"percentage": credit_utilization_pct, "weight": "30%", "impact": "high" if credit_utilization_pct > 50 else "positive"},
+            "credit_age": {"years": credit_age_years, "weight": "15%", "impact": "neutral" if credit_age_years < 5 else "positive"},
+            "account_mix": {"open_accounts": open_accounts, "weight": "10%"},
+            "new_credit": {"recent_inquiries": recent_inquiries, "weight": "10%", "impact": "negative" if recent_inquiries > 3 else "neutral"}
+        },
         "factors": {
-            "payment_history": random.choice(["Excellent", "Good", "Fair"]),
-            "credit_utilization": f"{random.randint(15, 65)}%",
-            "credit_age": f"{random.randint(2, 15)} years",
-            "recent_inquiries": random.randint(0, 5),
-            "derogatory_marks": random.randint(0, 2),
+            "payment_history": payment_history_label,
+            "credit_utilization": f"{credit_utilization_pct}%",
+            "credit_age": f"{credit_age_years} years",
+            "recent_inquiries": recent_inquiries,
+            "derogatory_marks": derogatory_marks,
+            "open_accounts": open_accounts,
+            "total_debt": f"${total_debt:,}",
+            "estimated_monthly_income": f"${estimated_monthly_income:,}"
         },
         "rental_history": {
-            "evictions": 0,
-            "late_payments_12mo": random.randint(0, 3),
-            "previous_landlord_rating": random.choice(["Positive", "Neutral", None]),
+            "evictions": evictions,
+            "late_payments_12mo": late_payments_12mo,
+            "previous_landlord_rating": landlord_rating,
+            "rental_history_years": max(1, credit_age_years - rng.randint(0, 3)),
+            "collections_in_rental": 0 if credit_score >= 680 else rng.choice([0, 1])
+        },
+        "affordability": {
+            "estimated_monthly_income": estimated_monthly_income,
+            "recommended_max_rent": int(estimated_monthly_income * 0.3),
+            "debt_to_income_ratio": f"{min(65, int((total_debt / (estimated_monthly_income * 12)) * 100))}%"
         },
         "recommendation": "Approve" if credit_score >= 680 else "Review" if credit_score >= 620 else "Decline",
+        "recommendation_notes": (
+            "Strong credit profile. Tenant demonstrates reliable payment history." if credit_score >= 720 else
+            "Acceptable credit profile. Consider additional security deposit." if credit_score >= 680 else
+            "Borderline credit profile. Review additional references and employment verification." if credit_score >= 620 else
+            "Below threshold. Additional guarantor or larger security deposit recommended."
+        ),
         "disclaimer": "This is a simulated credit report for demonstration purposes. In production, this would integrate with Equifax or TransUnion Canada."
     }
     
