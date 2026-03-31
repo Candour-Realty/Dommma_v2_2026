@@ -1,0 +1,78 @@
+{
+  "summary": "Tested DOMMMA Iteration 25 features: AI Property Valuation, Neighborhood Comparison, Smart Rent Pricing, Notifications, Payment History, Scheduler endpoints, and frontend pages. All 10 backend API tests passed. Frontend tests confirmed: Login works, Dashboard loads with new sidebar items (Property Valuation, Compare Neighborhoods, Payment History), Browse page has Rent/Buy/Lease Takeover tabs, Rent Agreements page shows tenant/landlord toggle.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Smart Pricing page access for renters",
+        "issue": "Smart Pricing (/smart-pricing) is landlord-only feature. When renter navigates directly to /smart-pricing, they are redirected to login. This is expected behavior but the page should show 'Access Denied' instead of redirecting to login.",
+        "affected_selectors": [],
+        "priority": "LOW"
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "Property Valuation / Smart Pricing forms",
+        "issues": ["Console warnings about <span> inside <option> elements - React hydration warnings. Not affecting functionality but should be fixed for cleaner console."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration_25.py",
+    "/app/test_reports/pytest/iteration_25_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Console warnings in PropertyValuation.jsx and SmartRentPricing.jsx: React hydration warnings about <span> inside <option> elements. The select dropdowns use .map() which may be causing this. Consider using value prop explicitly on options."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration_25.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% (all tested features working)"
+  },
+  "seed_data_creation": "None - used existing test user test@dommma.com / test123",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All requested features are working: 1) POST /api/ai/property-valuation returns estimated_rent and confidence, 2) GET /api/ai/neighborhood-comparison returns neighborhoods array, 3) POST /api/ai/smart-rent-pricing returns suggested_rent, 4) GET /api/notifications returns array, 5) GET /api/payments/history returns array, 6) POST /api/scheduler/run-reminders and run-invoices work with admin key 'dommma-admin-2026', 7) Frontend pages all render correctly with proper data-testid attributes, 8) Browse page has 3 tabs (Rent/Buy/Lease Takeover), 9) Rent Agreements page has tenant/landlord toggle, 10) Sidebar has all new navigation items. Smart Pricing is landlord-only feature. Test landlord account (testlandlord@dommma.com) requires email verification.",
+  "features_tested": {
+    "backend_apis": {
+      "POST /api/ai/property-valuation": "PASS - Returns estimated_rent, confidence, market_averages, adjustments",
+      "GET /api/ai/neighborhood-comparison": "PASS - Returns neighborhoods array with rent/sale data",
+      "POST /api/ai/smart-rent-pricing": "PASS - Returns suggested_rent, competitive_price, premium_price, market_data",
+      "GET /api/notifications": "PASS - Returns array of notifications",
+      "GET /api/payments/history": "PASS - Returns array of payment history",
+      "POST /api/scheduler/run-reminders": "PASS - Runs scheduler tasks with admin key",
+      "POST /api/scheduler/run-invoices": "PASS - Generates invoices with admin key",
+      "Scheduler auth": "PASS - Rejects invalid admin key with 403",
+      "GET /api/listings": "PASS - Returns listings",
+      "POST /api/auth/login": "PASS - Login works with test credentials"
+    },
+    "frontend_pages": {
+      "login": "PASS - Login with test@dommma.com / test123 works",
+      "dashboard": "PASS - Shows welcome message, sidebar with new nav items",
+      "property_valuation": "PASS - Page loads with form (data-testid='property-valuation-page', 'valuation-form')",
+      "neighborhood_compare": "PASS - Page loads with input (data-testid='neighborhood-comparison-page', 'neighborhood-input')",
+      "payment_history": "PASS - Page loads with filters (data-testid='payment-history-page')",
+      "smart_pricing": "PASS - Page exists, landlord-only in sidebar",
+      "browse": "PASS - Has Rent/Buy/Lease Takeover tabs (data-testid='filter-rent', 'filter-buy', 'filter-lease-takeover')",
+      "rent_agreements": "PASS - Has tenant/landlord toggle (data-testid='role-tenant-btn', 'role-landlord-btn')"
+    },
+    "sidebar_navigation": {
+      "Property Valuation": "PASS - Found in renter sidebar",
+      "Compare Neighborhoods": "PASS - Found in renter sidebar",
+      "Payment History": "PASS - Found in renter sidebar",
+      "Smart Pricing": "PASS - Found in landlord sidebar only (by design)"
+    }
+  },
+  "test_credentials": {
+    "renter": "test@dommma.com / test123",
+    "landlord": "testlandlord@dommma.com / test123 (requires email verification)",
+    "admin_key": "dommma-admin-2026"
+  }
+}

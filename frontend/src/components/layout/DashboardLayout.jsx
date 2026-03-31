@@ -4,7 +4,8 @@ import {
   Home, Building2, Users, Wrench, FileText, DollarSign, MessageSquare, 
   Settings, LogOut, Search, Menu, X, Calendar,
   Heart, Sparkles, Scale, Navigation, Users2, 
-  Truck, Briefcase, Image, BarChart2, ClipboardList, Share2, BarChart3, Zap, CreditCard, Shield
+  Truck, Briefcase, Image, BarChart2, ClipboardList, Share2, BarChart3, Zap, CreditCard, Shield,
+  TrendingUp, MapPin, Receipt, Calculator
 } from 'lucide-react';
 import { useAuth } from '../../App';
 import NotificationBell from '../notifications/NotificationBell';
@@ -34,12 +35,15 @@ const DashboardLayout = ({ children }) => {
       { icon: Search, label: 'Browse Properties', path: '/browse' },
       { icon: Heart, label: 'Saved Properties', path: '/favorites' },
       { icon: CreditCard, label: 'Rent Agreements', path: '/rent-agreements' },
+      { icon: Receipt, label: 'Payment History', path: '/payment-history' },
       { icon: DollarSign, label: 'Pay & Invoices', path: '/payments' },
       { icon: ClipboardList, label: 'My Resume', path: '/my-resume' },
       { icon: Users2, label: 'Roommate Finder', path: '/roommates' },
       { icon: Calendar, label: 'My Calendar', path: '/calendar' },
       { icon: BarChart2, label: 'Nova Insights', path: '/nova-insights' },
       { icon: FileText, label: 'Applications', path: '/applications' },
+      { icon: TrendingUp, label: 'Property Valuation', path: '/property-valuation' },
+      { icon: MapPin, label: 'Compare Neighborhoods', path: '/neighborhood-compare' },
       { icon: Truck, label: 'Moving Quote', path: '/moving-quote' },
       { icon: Wrench, label: 'Find Contractors', path: '/contractors' },
       { icon: Sparkles, label: 'Report Issue', path: '/report-issue' },
@@ -52,7 +56,11 @@ const DashboardLayout = ({ children }) => {
       { icon: Home, label: 'Dashboard', path: '/dashboard' },
       { icon: Building2, label: 'My Properties', path: '/my-properties' },
       { icon: CreditCard, label: 'Rent Agreements', path: '/rent-agreements' },
+      { icon: Receipt, label: 'Payment History', path: '/payment-history' },
       { icon: DollarSign, label: 'Pay & Invoices', path: '/payments' },
+      { icon: Calculator, label: 'Smart Pricing', path: '/smart-pricing' },
+      { icon: TrendingUp, label: 'Property Valuation', path: '/property-valuation' },
+      { icon: MapPin, label: 'Compare Neighborhoods', path: '/neighborhood-compare' },
       { icon: FileText, label: 'Document Builder', path: '/document-builder' },
       { icon: Share2, label: 'Syndication', path: '/syndication' },
       { icon: Zap, label: 'AI Optimizer', path: '/listing-optimizer' },

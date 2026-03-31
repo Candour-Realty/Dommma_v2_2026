@@ -49,6 +49,10 @@ import Financing from "@/pages/Financing";
 import FindTenants from "@/pages/FindTenants";
 import RentAgreements from "@/pages/RentAgreements";
 import TenantDocReview from "@/pages/TenantDocReview";
+import PropertyValuation from "@/pages/PropertyValuation";
+import NeighborhoodComparison from "@/pages/NeighborhoodComparison";
+import PaymentHistory from "@/pages/PaymentHistory";
+import SmartRentPricing from "@/pages/SmartRentPricing";
 
 // Layout
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -178,6 +182,10 @@ function App() {
           <Route path="/find-tenants" element={<DashboardLayout><FindTenants /></DashboardLayout>} />
           <Route path="/rent-agreements" element={<RentAgreements />} />
           <Route path="/document-review" element={<TenantDocReview />} />
+          <Route path="/property-valuation" element={<DashboardLayout><PropertyValuation /></DashboardLayout>} />
+          <Route path="/neighborhood-compare" element={<DashboardLayout><NeighborhoodComparison /></DashboardLayout>} />
+          <Route path="/payment-history" element={<DashboardLayout><PaymentHistory /></DashboardLayout>} />
+          <Route path="/smart-pricing" element={<DashboardLayout><SmartRentPricing /></DashboardLayout>} />
           
           {/* Legacy routes - redirect to new paths */}
           <Route path="/dashboard/payments" element={<DashboardLayout><Payments /></DashboardLayout>} />

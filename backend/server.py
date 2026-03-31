@@ -8813,6 +8813,9 @@ app.include_router(api_router)
 from routers import calendar_router, moving_router, compatibility_router, portfolio_router, nova_router
 from routers.stripe_connect import router as stripe_connect_mod_router
 from routers.ai_intelligence import router as ai_intelligence_mod_router
+from routers.scheduler import router as scheduler_router
+from routers.receipts import router as receipts_router
+from routers.ai_valuation import router as ai_valuation_router
 
 app.include_router(calendar_router, prefix="/api")
 app.include_router(moving_router, prefix="/api")
@@ -8821,6 +8824,9 @@ app.include_router(portfolio_router, prefix="/api")
 app.include_router(nova_router, prefix="/api")
 app.include_router(stripe_connect_mod_router, prefix="/api")
 app.include_router(ai_intelligence_mod_router, prefix="/api")
+app.include_router(scheduler_router, prefix="/api")
+app.include_router(receipts_router, prefix="/api")
+app.include_router(ai_valuation_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
@@ -8860,3 +8866,26 @@ async def startup_migrations():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+# Background scheduler for recurring tasks
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from routers.scheduler import generate_monthly_invoices, send_payment_reminders, check_late_payments, check_lease_renewals
+
+scheduler = AsyncIOScheduler()
+
+@app.on_event("startup")
+async def start_scheduler():
+    # Run invoice generation daily at 8am UTC
+    scheduler.add_job(generate_monthly_invoices, 'cron', hour=8, minute=0, id='monthly_invoices')
+    # Run payment reminders daily at 9am UTC
+    scheduler.add_job(send_payment_reminders, 'cron', hour=9, minute=0, id='payment_reminders')
+    # Check for late payments daily at 10am UTC
+    scheduler.add_job(check_late_payments, 'cron', hour=10, minute=0, id='late_payments')
+    # Check lease renewals weekly on Monday at 8am UTC
+    scheduler.add_job(check_lease_renewals, 'cron', day_of_week='mon', hour=8, minute=0, id='lease_renewals')
+    scheduler.start()
+    logger.info("Background scheduler started with 4 recurring jobs")
+
+@app.on_event("shutdown")
+async def stop_scheduler():
+    scheduler.shutdown(wait=False)
