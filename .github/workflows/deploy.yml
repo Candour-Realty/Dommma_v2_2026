@@ -40,7 +40,7 @@ jobs:
             # Frontend updates
             echo "⚛️ Building frontend..."
             cd frontend
-            yarn install --frozen-lockfile --silent
+            yarn install --silent
             
             # Fix permissions for build
             sudo chown -R ubuntu:ubuntu build/ 2>/dev/null || true
