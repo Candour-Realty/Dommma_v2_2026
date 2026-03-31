@@ -1,67 +1,61 @@
 # DOMMMA Changelog
 
-## Feb 2026 (Session 3) - Phases 4 & 5
+## Feb 2026 (Session 4) - Phase 6: Advanced Features
 
-### Recurring Payments & Automation (Phase 4)
-- Built APScheduler with 4 recurring cron jobs:
-  - Invoice generation (daily 8am UTC)
-  - Payment reminders (daily 9am UTC, 3 days before due)
-  - Late fee application (daily 10am UTC)
-  - Lease renewal reminders (weekly Mondays)
-- Notifications system with read/unread tracking
-- Payment receipt PDF generation (ReportLab - professional formatted)
-- Payment history page with status filters and receipt downloads
-- Manual trigger endpoints for admin: /api/scheduler/run-invoices, /api/scheduler/run-reminders
+### Landlord Earnings Dashboard
+- Monthly income charts with collected/pending/overdue breakdown
+- Vacancy rate and collection rate tracking
+- ROI projections based on portfolio data
+- Property performance drill-down
+- Backend: `/api/landlord/earnings`, `/api/landlord/property-performance`
 
-### AI Property Intelligence (Phase 5)
-- Property Valuation: comparable-based analysis with Anthropic AI insights
-- Neighborhood Comparison: side-by-side area stats (rent/sale averages, pet-friendly %, sqft)
-- Smart Rent Pricing: competitive/suggested/premium pricing with market percentiles
-- Virtual Tours: API support for Matterport/video tour URLs on listings
+### AI Property Search Chatbot
+- Natural language property search with Anthropic Claude
+- Multi-turn session history with context retention
+- Property cards with prices embedded in chat responses
+- Suggestion chips for guided exploration
+- Backend: `/api/ai/property-chat`, `/api/ai/chat-history`
+- Frontend: `/property-search` with MainLayout
 
-### PWA & Infrastructure
-- Service worker (sw.js) for offline caching, push notifications
-- Manifest already configured from Phase 1
+### Tenant Credit Check
+- Search tenants by name/email, run credit reports
+- Simulated scoring (580-850) with risk levels (low/medium/high)
+- Credit factors: payment history, utilization, age, inquiries
+- Rental history: evictions, late payments, landlord ratings
+- Consent checkbox with BC privacy regulation compliance
+- Backend: `/api/credit-check/request`, `/api/credit-check/reports`
 
-### Sidebar Navigation Expanded
-- Renter: +Property Valuation, +Compare Neighborhoods, +Payment History
-- Landlord: +Smart Pricing, +Property Valuation, +Compare Neighborhoods, +Payment History
+### Multi-Language Support
+- Added Mandarin Chinese (中文) translations - `/locales/zh.json`
+- Updated LanguageToggle to dropdown with EN/FR/中文
+- All 3 languages with full coverage of nav, hero, browse, auth, footer, common
 
-### Backend Routers Created
-- `/backend/routers/scheduler.py` - Recurring jobs & notifications
-- `/backend/routers/receipts.py` - Payment history & PDF receipts
-- `/backend/routers/ai_valuation.py` - Property valuation, neighborhood comparison, smart pricing, virtual tours
+### Email Integration for Payment Reminders
+- Connected Resend API to payment reminder scheduler
+- Professional HTML email templates with DOMMMA branding
+- Async email sending via `asyncio.create_task`
+
+### Navigation Updates
+- Main navbar: Added "AI Search" link to `/property-search`
+- Landlord sidebar: Added Earnings, Credit Check
+- All routes registered in App.js
 
 ---
+
+## Feb 2026 (Session 3) - Phases 4 & 5
+- Recurring payments scheduler (APScheduler, 4 cron jobs)
+- Payment receipt PDF, Payment history page
+- AI Property Valuation, Neighborhood Comparison, Smart Rent Pricing
+- PWA service worker
 
 ## Feb 2026 (Session 2) - Phases 2 & 3
-
-### Rent Payment System (Phase 2)
-- RentAgreements.jsx with landlord create + tenant accept/counter/decline
-- Stripe Elements for payment method setup
-- Stripe Connect landlord onboarding (2.5% platform fee)
-- AI Document Builder assistant panel
-- Lease Takeover tab on Browse page
-
-### AI Document Intelligence (Phase 3)
-- TenantDocReview.jsx with AI-powered lease analysis
-- BC RTA compliance checks, risk scoring, tenant checklists
-- Lease comparison against BC standards
-
-### Backend Routers
-- `/backend/routers/stripe_connect.py`
-- `/backend/routers/ai_intelligence.py`
-
----
+- Rent Agreements, Stripe Elements/Connect
+- AI Document Intelligence, Lease Takeover tab
+- Backend router extraction started
 
 ## Dec 2025 (Session 1) - Phase 1
-
-### Core Platform
-- Property browsing, advanced filters, 16-category contractor marketplace
-- AI concierge (Nova), E-signature document builder
-- GitHub Actions CI/CD, EC2 deployment fixes
-- Admin endpoints, API key migration
+- Core platform, 16 contractor categories, Nova AI
+- GitHub Actions CI/CD, EC2 deployment
 
 ---
-
 *Maintained by DOMMMA Development Team*

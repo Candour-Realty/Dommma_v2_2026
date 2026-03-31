@@ -7,16 +7,24 @@
 ## Admin Access
 - Admin key: `dommma-admin-2026` (passed as `admin_key` query parameter)
 
-## API Keys
-- Stripe API Key: configured in backend .env
-- Anthropic API Key: configured in backend .env
+## Test IDs
+- Test tenant ID: dcc2cce1-e8d4-43b5-8096-9db712f36720
 
-## Test Endpoints
+## API Keys (configured in backend .env)
+- Stripe API Key: configured
+- Anthropic API Key: configured
+- OpenAI API Key: configured
+- Perplexity API Key: configured
+- Resend API Key: configured
+
+## Key Endpoints
 - Login: POST /api/auth/login
-- Browse listings: GET /api/listings
+- Listings: GET /api/listings
 - User search: GET /api/users/search?q=test
 - Admin stats: GET /api/admin/database-stats?admin_key=dommma-admin-2026
-- AI Document Review: POST /api/ai/tenant-document-review
-- Stripe Connect Status: GET /api/stripe-connect/status?landlord_id={id}
-- Rent Agreements: GET /api/rent/agreements?user_id={id}&role=tenant
-- Lease Assignments: GET /api/lease-assignments
+- AI Chat: POST /api/ai/property-chat
+- Credit Check: POST /api/credit-check/request
+- Earnings: GET /api/landlord/earnings?landlord_id={id}
+- Valuation: POST /api/ai/property-valuation
+- Smart Pricing: POST /api/ai/smart-rent-pricing
+- Neighborhoods: GET /api/ai/neighborhood-comparison
