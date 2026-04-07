@@ -4,7 +4,6 @@ import {
   Clock, AlertCircle, Loader2, Filter, Receipt
 } from 'lucide-react';
 import { useAuth } from '../App';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -70,7 +69,7 @@ export default function PaymentHistory() {
   const totalPending = payments.filter(p => p.status === 'pending' || p.status === 'overdue').reduce((s, p) => s + (p.total_due || p.amount || 0), 0);
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6" data-testid="payment-history-page">
         <div className="flex items-center justify-between">
           <div>
@@ -151,6 +150,6 @@ export default function PaymentHistory() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

@@ -32,7 +32,7 @@ const services = [
     icon: Wrench,
     title: 'Contractor Network',
     desc: 'Connect with verified contractors for repairs, renovations, and maintenance.',
-    features: ['Verified pros', 'Instant quotes', 'Job tracking', 'Reviews & ratings']
+    features: ['Verified professionals', 'Instant quotes', 'Job tracking', 'Reviews & ratings']
   },
   {
     icon: MessageSquare,

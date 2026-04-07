@@ -4,7 +4,6 @@ import {
   FileText, Clock, Search
 } from 'lucide-react';
 import { useAuth } from '../App';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -60,7 +59,7 @@ export default function CreditCheck() {
   const riskBg = (risk) => risk === 'low' ? 'bg-green-100 text-green-800' : risk === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6" data-testid="credit-check-page">
         <div>
           <h1 className="text-2xl font-semibold text-[#1A2F3A]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Tenant Credit Check</h1>
@@ -185,6 +184,6 @@ export default function CreditCheck() {
           )}
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

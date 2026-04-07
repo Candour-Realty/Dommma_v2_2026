@@ -65,6 +65,7 @@ const DashboardLayout = ({ children }) => {
       { icon: MapPin, label: 'Compare Neighborhoods', path: '/neighborhood-compare' },
       { icon: Shield, label: 'Credit Check', path: '/credit-check' },
       { icon: Wand2, label: 'Virtual Staging', path: '/virtual-staging' },
+      { icon: Zap, label: 'Promote Listings', path: '/campaigns' },
       { icon: BarChart2, label: 'Analytics & Export', path: '/analytics' },
       { icon: FileText, label: 'Document Builder', path: '/document-builder' },
       { icon: Share2, label: 'Syndication', path: '/syndication' },

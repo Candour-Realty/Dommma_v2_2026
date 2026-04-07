@@ -4,7 +4,6 @@ import {
   Home, Sofa, ChefHat, Bed, Monitor, Bath
 } from 'lucide-react';
 import { useAuth } from '../App';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -106,7 +105,7 @@ export default function VirtualStaging() {
   ];
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6" data-testid="virtual-staging-page">
         <div>
           <h1 className="text-2xl font-semibold text-[#1A2F3A]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
@@ -276,6 +275,6 @@ export default function VirtualStaging() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }

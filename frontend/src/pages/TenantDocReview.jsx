@@ -6,7 +6,6 @@ import {
   ArrowLeft, Upload, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../App';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -97,7 +96,7 @@ export default function TenantDocReview() {
   if (!user) return null;
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6" data-testid="tenant-doc-review">
         <div>
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A2F3A] mb-4">
@@ -334,6 +333,6 @@ export default function TenantDocReview() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }

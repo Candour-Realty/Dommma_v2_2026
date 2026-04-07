@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2, ArrowLeft, Plus, MapPin, Bed, Bath, Edit, Trash2,
   Image as ImageIcon, X, DollarSign, Check, Eye, EyeOff, Loader2,
-  Gift, Calendar, Star, Zap, CheckCircle, AlertTriangle
+  Gift, Calendar, Star, Zap, CheckCircle, AlertTriangle, Share2
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
+import AIDescriptionGenerator from '../components/AIDescriptionGenerator';
+import ShareListingModal from '../components/ShareListingModal';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -147,6 +149,7 @@ const MyProperties = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingListing, setEditingListing] = useState(null);
+  const [shareListing, setShareListing] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const addressInputRef = useRef(null);
@@ -504,6 +507,9 @@ const MyProperties = () => {
                     <button onClick={() => handleDelete(listing.id)} className="px-3 py-2 bg-red-50 text-red-600 rounded-xl text-sm hover:bg-red-100" data-testid={`delete-property-${listing.id}`}>
                       <Trash2 size={14} />
                     </button>
+                    <button onClick={() => setShareListing(listing)} className="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm hover:bg-blue-100 flex items-center gap-1" data-testid={`share-property-${listing.id}`}>
+                      <Share2 size={14} /> Share
+                    </button>
                   </div>
                 </div>
               </div>
@@ -667,7 +673,46 @@ const MyProperties = () => {
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Description</label>
                 <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none resize-none" placeholder="Describe the property..." required />
+                <div className="mt-2">
+                  <AIDescriptionGenerator
+                    listingData={{
+                      title: form.title, address: form.address, city: form.city,
+                      bedrooms: parseInt(form.bedrooms) || 0, bathrooms: parseFloat(form.bathrooms) || 0,
+                      sqft: parseInt(form.sqft) || 0, property_type: form.property_type || 'apartment',
+                      price: parseInt(form.price) || 0, amenities: form.amenities || [],
+                      pet_friendly: form.pet_friendly, parking: form.parking,
+                      listing_type: form.listing_type || 'rent'
+                    }}
+                    onDescriptionGenerated={(desc) => setForm({ ...form, description: desc })}
+                  />
+                </div>
               </div>
+
+              {form.listing_type === 'rent' && (
+                <div>
+                  <label className="block text-sm text-gray-600 mb-2">Flexible Lease Pricing (optional)</label>
+                  <p className="text-xs text-gray-400 mb-2">Set different prices for different lease durations</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: 'Month-to-month', months: 1 },
+                      { label: '3 months', months: 3 },
+                      { label: '6 months', months: 6 },
+                      { label: '1 year', months: 12 },
+                    ].map(tier => (
+                      <div key={tier.months} className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 w-24">{tier.label}</span>
+                        <input
+                          type="number"
+                          placeholder={`$${form.price || '---'}`}
+                          value={form[`price_${tier.months}m`] || ''}
+                          onChange={e => setForm({ ...form, [`price_${tier.months}m`]: e.target.value })}
+                          className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Photos</label>
@@ -732,7 +777,9 @@ const MyProperties = () => {
         confirmText={confirmModal.confirmText || 'Confirm'}
         type={confirmModal.type || 'info'}
       />
+      <ShareListingModal listing={shareListing} isOpen={!!shareListing} onClose={() => setShareListing(null)} />
     </div>
+
   );
 };
 

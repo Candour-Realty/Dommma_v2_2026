@@ -7431,6 +7431,8 @@ from routers.web_push import router as web_push_router
 from routers.virtual_staging import router as virtual_staging_router
 from routers.realtime_notifications import router as realtime_notifications_router
 from routers.analytics_export import router as analytics_export_router
+from routers.listing_tools import router as listing_tools_router
+from routers.contractor_credits import router as contractor_credits_router
 
 app.include_router(calendar_router, prefix="/api")
 app.include_router(moving_router, prefix="/api")
@@ -7451,6 +7453,8 @@ app.include_router(web_push_router, prefix="/api")
 app.include_router(virtual_staging_router, prefix="/api")
 app.include_router(realtime_notifications_router, prefix="/api")
 app.include_router(analytics_export_router, prefix="/api")
+app.include_router(listing_tools_router, prefix="/api")
+app.include_router(contractor_credits_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,

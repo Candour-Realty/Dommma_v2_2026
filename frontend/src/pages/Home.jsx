@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Search, Sparkles, Bot, MapPin, Bed, Bath, Star, Shield, Trophy, Square } from 'lucide-react';
+import { ArrowRight, Search, Sparkles, Bot, MapPin, Bed, Bath, Star, Shield, Trophy, Square, Building2, DollarSign, FileText, Briefcase, Users, Image, TrendingUp, Zap, Wand2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import MainLayout from '../components/layout/MainLayout';
 import NovaChat from '../components/chat/NovaChat';
+import { useAuth } from '../App';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -141,6 +142,7 @@ const suggestedPrompts = [
 const Home = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -341,6 +343,86 @@ const Home = () => {
           </p>
         </div>
       </section>
+
+      {/* Role-Based Quick Actions */}
+      {user && (
+        <section className="bg-white py-8 border-b border-gray-100" data-testid="role-based-content">
+          <div className="max-w-7xl mx-auto px-6">
+            {user.user_type === 'landlord' && (
+              <div className="grid md:grid-cols-4 gap-4">
+                <Link to="/my-properties" className="group p-5 rounded-2xl bg-gradient-to-br from-[#1A2F3A] to-[#2C4A52] text-white hover:shadow-lg transition-all">
+                  <Building2 className="mb-3" size={24} />
+                  <h3 className="font-semibold mb-1">Manage Properties</h3>
+                  <p className="text-sm text-white/70">Add, edit, and manage your listings</p>
+                </Link>
+                <Link to="/campaigns" className="group p-5 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-all">
+                  <Zap className="mb-3 text-[#1A2F3A]" size={24} />
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1">Promote Listings</h3>
+                  <p className="text-sm text-gray-500">Boost visibility and get more leads</p>
+                </Link>
+                <Link to="/landlord-earnings" className="group p-5 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-all">
+                  <DollarSign className="mb-3 text-[#1A2F3A]" size={24} />
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1">Earnings Dashboard</h3>
+                  <p className="text-sm text-gray-500">Track income, vacancy, and ROI</p>
+                </Link>
+                <Link to="/virtual-staging" className="group p-5 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-all">
+                  <Wand2 className="mb-3 text-[#1A2F3A]" size={24} />
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1">Virtual Staging</h3>
+                  <p className="text-sm text-gray-500">Stage empty rooms with AI</p>
+                </Link>
+              </div>
+            )}
+            {user.user_type === 'renter' && (
+              <div className="grid md:grid-cols-4 gap-4">
+                <Link to="/browse" className="group p-5 rounded-2xl bg-gradient-to-br from-[#1A2F3A] to-[#2C4A52] text-white hover:shadow-lg transition-all">
+                  <Search className="mb-3" size={24} />
+                  <h3 className="font-semibold mb-1">Find Your Home</h3>
+                  <p className="text-sm text-white/70">Browse listings with map view</p>
+                </Link>
+                <Link to="/applications" className="group p-5 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-all">
+                  <FileText className="mb-3 text-[#1A2F3A]" size={24} />
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1">My Applications</h3>
+                  <p className="text-sm text-gray-500">Track your rental applications</p>
+                </Link>
+                <Link to="/payments" className="group p-5 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-all">
+                  <DollarSign className="mb-3 text-[#1A2F3A]" size={24} />
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1">Pay Rent</h3>
+                  <p className="text-sm text-gray-500">Manage payments and invoices</p>
+                </Link>
+                <Link to="/document-review" className="group p-5 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-all">
+                  <Sparkles className="mb-3 text-[#1A2F3A]" size={24} />
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1">AI Lease Review</h3>
+                  <p className="text-sm text-gray-500">Get AI analysis of your lease</p>
+                </Link>
+              </div>
+            )}
+            {user.user_type === 'contractor' && (
+              <div className="grid md:grid-cols-4 gap-4">
+                <Link to="/jobs" className="group p-5 rounded-2xl bg-gradient-to-br from-[#1A2F3A] to-[#2C4A52] text-white hover:shadow-lg transition-all">
+                  <Briefcase className="mb-3" size={24} />
+                  <h3 className="font-semibold mb-1">Browse Jobs</h3>
+                  <p className="text-sm text-white/70">Find new service requests</p>
+                </Link>
+                <Link to="/contractor-profile" className="group p-5 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-all">
+                  <Users className="mb-3 text-[#1A2F3A]" size={24} />
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1">My Profile</h3>
+                  <p className="text-sm text-gray-500">Update your business profile</p>
+                </Link>
+                <Link to="/portfolio" className="group p-5 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-all">
+                  <Image className="mb-3 text-[#1A2F3A]" size={24} />
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1">Portfolio</h3>
+                  <p className="text-sm text-gray-500">Showcase your best work</p>
+                </Link>
+                <Link to="/analytics" className="group p-5 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-all">
+                  <TrendingUp className="mb-3 text-[#1A2F3A]" size={24} />
+                  <h3 className="font-semibold text-[#1A2F3A] mb-1">Analytics</h3>
+                  <p className="text-sm text-gray-500">Track your performance</p>
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Featured Properties Grid */}
       <section className="section-md bg-[#F5F5F0] pt-12" data-testid="featured-properties">

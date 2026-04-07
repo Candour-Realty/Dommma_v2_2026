@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Bed, Bath, MapPin, Heart, X, SlidersHorizontal, ArrowLeft, Grid, List, Bot, FileText, MessageSquare, DollarSign, Home, Building2, CalendarCheck, Star } from 'lucide-react';
+import { Search, Bed, Bath, MapPin, Heart, X, SlidersHorizontal, ArrowLeft, Grid, List, Bot, FileText, MessageSquare, DollarSign, Home, Building2, CalendarCheck, Star, Share2 } from 'lucide-react';
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import axios from 'axios';
 import NovaChat from '../components/chat/NovaChat';
 import ViewingScheduler from '../components/scheduling/ViewingScheduler';
 import MatterportViewer from '../components/MatterportViewer';
+import ShareListingModal from '../components/ShareListingModal';
 import { useAuth } from '../App';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -23,6 +24,7 @@ const Browse = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedListing, setSelectedListing] = useState(null);
+  const [shareModalListing, setShareModalListing] = useState(null);
   const [hoveredListing, setHoveredListing] = useState(null);
   const [activeMarker, setActiveMarker] = useState(null);
   const [map, setMap] = useState(null);
@@ -50,7 +52,9 @@ const Browse = () => {
   const propertyTypes = ['House', 'Apartment', 'Townhouse', 'Condo', 'Studio', 'Duplex', 'Penthouse'];
   const leaseDurations = [
     { value: 'month-to-month', label: 'Month to Month' },
+    { value: '3', label: '3 Months' },
     { value: '6', label: '6 Months' },
+    { value: '9', label: '9 Months' },
     { value: '12', label: '12 Months' },
     { value: 'flexible', label: 'Flexible' },
   ];
@@ -422,15 +426,26 @@ const Browse = () => {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedListing(null)} />
           <div className="relative bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <button onClick={() => setSelectedListing(null)} className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50" data-testid="close-modal-btn"><X size={20} /></button>
+            <button onClick={() => setShareModalListing(selectedListing)} className="absolute top-4 right-16 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 text-[#1A2F3A]" data-testid="share-listing-btn"><Share2 size={18} /></button>
             <img src={selectedListing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800'} alt={selectedListing.title} className="w-full h-64 object-cover" />
             <div className="p-8">
               <span className="text-xs text-gray-500 uppercase tracking-wider">{selectedListing.property_type} · {selectedListing.listing_type === 'sale' ? 'For Sale' : 'For Rent'}</span>
               <h2 className="text-3xl font-semibold text-[#1A2F3A] mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{selectedListing.title}</h2>
               <p className="text-gray-500 flex items-center gap-2 mb-4"><MapPin size={16} />{selectedListing.address}, {selectedListing.city}, {selectedListing.province}</p>
-              <p className="text-3xl font-semibold text-[#1A2F3A] mb-6">
+              <p className="text-3xl font-semibold text-[#1A2F3A] mb-2">
                 ${selectedListing.price?.toLocaleString()}
                 {selectedListing.listing_type !== 'sale' && <span className="text-lg font-normal text-gray-500">/month</span>}
               </p>
+              {selectedListing.pricing_tiers?.length > 0 && (
+                <div className="mb-4 flex flex-wrap gap-2" data-testid="flexible-pricing">
+                  {selectedListing.pricing_tiers.map((tier, i) => (
+                    <span key={i} className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-800 text-xs font-medium border border-blue-100">
+                      {tier.label}: ${tier.monthly_price?.toLocaleString()}/mo
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="mb-6" />
               <div className="grid grid-cols-4 gap-4 mb-6">
                 <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><Bed className="mx-auto mb-1 text-[#1A2F3A]" size={24} /><p className="font-semibold">{selectedListing.bedrooms === 0 ? 'Studio' : selectedListing.bedrooms}</p><p className="text-xs text-gray-500">Beds</p></div>
                 <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><Bath className="mx-auto mb-1 text-[#1A2F3A]" size={24} /><p className="font-semibold">{selectedListing.bathrooms}</p><p className="text-xs text-gray-500">Baths</p></div>
@@ -520,6 +535,7 @@ const Browse = () => {
       )}
 
       <NovaChat />
+      <ShareListingModal listing={shareModalListing} isOpen={!!shareModalListing} onClose={() => setShareModalListing(null)} />
     </div>
   );
 };

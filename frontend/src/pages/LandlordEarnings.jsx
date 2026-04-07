@@ -4,7 +4,6 @@ import {
   Building2, Users, AlertCircle, PieChart, ArrowUpRight
 } from 'lucide-react';
 import { useAuth } from '../App';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -31,7 +30,7 @@ export default function LandlordEarnings() {
   if (!user) return null;
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6" data-testid="landlord-earnings-page">
         <div className="flex items-center justify-between">
           <div>
@@ -131,6 +130,6 @@ export default function LandlordEarnings() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }

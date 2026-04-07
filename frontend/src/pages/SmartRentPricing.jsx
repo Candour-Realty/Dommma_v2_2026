@@ -4,7 +4,6 @@ import {
   Loader2, Sparkles, ArrowRight, Calculator
 } from 'lucide-react';
 import { useAuth } from '../App';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -34,7 +33,7 @@ export default function SmartRentPricing() {
   if (!user) return null;
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6" data-testid="smart-pricing-page">
         <div>
           <h1 className="text-2xl font-semibold text-[#1A2F3A]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
@@ -156,6 +155,6 @@ export default function SmartRentPricing() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

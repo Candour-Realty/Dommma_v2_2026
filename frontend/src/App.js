@@ -57,6 +57,7 @@ import LandlordEarnings from "@/pages/LandlordEarnings";
 import PropertyChatbot from "@/pages/PropertyChatbot";
 import CreditCheck from "@/pages/CreditCheck";
 import VirtualStaging from "@/pages/VirtualStaging";
+import CampaignDashboard from "@/pages/CampaignDashboard";
 
 // Layout
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -185,7 +186,7 @@ function App() {
           <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
           <Route path="/find-tenants" element={<DashboardLayout><FindTenants /></DashboardLayout>} />
           <Route path="/rent-agreements" element={<RentAgreements />} />
-          <Route path="/document-review" element={<TenantDocReview />} />
+          <Route path="/document-review" element={<DashboardLayout><TenantDocReview /></DashboardLayout>} />
           <Route path="/property-valuation" element={<DashboardLayout><PropertyValuation /></DashboardLayout>} />
           <Route path="/neighborhood-compare" element={<DashboardLayout><NeighborhoodComparison /></DashboardLayout>} />
           <Route path="/payment-history" element={<DashboardLayout><PaymentHistory /></DashboardLayout>} />
@@ -193,7 +194,8 @@ function App() {
           <Route path="/earnings" element={<DashboardLayout><LandlordEarnings /></DashboardLayout>} />
           <Route path="/property-search" element={<PropertyChatbot />} />
           <Route path="/credit-check" element={<DashboardLayout><CreditCheck /></DashboardLayout>} />
-          <Route path="/virtual-staging" element={<VirtualStaging />} />
+          <Route path="/virtual-staging" element={<DashboardLayout><VirtualStaging /></DashboardLayout>} />
+          <Route path="/campaigns" element={<DashboardLayout><CampaignDashboard /></DashboardLayout>} />
           
           {/* Legacy routes - redirect to new paths */}
           <Route path="/dashboard/payments" element={<DashboardLayout><Payments /></DashboardLayout>} />

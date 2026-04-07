@@ -3,7 +3,6 @@ import {
   MapPin, BarChart3, Home, DollarSign, Loader2, PawPrint, ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../App';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -28,7 +27,7 @@ export default function NeighborhoodComparison() {
   const maxRent = data ? Math.max(...data.neighborhoods.map(n => n.rent.avg_price || 0)) : 0;
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6" data-testid="neighborhood-comparison-page">
         <div>
           <h1 className="text-2xl font-semibold text-[#1A2F3A]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
@@ -111,6 +110,6 @@ export default function NeighborhoodComparison() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 }
