@@ -20,5 +20,6 @@
 ## Keys
 | Key | Location |
 |-----|----------|
-| EMERGENT_LLM_KEY | backend/.env (for Virtual Staging AI) |
+| EMERGENT_LLM_KEY | backend/.env (Virtual Staging AI) |
 | VAPID keys | backend/.env + frontend/.env |
+| ANTHROPIC_API_KEY | backend/.env (AI Description, Nova) |
