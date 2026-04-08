@@ -92,7 +92,7 @@ function TiltCard({ children, className = '' }) {
 function ListingMiniCard({ item, type }) {
   if (type === 'services') {
     return (
-      <Link to="/contractors" className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] hover:bg-white/[0.12] transition-colors cursor-pointer">
+      <Link to="/contractors" className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.06] border border-white/[0.1] hover:bg-white/[0.14] transition-colors cursor-pointer shadow-[0_1px_4px_rgba(0,0,0,0.2)]">
         <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
           <Users size={16} className="text-white/70" />
         </div>
@@ -111,7 +111,7 @@ function ListingMiniCard({ item, type }) {
   }
 
   return (
-    <Link to={`/browse?property=${item.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] hover:bg-white/[0.12] transition-colors cursor-pointer">
+    <Link to={`/browse?property=${item.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.06] border border-white/[0.1] hover:bg-white/[0.14] transition-colors cursor-pointer shadow-[0_1px_4px_rgba(0,0,0,0.2)]">
       <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-white/10">
         {item.images?.[0] ? (
           <img src={item.images[0]} alt="" className="w-full h-full object-cover" loading="lazy" />
@@ -251,7 +251,7 @@ export default function ServiceShowcase() {
                     </div>
 
                     {/* Listings */}
-                    <div className="space-y-2 mb-4">
+                    <div className="space-y-2.5 mb-4">
                       {items.length > 0 ? (
                         items.slice(0, 5).map((item, i) => (
                           <div
