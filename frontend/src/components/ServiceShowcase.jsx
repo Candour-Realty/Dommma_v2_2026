@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Home, Building2, FileText, Wrench, MapPin, Bed, Bath, ArrowRight, Star, Users } from 'lucide-react';
 import axios from 'axios';
 
@@ -32,7 +32,7 @@ const CATEGORIES = [
     subtitle: 'Flexible lease terms',
     icon: FileText,
     filterType: 'lease',
-    link: '/browse?tab=lease-takeover',
+    link: '/browse?type=lease_takeover',
     gradient: 'from-amber-400/20 to-orange-500/20',
     accent: '#F59E0B',
   },
@@ -92,7 +92,7 @@ function TiltCard({ children, className = '' }) {
 function ListingMiniCard({ item, type }) {
   if (type === 'services') {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] hover:bg-white/[0.12] transition-colors">
+      <Link to="/contractors" className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] hover:bg-white/[0.12] transition-colors cursor-pointer">
         <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
           <Users size={16} className="text-white/70" />
         </div>
@@ -106,12 +106,12 @@ function ListingMiniCard({ item, type }) {
             {item.rating?.toFixed(1)}
           </div>
         )}
-      </div>
+      </Link>
     );
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] hover:bg-white/[0.12] transition-colors">
+    <Link to={`/browse?property=${item.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] hover:bg-white/[0.12] transition-colors cursor-pointer">
       <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-white/10">
         {item.images?.[0] ? (
           <img src={item.images[0]} alt="" className="w-full h-full object-cover" loading="lazy" />
@@ -133,7 +133,7 @@ function ListingMiniCard({ item, type }) {
         ${item.price?.toLocaleString()}
         <span className="text-[10px] font-normal text-white/40">{item.listing_type !== 'sale' ? '/mo' : ''}</span>
       </p>
-    </div>
+    </Link>
   );
 }
 
