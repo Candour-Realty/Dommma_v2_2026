@@ -7,6 +7,7 @@ import NovaChat from '../components/chat/NovaChat';
 import ViewingScheduler from '../components/scheduling/ViewingScheduler';
 import MatterportViewer from '../components/MatterportViewer';
 import ShareListingModal from '../components/ShareListingModal';
+import ListingDetailModal from '../components/listings/ListingDetailModal';
 import { useAuth } from '../App';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -186,7 +187,8 @@ const Browse = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F0]">
+    <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+    <div className="min-h-screen bg-[#F5F5F0] dark:bg-[#0F1419]">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-[1000] bg-[#0D0D0D] text-white" data-testid="browse-header">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -371,7 +373,6 @@ const Browse = () => {
           {viewMode === 'split' && (
             <div className="hidden lg:block sticky top-0 h-full" data-testid="map-container">
               {mapLoaded ? (
-                <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
                   <Map
                     style={{ width: '100%', height: '100%' }}
                     defaultCenter={defaultCenter}
@@ -409,7 +410,6 @@ const Browse = () => {
                       </InfoWindow>
                     )}
                   </Map>
-                </APIProvider>
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gray-100">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A2F3A]"></div>
@@ -420,107 +420,17 @@ const Browse = () => {
         </div>
       </main>
 
-      {/* Listing Modal */}
+      {/* Listing Detail Modal — with Street View, Commute, Neighborhood, Nearby tabs */}
       {selectedListing && (
-        <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4" data-testid="listing-modal">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSelectedListing(null)} />
-          <div className="relative bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <button onClick={() => setSelectedListing(null)} className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50" data-testid="close-modal-btn"><X size={20} /></button>
-            <button onClick={() => setShareModalListing(selectedListing)} className="absolute top-4 right-16 z-10 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 text-[#1A2F3A]" data-testid="share-listing-btn"><Share2 size={18} /></button>
-            <img src={selectedListing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800'} alt={selectedListing.title} className="w-full h-64 object-cover" />
-            <div className="p-8">
-              <span className="text-xs text-gray-500 uppercase tracking-wider">{selectedListing.property_type} · {selectedListing.listing_type === 'sale' ? 'For Sale' : 'For Rent'}</span>
-              <h2 className="text-3xl font-semibold text-[#1A2F3A] mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{selectedListing.title}</h2>
-              <p className="text-gray-500 flex items-center gap-2 mb-4"><MapPin size={16} />{selectedListing.address}, {selectedListing.city}, {selectedListing.province}</p>
-              <p className="text-3xl font-semibold text-[#1A2F3A] mb-2">
-                ${selectedListing.price?.toLocaleString()}
-                {selectedListing.listing_type !== 'sale' && <span className="text-lg font-normal text-gray-500">/month</span>}
-              </p>
-              {selectedListing.pricing_tiers?.length > 0 && (
-                <div className="mb-4 flex flex-wrap gap-2" data-testid="flexible-pricing">
-                  {selectedListing.pricing_tiers.map((tier, i) => (
-                    <span key={i} className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-800 text-xs font-medium border border-blue-100">
-                      {tier.label}: ${tier.monthly_price?.toLocaleString()}/mo
-                    </span>
-                  ))}
-                </div>
-              )}
-              <div className="mb-6" />
-              <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><Bed className="mx-auto mb-1 text-[#1A2F3A]" size={24} /><p className="font-semibold">{selectedListing.bedrooms === 0 ? 'Studio' : selectedListing.bedrooms}</p><p className="text-xs text-gray-500">Beds</p></div>
-                <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><Bath className="mx-auto mb-1 text-[#1A2F3A]" size={24} /><p className="font-semibold">{selectedListing.bathrooms}</p><p className="text-xs text-gray-500">Baths</p></div>
-                <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><p className="text-xl mb-1">▢</p><p className="font-semibold">{selectedListing.sqft}</p><p className="text-xs text-gray-500">Sq Ft</p></div>
-                <div className="text-center p-4 bg-[#F5F5F0] rounded-xl"><p className="text-xl mb-1">{selectedListing.pet_friendly ? '🐾' : '🚫'}</p><p className="font-semibold text-sm">{selectedListing.pet_friendly ? 'Yes' : 'No'}</p><p className="text-xs text-gray-500">Pets</p></div>
-              </div>
-              {selectedListing.listing_type === 'sale' && (selectedListing.year_built || selectedListing.lot_size) && (
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  {selectedListing.year_built && <div className="text-center p-3 bg-[#F5F5F0] rounded-xl"><p className="font-semibold text-[#1A2F3A]">{selectedListing.year_built}</p><p className="text-xs text-gray-500">Year Built</p></div>}
-                  {selectedListing.lot_size > 0 && <div className="text-center p-3 bg-[#F5F5F0] rounded-xl"><p className="font-semibold text-[#1A2F3A]">{selectedListing.lot_size?.toLocaleString()}</p><p className="text-xs text-gray-500">Lot (sqft)</p></div>}
-                  {selectedListing.garage > 0 && <div className="text-center p-3 bg-[#F5F5F0] rounded-xl"><p className="font-semibold text-[#1A2F3A]">{selectedListing.garage}</p><p className="text-xs text-gray-500">Garage</p></div>}
-                </div>
-              )}
-              <div className="mb-6"><h3 className="font-semibold mb-2">Description</h3><p className="text-gray-600 leading-relaxed">{selectedListing.description}</p></div>
-              {selectedListing.amenities?.length > 0 && (<div className="mb-6"><h3 className="font-semibold mb-2">Amenities</h3><div className="flex flex-wrap gap-2">{selectedListing.amenities.map((a, i) => <span key={i} className="px-3 py-1 rounded-full bg-[#F5F5F0] text-gray-700 text-sm">{a}</span>)}</div></div>)}
-              {selectedListing.matterport_id && (
-                <div className="mb-6">
-                  <MatterportViewer matterportId={selectedListing.matterport_id} title={selectedListing.title} />
-                </div>
-              )}
-              <div className="flex gap-3">
-                {selectedListing.listing_type === 'sale' ? (
-                  <>
-                    <button onClick={() => {
-                      if (!user) { navigate('/login'); return; }
-                      navigate(`/offers?listing_id=${selectedListing.id}&listing_title=${encodeURIComponent(selectedListing.title)}&price=${selectedListing.price}`);
-                    }} className="flex-1 py-4 rounded-full font-medium text-white bg-[#1A2F3A] hover:bg-[#2C4A52] transition-colors flex items-center justify-center gap-2" data-testid="make-offer-btn">
-                      <DollarSign size={18} /> Make an Offer
-                    </button>
-                    <button onClick={() => {
-                      if (!user) { navigate('/login'); return; }
-                      setShowViewingScheduler(true);
-                    }} className="px-6 py-4 rounded-full border-2 border-[#1A2F3A] text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors flex items-center gap-2" data-testid="schedule-viewing-btn">
-                      <CalendarCheck size={18} /> Schedule Viewing
-                    </button>
-                    <button onClick={() => {
-                      if (!user) { navigate('/login'); return; }
-                      navigate(`/dashboard/messages?to=${selectedListing.landlord_id || ''}&listing=${selectedListing.id}`);
-                    }} className="px-6 py-4 rounded-full border-2 border-[#1A2F3A] text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors flex items-center gap-2" data-testid="message-seller-btn">
-                      <MessageSquare size={18} />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button onClick={() => {
-                      if (!user) { navigate('/login'); return; }
-                      navigate(`/dashboard/applications?listing_id=${selectedListing.id}&listing_title=${encodeURIComponent(selectedListing.title)}`);
-                    }} className="flex-1 py-4 rounded-full font-medium text-white bg-[#1A2F3A] hover:bg-[#2C4A52] transition-colors flex items-center justify-center gap-2" data-testid="apply-now-btn">
-                      <FileText size={18} /> Apply Now
-                    </button>
-                    <button onClick={() => {
-                      if (!user) { navigate('/login'); return; }
-                      setShowViewingScheduler(true);
-                    }} className="px-6 py-4 rounded-full border-2 border-[#1A2F3A] text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors flex items-center gap-2" data-testid="schedule-viewing-btn">
-                      <CalendarCheck size={18} /> Schedule Viewing
-                    </button>
-                    <button onClick={() => {
-                      if (!user) { navigate('/login'); return; }
-                      navigate(`/dashboard/messages?to=${selectedListing.landlord_id || ''}&listing=${selectedListing.id}`);
-                    }} className="px-6 py-4 rounded-full border-2 border-[#1A2F3A] text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white transition-colors flex items-center gap-2" data-testid="message-landlord-btn">
-                      <MessageSquare size={18} />
-                    </button>
-                  </>
-                )}
-                <button 
-                  onClick={(e) => toggleFavorite(selectedListing.id, e)}
-                  className={`px-6 py-4 rounded-full border-2 border-[#1A2F3A] transition-colors ${favoriteIds.includes(selectedListing.id) ? 'bg-red-50 text-red-500 border-red-200' : 'text-[#1A2F3A] hover:bg-[#1A2F3A] hover:text-white'}`}
-                  data-testid="save-listing-btn"
-                >
-                  <Heart size={20} fill={favoriteIds.includes(selectedListing.id) ? 'currentColor' : 'none'} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ListingDetailModal
+          listing={selectedListing}
+          onClose={() => setSelectedListing(null)}
+          onShare={() => setShareModalListing(selectedListing)}
+          onScheduleViewing={() => setShowViewingScheduler(true)}
+          favoriteIds={favoriteIds}
+          toggleFavorite={toggleFavorite}
+          user={user}
+        />
       )}
 
       {/* Viewing Scheduler Modal */}
@@ -537,6 +447,7 @@ const Browse = () => {
       <NovaChat />
       <ShareListingModal listing={shareModalListing} isOpen={!!shareModalListing} onClose={() => setShareModalListing(null)} />
     </div>
+    </APIProvider>
   );
 };
 
