@@ -322,49 +322,25 @@ const ContractorMarketplace = () => {
       });
 
       const { latitude, longitude } = position.coords;
-      let found = false;
 
-      // Try Google Maps Geocoding API first (if key available)
+      // Use Google Maps Geocoding API for reverse geocoding
       const gmapsKey = process.env.REACT_APP_GOOGLE_MAPS_KEY;
-      if (gmapsKey) {
-        try {
-          const response = await axios.get(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${gmapsKey}`
-          );
-          if (response.data.results && response.data.results.length > 0) {
-            const addressComponents = response.data.results[0].address_components;
-            const postalComponent = addressComponents.find(c => c.types.includes('postal_code'));
-            if (postalComponent) {
-              setPostcode(postalComponent.short_name);
-              localStorage.setItem('dommma_postcode', postalComponent.short_name);
-              found = true;
-            }
-          }
-        } catch (e) {
-          console.log('Google geocode failed, trying fallback');
-        }
-      }
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${gmapsKey}`
+      );
 
-      // Fallback: free reverse geocoding API
-      if (!found) {
-        try {
-          const response = await axios.get(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`,
-            { headers: { 'Accept-Language': 'en' } }
-          );
-          const postal = response.data?.address?.postcode;
-          if (postal) {
-            setPostcode(postal);
-            localStorage.setItem('dommma_postcode', postal);
-            found = true;
-          }
-        } catch (e) {
-          console.log('Fallback geocode also failed');
+      if (response.data.status === 'OK' && response.data.results?.length > 0) {
+        const addressComponents = response.data.results[0].address_components;
+        const postalComponent = addressComponents.find(c => c.types.includes('postal_code'));
+        if (postalComponent) {
+          setPostcode(postalComponent.short_name);
+          localStorage.setItem('dommma_postcode', postalComponent.short_name);
+        } else {
+          setError('Could not find postal code for your location. Please enter it manually.');
         }
-      }
-
-      if (!found) {
-        setError('Could not detect your postal code. Please enter it manually.');
+      } else {
+        console.error('Google Geocoding error:', response.data.status, response.data.error_message);
+        setError('Location detection failed. Please enter your postal code manually.');
       }
     } catch (err) {
       console.log('Location detection failed:', err);
