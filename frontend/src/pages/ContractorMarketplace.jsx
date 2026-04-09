@@ -275,10 +275,18 @@ const ContractorMarketplace = () => {
   }, [postcode]);
 
   // Read category from URL params on mount and when URL changes
+  // If a category is pre-selected, scroll to the results section
   useEffect(() => {
     const catParam = searchParams.get('category');
     if (catParam && catParam !== selectedCategory) {
       setSelectedCategory(catParam);
+      // Scroll to results after a short delay to let the page render
+      setTimeout(() => {
+        const resultsEl = document.getElementById('contractor-results');
+        if (resultsEl) {
+          resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 300);
     }
   }, [searchParams]);
 
@@ -698,7 +706,7 @@ const ContractorMarketplace = () => {
         </header>
 
         {/* Tabs and Content */}
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div id="contractor-results" className="max-w-6xl mx-auto px-6 py-8">
           {/* Tab Switcher */}
           <div className="flex gap-2 mb-6">
             <button
