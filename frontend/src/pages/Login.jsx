@@ -119,21 +119,21 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F0] flex">
+    <div className="min-h-screen bg-[#F5F5F0] dark:bg-[#0F1419] flex transition-colors">
       {/* Left Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           {/* Logo */}
           <Link 
             to="/"
-            className="text-3xl text-[#1A2F3A] mb-8 block"
+            className="text-3xl text-[#1A2F3A] dark:text-white mb-8 block"
             style={{ fontFamily: 'Cormorant Garamond, serif' }}
           >
             DOMMMA
           </Link>
 
           <h1 
-            className="text-4xl text-[#1A2F3A] mb-2"
+            className="text-4xl text-[#1A2F3A] dark:text-white mb-2"
             style={{ fontFamily: 'Cormorant Garamond, serif' }}
           >
             {isLogin ? 'Welcome Back' : 'Create Account'}
@@ -241,7 +241,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-dark flex items-center justify-center gap-2"
+              className="w-full btn-dark flex items-center justify-center gap-2 dark:bg-[#C4A962] dark:text-[#1A2F3A] dark:hover:bg-[#d4b972]"
               data-testid="submit-btn"
             >
               {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}

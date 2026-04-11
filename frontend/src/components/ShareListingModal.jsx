@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Facebook, Twitter, Linkedin, Mail, Link2, Copy, Check, Share2, X, MessageCircle } from 'lucide-react';
+import { Facebook, Twitter, Linkedin, Mail, Link2, Copy, Check, Share2, X, MessageCircle, Globe, Building2 } from 'lucide-react';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -28,20 +28,27 @@ export default function ShareListingModal({ listing, isOpen, onClose }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const listingUrl = links?.listing_url || `${window.location.origin}/browse?property=${listing?.id}`;
+  const listingTitle = listing?.title || 'Property Listing';
+  const listingPrice = listing?.price ? `$${listing.price.toLocaleString()}` : '';
+  const emailSubject = encodeURIComponent(`Check out this property: ${listingTitle}`);
+  const emailBody = encodeURIComponent(`I found this property on DOMMMA:\n\n${listingTitle}\n${listingPrice}${listing?.listing_type === 'sale' ? '' : '/mo'}\n${listing?.address}, ${listing?.city}\n\nView it here: ${listingUrl}`);
+
   const platforms = [
-    { key: 'facebook', label: 'Facebook', icon: Facebook, color: 'bg-[#1877F2]' },
-    { key: 'facebook_marketplace', label: 'FB Marketplace', icon: Facebook, color: 'bg-[#0866FF]' },
-    { key: 'twitter', label: 'X / Twitter', icon: Twitter, color: 'bg-[#1DA1F2]' },
-    { key: 'linkedin', label: 'LinkedIn', icon: Linkedin, color: 'bg-[#0A66C2]' },
-    { key: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, color: 'bg-[#25D366]' },
-    { key: 'craigslist', label: 'Craigslist', icon: Link2, color: 'bg-[#5F2DA8]' },
-    { key: 'email', label: 'Email', icon: Mail, color: 'bg-gray-600' },
+    { key: 'facebook', label: 'Facebook', icon: Facebook, color: 'bg-[#1877F2]', fallbackUrl: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(listingUrl)}` },
+    { key: 'facebook_marketplace', label: 'FB Marketplace', icon: Facebook, color: 'bg-[#0866FF]', fallbackUrl: `https://www.facebook.com/marketplace/create/rental/` },
+    { key: 'twitter', label: 'X / Twitter', icon: Twitter, color: 'bg-[#1DA1F2]', fallbackUrl: `https://twitter.com/intent/tweet?text=${encodeURIComponent(listingTitle + ' ' + listingPrice)}&url=${encodeURIComponent(listingUrl)}` },
+    { key: 'linkedin', label: 'LinkedIn', icon: Linkedin, color: 'bg-[#0A66C2]', fallbackUrl: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(listingUrl)}` },
+    { key: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, color: 'bg-[#25D366]', fallbackUrl: `https://wa.me/?text=${encodeURIComponent(listingTitle + ' ' + listingPrice + ' - ' + listingUrl)}` },
+    { key: 'craigslist', label: 'Craigslist', icon: Link2, color: 'bg-[#5F2DA8]', fallbackUrl: `https://vancouver.craigslist.org/` },
+    { key: 'email', label: 'Send via Email', icon: Mail, color: 'bg-gray-600', fallbackUrl: `mailto:?subject=${emailSubject}&body=${emailBody}` },
+    { key: 'google_business', label: 'Google Business', icon: Globe, color: 'bg-[#4285F4]', fallbackUrl: `https://business.google.com/` },
   ];
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()} data-testid="share-modal">
-        <div className="flex items-center justify-between p-5 border-b border-gray-100">
+      <div className="bg-white dark:bg-[#1A2332] rounded-2xl w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()} data-testid="share-modal">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/10">
           <div className="flex items-center gap-2">
             <Share2 size={18} className="text-[#1A2F3A]" />
             <h3 className="font-semibold text-[#1A2F3A]">Share Listing</h3>
@@ -79,7 +86,7 @@ export default function ShareListingModal({ listing, isOpen, onClose }) {
                 {platforms.map(p => (
                   <a
                     key={p.key}
-                    href={links?.platforms?.[p.key] || '#'}
+                    href={links?.platforms?.[p.key] || p.fallbackUrl || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`${p.color} text-white rounded-xl py-3 px-4 flex items-center gap-2.5 text-sm font-medium hover:opacity-90 transition-opacity`}

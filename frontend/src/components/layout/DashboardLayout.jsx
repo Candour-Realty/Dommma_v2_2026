@@ -102,10 +102,7 @@ const DashboardLayout = ({ children }) => {
   };
 
   const isActivePath = (path) => {
-    if (path === '/dashboard') {
-      return location.pathname === '/dashboard';
-    }
-    return location.pathname.startsWith(path);
+    return location.pathname === path;
   };
 
   return (

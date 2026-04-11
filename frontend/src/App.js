@@ -87,12 +87,18 @@ function AnalyticsTracker() {
 }
 
 function App() {
-  const [user, setUser] = useState(null);
+  // Synchronous init from localStorage — prevents redirect flash on page refresh
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dommma_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
 
   // Initialize Firebase and PWA on app load
   useEffect(() => {
     initializeFirebase();
-    
+
     // Register service worker for PWA
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js')
@@ -102,16 +108,6 @@ function App() {
         .catch(error => {
           console.log('SW registration failed:', error);
         });
-    }
-    
-    // Restore user from localStorage
-    const savedUser = localStorage.getItem('dommma_user');
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        localStorage.removeItem('dommma_user');
-      }
     }
   }, []);
 

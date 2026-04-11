@@ -140,6 +140,7 @@ function ListingMiniCard({ item, type }) {
 export default function ServiceShowcase() {
   const [data, setData] = useState({ rentals: [], buy_sell: [], lease: [], services: [] });
   const [visible, setVisible] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -158,6 +159,7 @@ export default function ServiceShowcase() {
           services: contractors,
         });
       } catch (e) { console.error(e); }
+      setDataLoaded(true);
     };
     fetchData();
   }, []);
@@ -165,10 +167,12 @@ export default function ServiceShowcase() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.15 }
+      { threshold: 0.05 }
     );
     if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
+    // Fallback: if observer doesn't trigger within 2 seconds, show content anyway
+    const fallbackTimer = setTimeout(() => setVisible(true), 2000);
+    return () => { observer.disconnect(); clearTimeout(fallbackTimer); };
   }, []);
 
   const getCategoryItems = (catId) => data[catId] || [];
