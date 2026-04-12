@@ -34,6 +34,56 @@
   color: #E8E6E3;
 }
 
+/* Dark mode: make ALL form inputs readable */
+.dark input,
+.dark textarea,
+.dark select,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #E8E6E3;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6B7B8D;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #C4A962;
+  outline-color: #C4A962;
+}
+
+/* Dark mode: labels and form text */
+.dark label,
+.dark .text-gray-600,
+.dark .text-gray-700 {
+  color: #C8D6DB;
+}
+
+.dark .text-gray-500 {
+  color: #8B9DAF;
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 * {
   margin: 0;
   padding: 0;
