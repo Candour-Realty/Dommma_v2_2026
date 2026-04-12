@@ -31,6 +31,8 @@ class UserLogin(BaseModel):
 
 @router.post("/register")
 async def register_user(request: Request, user_data: UserCreate):
+    # Normalize email to lowercase
+    user_data.email = user_data.email.lower().strip()
     existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -73,7 +75,8 @@ async def register_user(request: Request, user_data: UserCreate):
 
 @router.post("/login")
 async def login_user(login_data: UserLogin):
-    user = await db.users.find_one({"email": login_data.email}, {"_id": 0})
+    # Case-insensitive email lookup
+    user = await db.users.find_one({"email": {"$regex": f"^{login_data.email}$", "$options": "i"}}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
