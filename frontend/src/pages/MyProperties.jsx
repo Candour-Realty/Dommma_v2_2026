@@ -164,8 +164,9 @@ const MyProperties = () => {
     description: '', amenities: [], images: [], available_date: '',
     pet_friendly: false, parking: false, listing_type: 'rent',
     year_built: '', lot_size: '', garage: '',
-    lease_duration: 12, // New: lease duration in months
-    offers: [], // New: special offers/promotions
+    lease_duration: 12,
+    offers: [],
+    pricing_tiers: [], // Flexible pricing: [{duration_months: 6, monthly_price: 2500, label: "6 Months"}]
   });
 
   const propertyTypes = ['Apartment', 'Condo', 'House', 'Townhouse', 'Loft', 'Studio', 'Duplex', 'Penthouse'];
@@ -239,7 +240,10 @@ const MyProperties = () => {
       pet_friendly: listing.pet_friendly, parking: listing.parking,
       listing_type: listing.listing_type || 'rent',
       year_built: listing.year_built || '', lot_size: listing.lot_size || '',
-      garage: listing.garage || ''
+      garage: listing.garage || '',
+      pricing_tiers: listing.pricing_tiers || [],
+      offers: listing.offers || [],
+      lease_duration: listing.lease_duration || 12,
     });
     setShowModal(true);
   };
@@ -557,6 +561,72 @@ const MyProperties = () => {
                   <input type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" placeholder={form.listing_type === 'sale' ? '850000' : '2500'} required />
                 </div>
               </div>
+
+              {/* Flexible Pricing Tiers — only for rentals */}
+              {form.listing_type === 'rent' && (
+                <div>
+                  <label className="block text-sm text-gray-600 mb-2 flex items-center gap-1">
+                    <DollarSign size={14} /> Flexible Pricing (Optional)
+                  </label>
+                  <p className="text-xs text-gray-400 mb-3">Offer different rates for different lease lengths. Tenants will see all options.</p>
+
+                  {form.pricing_tiers.map((tier, i) => (
+                    <div key={i} className="flex items-center gap-2 mb-2">
+                      <select
+                        value={tier.duration_months}
+                        onChange={(e) => {
+                          const updated = [...form.pricing_tiers];
+                          const months = parseInt(e.target.value);
+                          const labels = { 1: '1 Month', 3: '3 Months', 6: '6 Months', 9: '9 Months', 12: '12 Months', 24: '24 Months' };
+                          updated[i] = { ...updated[i], duration_months: months, label: labels[months] || `${months} Months` };
+                          setForm({ ...form, pricing_tiers: updated });
+                        }}
+                        className="px-3 py-2.5 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none text-sm"
+                      >
+                        <option value={1}>1 Month</option>
+                        <option value={3}>3 Months</option>
+                        <option value={6}>6 Months</option>
+                        <option value={9}>9 Months</option>
+                        <option value={12}>12 Months</option>
+                        <option value={24}>24 Months</option>
+                      </select>
+                      <div className="flex-1 relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                        <input
+                          type="number"
+                          value={tier.monthly_price}
+                          onChange={(e) => {
+                            const updated = [...form.pricing_tiers];
+                            updated[i] = { ...updated[i], monthly_price: parseInt(e.target.value) || 0 };
+                            setForm({ ...form, pricing_tiers: updated });
+                          }}
+                          className="w-full pl-7 pr-12 py-2.5 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none text-sm"
+                          placeholder="2500"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">/mo</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, pricing_tiers: form.pricing_tiers.filter((_, j) => j !== i) })}
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => setForm({
+                      ...form,
+                      pricing_tiers: [...form.pricing_tiers, { duration_months: 6, monthly_price: parseInt(form.price) || 0, label: '6 Months' }]
+                    })}
+                    className="flex items-center gap-1 text-sm text-[#1A2F3A] hover:text-[#2C4A52] font-medium mt-1"
+                  >
+                    <Plus size={14} /> Add pricing tier
+                  </button>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Address (start typing to autocomplete)</label>
