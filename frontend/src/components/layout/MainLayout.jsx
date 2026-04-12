@@ -36,8 +36,8 @@ const MainLayout = ({ children, hideNovaButton = false }) => {
       { path: '/contractors', label: t('contractors.title') },
     ],
     utility: [
-      { path: '#', label: t('footer.terms') },
-      { path: '#', label: t('footer.privacy') },
+      { path: '/privacy', label: t('footer.privacy') },
+      { path: '/security', label: 'Security' },
       { path: '/login', label: t('nav.login') },
     ]
   };

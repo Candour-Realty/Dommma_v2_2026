@@ -62,6 +62,8 @@ import PropertyChatbot from "@/pages/PropertyChatbot";
 import CreditCheck from "@/pages/CreditCheck";
 import VirtualStaging from "@/pages/VirtualStaging";
 import CampaignDashboard from "@/pages/CampaignDashboard";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import SecurityPage from "@/pages/SecurityPage";
 
 // Layout
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -156,6 +158,10 @@ function App() {
           
           {/* Financing - Public */}
           <Route path="/financing" element={<Financing />} />
+
+          {/* Legal Pages - Public */}
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/security" element={<SecurityPage />} />
           
           {/* Dashboard Routes - All with persistent sidebar */}
           <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
