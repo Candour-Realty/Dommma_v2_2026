@@ -65,6 +65,9 @@ import CampaignDashboard from "@/pages/CampaignDashboard";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import SecurityPage from "@/pages/SecurityPage";
 import BulkImport from "@/pages/BulkImport";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
+import CookieConsent from "@/components/CookieConsent";
 
 // Layout
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -187,6 +190,8 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           
           {/* Public Browse - no sidebar (for non-logged in users) */}
           <Route path="/browse" element={<Browse />} />
@@ -264,6 +269,7 @@ function App() {
           <Route path="/dashboard/my-properties" element={<DashboardLayout><MyProperties /></DashboardLayout>} />
           <Route path="/dashboard/contractor-profile" element={<DashboardLayout><ContractorProfile /></DashboardLayout>} />
         </Routes>
+        <CookieConsent />
       </BrowserRouter>
     </AuthContext.Provider>
     </ThemeProvider>
