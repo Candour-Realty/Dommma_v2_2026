@@ -513,6 +513,43 @@ const Home = () => {
         </section>
       )}
 
+      {/* Testimonials Section */}
+      <section className="section-md bg-[#F5F5F0] dark:bg-[#0F1419]" data-testid="testimonials-section">
+        <div className="max-w-7xl mx-auto px-6">
+          <FadeIn className="text-center mb-12">
+            <p className="text-xs text-[#C4A962] uppercase tracking-widest mb-4">What People Say</p>
+            <h2 className="text-4xl text-[#1A2F3A] dark:text-white" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+              Trusted by Landlords, Renters & Contractors
+            </h2>
+          </FadeIn>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { name: 'Sarah M.', role: 'Renter', text: 'Found my dream apartment in Kitsilano through Nova AI. The commute optimizer saved me hours of research. Signed the lease digitally in 10 minutes!', rating: 5 },
+              { name: 'David K.', role: 'Landlord', text: 'Managing 8 properties used to take all weekend. Now rent collection, maintenance requests, and tenant screening all happen on one platform. Game changer.', rating: 5 },
+              { name: 'Mike R.', role: 'Contractor', text: 'The lead notifications are fantastic. I get matched with jobs in my area that fit my specialty. Already booked 12 jobs through DOMMMA this month.', rating: 5 },
+            ].map((t, i) => (
+              <div key={i} className="bg-white dark:bg-[#1A2332] rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div className="flex items-center gap-1 mb-3">
+                  {Array.from({ length: t.rating }, (_, j) => (
+                    <Star key={j} size={14} className="text-yellow-400 fill-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4 italic">"{t.text}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#1A2F3A] dark:bg-[#C4A962] flex items-center justify-center text-white dark:text-[#1A2F3A] text-sm font-bold">
+                    {t.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-[#1A2F3A] dark:text-white">{t.name}</p>
+                    <p className="text-xs text-gray-500">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* AI Tools Section */}
       <section className="section-md bg-[#1A2F3A] relative overflow-hidden" data-testid="ai-tools-section">
         <GradientOrbs
