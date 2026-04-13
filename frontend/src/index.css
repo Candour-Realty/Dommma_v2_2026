@@ -34,6 +34,38 @@
   color: #E8E6E3;
 }
 
+/* Dark mode: ensure ALL input/select/textarea text is visible */
+.dark input,
+.dark textarea,
+.dark select,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #E8E6E3;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6B7B8D;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #C4A962;
+}
+
+/* Dark mode labels */
+.dark label {
+  color: #C8D6DB;
+}
+
 /* Dark mode: make ALL form inputs readable */
 .dark input,
 .dark textarea,

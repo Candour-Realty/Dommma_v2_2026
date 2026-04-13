@@ -189,13 +189,13 @@ function App() {
           <Route path="/my-resume" element={<DashboardLayout><MyResume /></DashboardLayout>} />
           <Route path="/applicant-ranking" element={<DashboardLayout><ApplicantRanking /></DashboardLayout>} />
           <Route path="/esign" element={<DashboardLayout><ESign /></DashboardLayout>} />
-          <Route path="/document-builder" element={<DocumentBuilder />} />
+          <Route path="/document-builder" element={<DashboardLayout><DocumentBuilder /></DashboardLayout>} />
           <Route path="/syndication" element={<DashboardLayout><ListingSyndication /></DashboardLayout>} />
           <Route path="/analytics" element={<DashboardLayout><AnalyticsDashboard /></DashboardLayout>} />
           <Route path="/listing-optimizer" element={<DashboardLayout><ListingOptimizer /></DashboardLayout>} />
           <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
           <Route path="/find-tenants" element={<DashboardLayout><FindTenants /></DashboardLayout>} />
-          <Route path="/rent-agreements" element={<RentAgreements />} />
+          <Route path="/rent-agreements" element={<DashboardLayout><RentAgreements /></DashboardLayout>} />
           <Route path="/document-review" element={<DashboardLayout><TenantDocReview /></DashboardLayout>} />
           <Route path="/property-valuation" element={<DashboardLayout><PropertyValuation /></DashboardLayout>} />
           <Route path="/neighborhood-compare" element={<DashboardLayout><NeighborhoodComparison /></DashboardLayout>} />
