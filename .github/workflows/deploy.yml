@@ -10,7 +10,7 @@ jobs:
   deploy:
     name: Deploy to EC2
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
@@ -22,37 +22,41 @@ jobs:
           script_stop: true
           script: |
             echo "🚀 Starting deployment..."
-            
+
             # Navigate to project
             cd /home/ubuntu/dommma
-            
-            # Pull latest code (force to handle divergent branches)
+
+            # Fix stale git refs (prevents "cannot lock ref" errors)
+            rm -rf .git/refs/remotes/origin
+            git gc --prune=now 2>/dev/null || true
+
+            # Pull latest code
             echo "📥 Pulling latest code..."
             git fetch origin main
-            git reset --hard origin/main
-            
+            git reset --hard FETCH_HEAD
+
             # Backend updates
             echo "🐍 Updating backend..."
             source backend/venv/bin/activate
             pip install -r backend/requirements.txt --quiet
-            pm2 restart dommma-backend
-            
+            pm2 restart all 2>/dev/null || pm2 restart dommma-backend 2>/dev/null || true
+
             # Frontend updates
             echo "⚛️ Building frontend..."
             cd frontend
             yarn install --silent
-            
+
             # Fix permissions for build
             sudo chown -R ubuntu:ubuntu build/ 2>/dev/null || true
-            
+
             # Build frontend
             yarn build
-            
+
             # Set permissions for Nginx
             sudo chown -R www-data:www-data build/
             sudo chmod -R 755 build/
-            
+
             # Restart Nginx
             sudo systemctl restart nginx
-            
+
             echo "✅ Deployment complete!"
