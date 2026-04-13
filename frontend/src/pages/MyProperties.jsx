@@ -399,9 +399,14 @@ const MyProperties = () => {
               <p className="text-sm text-white/70">Manage your property listings</p>
             </div>
           </div>
-          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm" data-testid="add-property-btn">
-            <Plus size={16} /> Add Property
-          </button>
+          <div className="flex items-center gap-2">
+            <Link to="/bulk-import" className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm">
+              <ImageIcon size={16} /> Bulk Import
+            </Link>
+            <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-medium" data-testid="add-property-btn">
+              <Plus size={16} /> Add Property
+            </button>
+          </div>
         </div>
       </header>
 
@@ -523,9 +528,9 @@ const MyProperties = () => {
       </main>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[9000] flex items-center justify-center p-4 overflow-y-auto">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8 my-8">
+          <div className="relative bg-white dark:bg-[#1A2332] rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8 my-8">
             <h2 className="text-2xl font-semibold text-[#1A2F3A] mb-6" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
               {editingListing ? 'Edit Property' : 'Add New Property'}
             </h2>
