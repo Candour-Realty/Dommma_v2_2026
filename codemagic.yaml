@@ -5,7 +5,7 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       java: 17
-      node: 18
+      node: 22
       vars:
         CI: "false"
     scripts:
@@ -42,7 +42,7 @@ workflows:
           include: true
     environment:
       java: 17
-      node: 18
+      node: 22
       vars:
         CI: "false"
       groups:
@@ -79,7 +79,7 @@ workflows:
     instance_type: mac_mini_m2
     environment:
       xcode: latest
-      node: 18
+      node: 22
       cocoapods: default
       vars:
         CI: "false"
