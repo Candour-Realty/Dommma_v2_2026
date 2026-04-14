@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cookie, X } from 'lucide-react';
+import { getConsent, setConsent, isNativeApp } from '@/lib/consent';
 
 export default function CookieConsent() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('dommma_cookie_consent');
+    // Don't render the banner inside the Capacitor native app — consent there is
+    // handled by App Store / Play Store native flows (ATT, Data Safety).
+    if (isNativeApp()) return;
+
+    const consent = getConsent();
     if (!consent) {
       // Delay showing by 2 seconds so it doesn't distract on page load
       const timer = setTimeout(() => setShow(true), 2000);
@@ -15,12 +20,12 @@ export default function CookieConsent() {
   }, []);
 
   const accept = () => {
-    localStorage.setItem('dommma_cookie_consent', 'accepted');
+    setConsent('accepted'); // This enables PostHog + Firebase Analytics
     setShow(false);
   };
 
   const decline = () => {
-    localStorage.setItem('dommma_cookie_consent', 'declined');
+    setConsent('declined'); // This opts the user out of PostHog; Firebase Analytics stays dormant
     setShow(false);
   };
 
@@ -42,11 +47,11 @@ export default function CookieConsent() {
               <div className="flex-1">
                 <h3 className="font-semibold text-[#1A2F3A] dark:text-white text-sm mb-1">Cookie Preferences</h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                  We use essential cookies for authentication and optional analytics cookies to improve your experience.{' '}
+                  We use essential cookies for authentication. Analytics cookies (PostHog, Firebase) load only if you accept.{' '}
                   <a href="/privacy" className="text-[#1A2F3A] dark:text-[#C4A962] underline">Privacy Policy</a>
                 </p>
               </div>
-              <button onClick={decline} className="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+              <button onClick={decline} className="text-gray-400 hover:text-gray-600 dark:hover:text-white" aria-label="Decline analytics">
                 <X size={16} />
               </button>
             </div>

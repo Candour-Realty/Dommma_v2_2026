@@ -74,6 +74,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 
 // Firebase Analytics
 import { initializeFirebase, trackPageView, trackLogin } from "@/lib/firebase";
+import { initTracking } from "@/lib/consent";
 
 // Auth Context
 export const AuthContext = createContext(null);
@@ -120,6 +121,9 @@ function App() {
   // Initialize Firebase and PWA on app load
   useEffect(() => {
     initializeFirebase();
+    // If user already consented in a previous session (or running in native app),
+    // start the gated trackers (PostHog + Firebase Analytics). No-op otherwise.
+    initTracking();
 
     // Register service worker for PWA
     if ('serviceWorker' in navigator) {

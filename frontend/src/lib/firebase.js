@@ -2,6 +2,7 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAnalytics, logEvent, setUserProperties } from 'firebase/analytics';
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
+import { hasConsent } from './consent';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBgVjeQ_3HoeMDWRW81W5WFpgX5oG69rUM",
@@ -14,6 +15,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase (singleton pattern)
+// Analytics is intentionally NOT initialized here — gated behind cookie consent.
 let app;
 let analytics;
 let messaging;
@@ -21,30 +23,42 @@ let messaging;
 export const initializeFirebase = () => {
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
-    
-    // Initialize Analytics (only in browser)
-    if (typeof window !== 'undefined') {
-      analytics = getAnalytics(app);
-    }
+  }
+  // If consent was already given (returning user), enable analytics now
+  if (hasConsent()) {
+    enableFirebaseAnalytics();
   }
   return app;
 };
 
-// Get Firebase app instance
-export const getFirebaseApp = () => {
+// Explicitly enable analytics — called from consent manager after user accepts
+export const enableFirebaseAnalytics = () => {
+  if (analytics) return analytics;
+  if (typeof window === 'undefined') return null;
   if (!app) {
-    initializeFirebase();
+    if (!getApps().length) app = initializeApp(firebaseConfig);
   }
-  return app;
-};
-
-// Get Analytics instance
-export const getFirebaseAnalytics = () => {
-  if (!analytics && typeof window !== 'undefined') {
-    const app = getFirebaseApp();
+  try {
     analytics = getAnalytics(app);
+  } catch (e) {
+    console.warn('Firebase Analytics init failed:', e);
   }
   return analytics;
+};
+
+// Get Firebase app instance (does NOT trigger analytics)
+export const getFirebaseApp = () => {
+  if (!app) {
+    if (!getApps().length) app = initializeApp(firebaseConfig);
+  }
+  return app;
+};
+
+// Get Analytics instance — returns null if user hasn't consented
+export const getFirebaseAnalytics = () => {
+  if (analytics) return analytics;
+  if (!hasConsent()) return null;
+  return enableFirebaseAnalytics();
 };
 
 // Initialize messaging (must check browser support)
