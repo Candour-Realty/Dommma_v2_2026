@@ -30,6 +30,7 @@ const Browse = () => {
   const [activeMarker, setActiveMarker] = useState(null);
   const [map, setMap] = useState(null);
   const [viewMode, setViewMode] = useState('split');
+  const [mobileView, setMobileView] = useState('list'); // 'list' or 'map' — mobile only
   const [showNovaChat, setShowNovaChat] = useState(!!novaQuery);
   const [favoriteIds, setFavoriteIds] = useState([]);
   const [filters, setFilters] = useState({
@@ -191,7 +192,7 @@ const Browse = () => {
     <div className="min-h-screen bg-[#F5F5F0] dark:bg-[#0F1419]">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-[1000] bg-[#0D0D0D] text-white" data-testid="browse-header">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to="/" className="flex items-center gap-2 text-gray-400 hover:text-white">
               <ArrowLeft size={18} />
@@ -224,6 +225,32 @@ const Browse = () => {
                   data-testid="search-input"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Mobile: Rent/Buy/Lease + Search (row below main header) */}
+          <div className="md:hidden w-full mt-3 space-y-2">
+            <div className="flex bg-white/10 rounded-full p-0.5">
+              <button onClick={() => setFilters({...filters, listingType: 'rent'})}
+                className={`flex-1 px-3 py-1.5 rounded-full text-xs transition-colors ${filters.listingType === 'rent' ? 'bg-white text-black' : 'text-gray-400'}`}
+                data-testid="filter-rent-mobile">Rent</button>
+              <button onClick={() => setFilters({...filters, listingType: 'sale'})}
+                className={`flex-1 px-3 py-1.5 rounded-full text-xs transition-colors ${filters.listingType === 'sale' ? 'bg-white text-black' : 'text-gray-400'}`}
+                data-testid="filter-buy-mobile">Buy</button>
+              <button onClick={() => setFilters({...filters, listingType: 'lease_takeover'})}
+                className={`flex-1 px-3 py-1.5 rounded-full text-xs transition-colors ${filters.listingType === 'lease_takeover' ? 'bg-white text-black' : 'text-gray-400'}`}
+                data-testid="filter-lease-takeover-mobile">Lease</button>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder={filters.listingType === 'sale' ? "Search properties for sale..." : filters.listingType === 'lease_takeover' ? "Search lease takeovers..." : "Search rental properties..."}
+                value={filters.search}
+                onChange={(e) => setFilters({...filters, search: e.target.value})}
+                className="w-full pl-11 pr-4 py-2 rounded-full bg-white/10 border border-white/10 text-white placeholder-gray-400 focus:bg-white/20 focus:outline-none text-sm"
+                data-testid="search-input-mobile"
+              />
             </div>
           </div>
 
@@ -311,7 +338,7 @@ const Browse = () => {
       <main className={`pt-16 ${showFilters ? 'pt-32' : ''}`}>
         <div className={`grid ${viewMode === 'split' ? 'lg:grid-cols-2' : ''}`} style={{ height: 'calc(100vh - 64px)' }}>
           {/* Listings */}
-          <div className="overflow-y-auto p-6" data-testid="listings-container">
+          <div className={`overflow-y-auto p-6 ${mobileView === 'map' ? 'hidden lg:block' : ''}`} data-testid="listings-container">
             <p className="text-sm text-gray-500 mb-4">{loading ? 'Loading...' : `${listings.length} properties found`}</p>
             
             {loading ? (
@@ -370,8 +397,8 @@ const Browse = () => {
           </div>
 
           {/* Map */}
-          {viewMode === 'split' && (
-            <div className="hidden lg:block sticky top-0 h-full" data-testid="map-container">
+          {(viewMode === 'split' || mobileView === 'map') && (
+            <div className={`${mobileView === 'map' ? 'block' : 'hidden'} lg:block sticky top-0 h-full`} data-testid="map-container">
               {mapLoaded ? (
                   <Map
                     style={{ width: '100%', height: '100%' }}
@@ -418,6 +445,23 @@ const Browse = () => {
             </div>
           )}
         </div>
+
+        {/* Mobile-only: Floating Map/List toggle */}
+        <button
+          onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
+          className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[900] px-5 py-3 rounded-full bg-[#1A2F3A] text-white shadow-xl flex items-center gap-2 text-sm font-medium"
+          data-testid="mobile-view-toggle"
+        >
+          {mobileView === 'list' ? (
+            <>
+              <MapPin size={16} /> Show map
+            </>
+          ) : (
+            <>
+              <List size={16} /> Show list
+            </>
+          )}
+        </button>
       </main>
 
       {/* Listing Detail Modal — with Street View, Commute, Neighborhood, Nearby tabs */}
