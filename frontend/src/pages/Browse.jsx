@@ -334,8 +334,8 @@ const Browse = () => {
         )}
       </header>
 
-      {/* Main Content */}
-      <main className={`pt-16 ${showFilters ? 'pt-32' : ''}`}>
+      {/* Main Content — mobile header has a second row (tabs + search), so add extra padding */}
+      <main className={`${showFilters ? 'pt-[340px] md:pt-32' : 'pt-[180px] md:pt-16'}`}>
         <div className={`grid ${viewMode === 'split' ? 'lg:grid-cols-2' : ''}`} style={{ height: 'calc(100vh - 64px)' }}>
           {/* Listings */}
           <div className={`overflow-y-auto p-6 ${mobileView === 'map' ? 'hidden lg:block' : ''}`} data-testid="listings-container">
@@ -449,7 +449,7 @@ const Browse = () => {
         {/* Mobile-only: Floating Map/List toggle */}
         <button
           onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
-          className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[900] px-5 py-3 rounded-full bg-[#1A2F3A] text-white shadow-xl flex items-center gap-2 text-sm font-medium"
+          className="lg:hidden fixed bottom-6 left-6 z-[900] px-4 py-3 rounded-full bg-[#1A2F3A] text-white shadow-xl flex items-center gap-2 text-sm font-medium"
           data-testid="mobile-view-toggle"
         >
           {mobileView === 'list' ? (
