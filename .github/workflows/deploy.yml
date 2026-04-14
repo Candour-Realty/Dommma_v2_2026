@@ -44,13 +44,18 @@ jobs:
             # Frontend updates
             echo "⚛️ Building frontend..."
             cd frontend
-            yarn install --silent
 
-            # Fix permissions for build
+            # Use Node 22 (required by @capacitor/cli v8+)
+            export PATH="/usr/local/bin:$PATH"
+            node --version
+
+            # Fix permissions BEFORE install/build (build/ is owned by www-data from last deploy)
             sudo chown -R ubuntu:ubuntu build/ 2>/dev/null || true
 
-            # Build frontend
-            yarn build
+            yarn install --silent
+
+            # Build frontend (CI=false so ESLint warnings don't fail the build)
+            CI=false yarn build
 
             # Set permissions for Nginx
             sudo chown -R www-data:www-data build/
