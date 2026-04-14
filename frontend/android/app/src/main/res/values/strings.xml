@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DOMMMA</string>
+    <string name="title_activity_main">DOMMMA</string>
+    <string name="package_name">com.dommma.app</string>
+    <string name="custom_url_scheme">com.dommma.app</string>
+</resources>

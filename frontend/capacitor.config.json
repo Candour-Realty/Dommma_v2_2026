@@ -1,0 +1,28 @@
+{
+  "appId": "com.dommma.app",
+  "appName": "DOMMMA",
+  "webDir": "build",
+  "server": {
+    "url": "https://dommma.com",
+    "cleartext": false
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "backgroundColor": "#1A2F3A"
+  },
+  "android": {
+    "backgroundColor": "#1A2F3A",
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#1A2F3A",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#1A2F3A"
+    }
+  }
+}
