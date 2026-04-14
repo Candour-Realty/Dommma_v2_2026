@@ -1,0 +1,109 @@
+workflows:
+  android-build:
+    name: Android Build
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      java: 17
+      node: 18
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd frontend
+          npm install
+      - name: Build web app
+        script: |
+          cd frontend
+          npm run build
+      - name: Sync Capacitor
+        script: |
+          cd frontend
+          npx cap sync android
+      - name: Build Android APK
+        script: |
+          cd frontend/android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+    artifacts:
+      - frontend/android/app/build/outputs/**/*.apk
+
+  android-release:
+    name: Android Release
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    environment:
+      java: 17
+      node: 18
+      groups:
+        - google_play
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd frontend
+          npm install
+      - name: Build web app
+        script: |
+          cd frontend
+          npm run build
+      - name: Sync Capacitor
+        script: |
+          cd frontend
+          npx cap sync android
+      - name: Build Android AAB (release)
+        script: |
+          cd frontend/android
+          chmod +x gradlew
+          ./gradlew bundleRelease
+    artifacts:
+      - frontend/android/app/build/outputs/**/*.aab
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+
+  ios-build:
+    name: iOS Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+      node: 18
+      cocoapods: default
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd frontend
+          npm install
+      - name: Build web app
+        script: |
+          cd frontend
+          npm run build
+      - name: Add iOS platform if missing
+        script: |
+          cd frontend
+          npx cap add ios || true
+          npx cap sync ios
+      - name: Install CocoaPods
+        script: |
+          cd frontend/ios/App
+          pod install
+      - name: Build iOS
+        script: |
+          cd frontend/ios/App
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -archivePath build/App.xcarchive \
+            clean build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+    artifacts:
+      - frontend/ios/App/build/**/*.app
