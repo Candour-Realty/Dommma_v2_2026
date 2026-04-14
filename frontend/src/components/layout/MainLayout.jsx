@@ -6,6 +6,7 @@ import { useAuth } from '../../App';
 import NovaChat from '../chat/NovaChat';
 import LanguageToggle from '../LanguageToggle';
 import ThemeToggle from '../ui/ThemeToggle';
+import { openCookieSettings } from '@/lib/consent';
 
 const MainLayout = ({ children, hideNovaButton = false }) => {
   const location = useLocation();
@@ -225,6 +226,16 @@ const MainLayout = ({ children, hideNovaButton = false }) => {
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => openCookieSettings()}
+                    className="text-gray-400 hover:text-white text-sm"
+                    data-testid="footer-cookie-preferences"
+                  >
+                    Cookie Preferences
+                  </button>
+                </li>
               </ul>
             </div>
           </div>

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cookie, X } from 'lucide-react';
-import { getConsent, setConsent, isNativeApp } from '@/lib/consent';
+import { getConsent, setConsent, isNativeApp, onOpenCookieSettings } from '@/lib/consent';
 
 export default function CookieConsent() {
   const [show, setShow] = useState(false);
+  const [currentChoice, setCurrentChoice] = useState(null);
 
   useEffect(() => {
     // Don't render the banner inside the Capacitor native app — consent there is
@@ -12,6 +13,7 @@ export default function CookieConsent() {
     if (isNativeApp()) return;
 
     const consent = getConsent();
+    setCurrentChoice(consent);
     if (!consent) {
       // Delay showing by 2 seconds so it doesn't distract on page load
       const timer = setTimeout(() => setShow(true), 2000);
@@ -19,13 +21,24 @@ export default function CookieConsent() {
     }
   }, []);
 
+  // Re-open when "Cookie Preferences" is clicked in the footer
+  useEffect(() => {
+    if (isNativeApp()) return;
+    return onOpenCookieSettings(() => {
+      setCurrentChoice(getConsent());
+      setShow(true);
+    });
+  }, []);
+
   const accept = () => {
     setConsent('accepted'); // This enables PostHog + Firebase Analytics
+    setCurrentChoice('accepted');
     setShow(false);
   };
 
   const decline = () => {
     setConsent('declined'); // This opts the user out of PostHog; Firebase Analytics stays dormant
+    setCurrentChoice('declined');
     setShow(false);
   };
 
@@ -50,6 +63,11 @@ export default function CookieConsent() {
                   We use essential cookies for authentication. Analytics cookies (PostHog, Firebase) load only if you accept.{' '}
                   <a href="/privacy" className="text-[#1A2F3A] dark:text-[#C4A962] underline">Privacy Policy</a>
                 </p>
+                {currentChoice && (
+                  <p className="text-[11px] mt-1.5 text-gray-400 dark:text-gray-500">
+                    Current choice: <span className="font-medium">{currentChoice === 'accepted' ? 'Accept All' : 'Essential Only'}</span>
+                  </p>
+                )}
               </div>
               <button onClick={decline} className="text-gray-400 hover:text-gray-600 dark:hover:text-white" aria-label="Decline analytics">
                 <X size={16} />

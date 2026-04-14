@@ -3,6 +3,19 @@
 
 const CONSENT_KEY = 'dommma_cookie_consent';
 const CONSENT_EVENT = 'dommma:consent-changed';
+const OPEN_SETTINGS_EVENT = 'dommma:open-cookie-settings';
+
+// Programmatically re-open the cookie banner (for the "Cookie Preferences" footer link)
+export const openCookieSettings = () => {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
+};
+
+export const onOpenCookieSettings = (handler) => {
+  if (typeof window === 'undefined') return () => {};
+  window.addEventListener(OPEN_SETTINGS_EVENT, handler);
+  return () => window.removeEventListener(OPEN_SETTINGS_EVENT, handler);
+};
 
 // Detect if running inside the Capacitor native app (Android/iOS)
 export const isNativeApp = () => {
