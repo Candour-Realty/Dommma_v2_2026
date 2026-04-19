@@ -9,6 +9,7 @@ import { useAuth } from '../App';
 import axios from 'axios';
 import AIDescriptionGenerator from '../components/AIDescriptionGenerator';
 import ShareListingModal from '../components/ShareListingModal';
+import InlinePricingChip from '../components/listings/InlinePricingChip';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -81,6 +82,57 @@ const geocodeAddress = async (address, city, province, postalCode) => {
   }
   return null;
 };
+
+// Nearby-places fetcher — used by the AI description generator to auto-mention real amenities
+const NEARBY_CATEGORIES = [
+  { type: 'transit_station', label: 'transit' },
+  { type: 'grocery_or_supermarket', label: 'grocery' },
+  { type: 'park', label: 'park' },
+  { type: 'school', label: 'school' },
+  { type: 'restaurant', label: 'restaurant' },
+];
+
+const nearbyCache = new Map();
+
+const fetchNearbyForDescription = (lat, lng) => new Promise((resolve) => {
+  if (!lat || !lng || !window.google?.maps?.places) {
+    resolve([]);
+    return;
+  }
+  const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+  if (nearbyCache.has(cacheKey)) {
+    resolve(nearbyCache.get(cacheKey));
+    return;
+  }
+  const service = new window.google.maps.places.PlacesService(document.createElement('div'));
+  const results = [];
+  let completed = 0;
+  NEARBY_CATEGORIES.forEach((cat) => {
+    service.nearbySearch(
+      { location: { lat, lng }, radius: 1200, type: cat.type },
+      (searchResults, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && searchResults?.length > 0) {
+          const nearest = searchResults[0];
+          const pLat = nearest.geometry.location.lat();
+          const pLng = nearest.geometry.location.lng();
+          const distMeters = window.google.maps.geometry?.spherical?.computeDistanceBetween
+            ? window.google.maps.geometry.spherical.computeDistanceBetween(
+                new window.google.maps.LatLng(lat, lng),
+                new window.google.maps.LatLng(pLat, pLng)
+              )
+            : null;
+          const walkMin = distMeters ? Math.max(1, Math.round(distMeters / 80)) : null;
+          results.push({ name: nearest.name, type: cat.label, walk_minutes: walkMin });
+        }
+        completed++;
+        if (completed === NEARBY_CATEGORIES.length) {
+          nearbyCache.set(cacheKey, results);
+          resolve(results);
+        }
+      }
+    );
+  });
+});
 
 // Address autocomplete using Google Places API
 const useAddressAutocomplete = (inputRef, onSelect) => {
@@ -183,6 +235,18 @@ const MyProperties = () => {
   
   // Initialize autocomplete
   useAddressAutocomplete(addressInputRef, handleAddressSelect);
+
+  // Auto-fetch nearby places once we have a valid address (feeds the AI description generator)
+  useEffect(() => {
+    if (!form.lat || !form.lng || !form.address) return;
+    if (form.lat === 49.2827 && form.lng === -123.1207) return; // skip default Vancouver centroid
+    let cancelled = false;
+    fetchNearbyForDescription(form.lat, form.lng).then((places) => {
+      if (!cancelled) setForm(prev => ({ ...prev, nearby_places: places }));
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.lat, form.lng, form.address]);
 
   useEffect(() => {
     if (!user || user.user_type !== 'landlord') { navigate('/login'); return; }
@@ -565,6 +629,17 @@ const MyProperties = () => {
               <div>
                 <label className="block text-sm text-gray-600 mb-2">{form.listing_type === 'sale' ? 'Price ($)' : 'Monthly Rent ($)'}</label>
                   <input type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" placeholder={form.listing_type === 'sale' ? '850000' : '2500'} required />
+                  {form.listing_type === 'rent' && (
+                    <InlinePricingChip
+                      city={form.city}
+                      bedrooms={parseInt(form.bedrooms) || 0}
+                      bathrooms={parseFloat(form.bathrooms) || 0}
+                      sqft={parseInt(form.sqft) || 0}
+                      propertyType={form.property_type}
+                      currentPrice={parseInt(form.price) || 0}
+                      onSuggest={(price) => setForm({ ...form, price: String(price) })}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -757,8 +832,11 @@ const MyProperties = () => {
                       sqft: parseInt(form.sqft) || 0, property_type: form.property_type || 'apartment',
                       price: parseInt(form.price) || 0, amenities: form.amenities || [],
                       pet_friendly: form.pet_friendly, parking: form.parking,
-                      listing_type: form.listing_type || 'rent'
+                      listing_type: form.listing_type || 'rent',
+                      image_urls: form.images || []
                     }}
+                    nearbyPlaces={form.nearby_places || []}
+                    currentDescription={form.description}
                     onDescriptionGenerated={(desc) => setForm({ ...form, description: desc })}
                   />
                 </div>

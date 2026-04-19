@@ -67,6 +67,11 @@ venv/
 # Deployment
 .vercel
 
+# Design exploration workspaces (local-only)
+theme-previews/
+ui-exploration/
+mockups/
+
 # Database dumps
 dump.rdb
 frontend/node_modules/.cache/default-development/0.pack

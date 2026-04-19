@@ -173,23 +173,41 @@ async def smart_rent_pricing(
     }, {"_id": 0}).to_list(100)
     
     prices = sorted([c["price"] for c in comps])
-    
-    if not prices:
-        return {
-            "suggested_rent": None,
-            "message": "Not enough comparable data",
-            "market_data": {"count": 0}
-        }
-    
-    median = prices[len(prices) // 2]
-    p25 = prices[len(prices) // 4]
-    p75 = prices[3 * len(prices) // 4]
-    avg = sum(prices) / len(prices)
-    
+
+    # Regional baselines — fallback when we don't have enough comparables yet.
+    # Metro Vancouver 2025 averages (1BR base per bedroom count).
+    VANCOUVER_BASELINES = {0: 1600, 1: 2000, 2: 2600, 3: 3400, 4: 4200, 5: 5000}
+    CITY_MULTIPLIERS = {
+        "vancouver": 1.0, "burnaby": 0.88, "richmond": 0.90, "surrey": 0.72,
+        "coquitlam": 0.82, "new westminster": 0.85, "north vancouver": 0.95,
+        "west vancouver": 1.15, "delta": 0.75, "langley": 0.68, "maple ridge": 0.65,
+        "port coquitlam": 0.78, "port moody": 0.88,
+    }
+
+    source = "comparables"
+    if len(prices) >= 3:
+        median = prices[len(prices) // 2]
+        p25 = prices[len(prices) // 4]
+        p75 = prices[3 * len(prices) // 4]
+        avg = sum(prices) / len(prices)
+    else:
+        # Not enough data — synthesize a baseline
+        source = "baseline" if not prices else "hybrid"
+        base = VANCOUVER_BASELINES.get(bedrooms, 2600)
+        city_mult = CITY_MULTIPLIERS.get(city.lower().strip(), 0.85)
+        baseline = base * city_mult
+        # Blend baseline with any sparse comparable data we do have
+        if prices:
+            baseline = (baseline + sum(prices) / len(prices)) / 2
+        median = baseline
+        avg = baseline
+        p25 = baseline * 0.88
+        p75 = baseline * 1.12
+
     sqft_adj = (sqft / 700) if sqft > 0 else 1.0
     bath_adj = 1.0 + (bathrooms - 1) * 0.05
     suggested = round(median * sqft_adj * bath_adj)
-    
+
     competitive = round(suggested * 0.95)
     premium = round(suggested * 1.08)
     
@@ -197,23 +215,34 @@ async def smart_rent_pricing(
                "at_market" if current_rent and p25 <= current_rent <= p75 else \
                "above_market" if current_rent and current_rent > p75 else "unknown"
     
+    price_range_str = (
+        f"${min(prices):,.0f} - ${max(prices):,.0f}" if prices
+        else f"${round(p25):,.0f} - ${round(p75):,.0f}"
+    )
+
     return {
         "suggested_rent": suggested,
         "competitive_price": competitive,
         "premium_price": premium,
+        "source": source,  # "comparables" | "baseline" | "hybrid"
         "market_data": {
             "median": round(median),
             "average": round(avg),
             "p25": round(p25),
             "p75": round(p75),
             "count": len(prices),
-            "range": f"${min(prices):,.0f} - ${max(prices):,.0f}"
+            "range": price_range_str
         },
         "current_rent": current_rent,
         "current_position": position,
         "adjustments": {"sqft": round(sqft_adj, 2), "bathrooms": round(bath_adj, 2)},
-        "recommendation": f"Based on {len(prices)} comparable properties in {city}, we suggest ${suggested:,}/mo. "
-                         f"{'Your current rent is ' + position.replace('_', ' ') + '.' if position != 'unknown' else ''}"
+        "recommendation": (
+            f"Based on {len(prices)} comparable properties in {city}, we suggest ${suggested:,}/mo. "
+            if source == "comparables"
+            else f"Using {city} regional market baselines (more precise once nearby listings are indexed), we suggest ${suggested:,}/mo. "
+        ) + (
+            f"Your current rent is {position.replace('_', ' ')}." if position != "unknown" else ""
+        )
     }
 
 

@@ -32,6 +32,9 @@ class ListingDescriptionRequest(BaseModel):
     listing_type: str = "rent"
     additional_notes: Optional[str] = None
     tone: str = "professional"  # professional, casual, luxury, concise
+    extra_context: Optional[str] = None   # "Anything else?" user text
+    image_urls: List[str] = []            # up to 4 property photos for Claude Vision
+    nearby_places: List[Dict[str, Any]] = []  # [{"name": "...", "type": "transit", "walk_minutes": 10}]
 
 
 @router.post("/listings/generate-description")
@@ -48,7 +51,23 @@ async def generate_listing_description(req: ListingDescriptionRequest):
         "concise": "Write a brief, punchy description with key highlights. Keep it under 100 words."
     }
 
-    prompt = f"""Generate a compelling property listing description for:
+    nearby_text = ""
+    if req.nearby_places:
+        lines = []
+        for p in req.nearby_places[:5]:
+            name = p.get("name", "")
+            ptype = p.get("type", "")
+            walk = p.get("walk_minutes")
+            if name:
+                suffix = f" ({walk} min walk)" if walk else ""
+                lines.append(f"- {name} [{ptype}]{suffix}")
+        if lines:
+            nearby_text = "Nearby amenities (mention naturally if relevant):\n" + "\n".join(lines)
+
+    extras_text = f"\nExtra context from landlord: {req.extra_context}" if req.extra_context else ""
+    additional_text = f"\nAdditional notes: {req.additional_notes}" if req.additional_notes else ""
+
+    text_prompt = f"""Generate a compelling property listing description for:
 
 Title: {req.title}
 Address: {req.address}, {req.city}
@@ -57,16 +76,29 @@ Price: ${req.price:,}{'/mo' if req.listing_type == 'rent' else ''}
 Bedrooms: {req.bedrooms} | Bathrooms: {req.bathrooms} | Size: {req.sqft} sqft
 Amenities: {', '.join(req.amenities) if req.amenities else 'None listed'}
 Pet Friendly: {'Yes' if req.pet_friendly else 'No'}
-Parking: {'Yes' if req.parking else 'No'}
-{f'Additional notes: {req.additional_notes}' if req.additional_notes else ''}
+Parking: {'Yes' if req.parking else 'No'}{additional_text}{extras_text}
+
+{nearby_text}
 
 {tone_instructions.get(req.tone, tone_instructions['professional'])}
 
-Write ONLY the description text (2-3 paragraphs). Do not include the title, price, or address in the description - those are shown separately. Focus on lifestyle, features, and neighborhood appeal."""
+{'The attached photos show the actual property. Describe visible features naturally (finishes, layout, natural light, views, condition) — but only mention what you can clearly see. Do not invent details.' if req.image_urls else ''}
+
+Write ONLY the description text (2-3 short paragraphs, ~120-180 words total). Do not include the title, price, or address — those are shown separately. Focus on lifestyle, features, and neighborhood appeal. Do not use headings or bullet points."""
+
+    # Build the message content — vision if images provided, plain text otherwise
+    content = []
+    for url in req.image_urls[:4]:  # cap at 4 images to control cost
+        if url and url.startswith("http"):
+            content.append({
+                "type": "image",
+                "source": {"type": "url", "url": url}
+            })
+    content.append({"type": "text", "text": text_prompt})
 
     try:
         import httpx
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=45.0) as client:
             response = await client.post(
                 "https://api.anthropic.com/v1/messages",
                 headers={
@@ -77,18 +109,45 @@ Write ONLY the description text (2-3 paragraphs). Do not include the title, pric
                 json={
                     "model": "claude-sonnet-4-20250514",
                     "max_tokens": 500,
-                    "messages": [{"role": "user", "content": prompt}]
+                    "messages": [{"role": "user", "content": content}]
                 }
             )
 
             if response.status_code != 200:
+                logger.error(f"Claude error {response.status_code}: {response.text[:300]}")
+                # Graceful degrade — retry without images if vision failed
+                if req.image_urls:
+                    retry = await client.post(
+                        "https://api.anthropic.com/v1/messages",
+                        headers={
+                            "x-api-key": ANTHROPIC_API_KEY,
+                            "anthropic-version": "2023-06-01",
+                            "content-type": "application/json"
+                        },
+                        json={
+                            "model": "claude-sonnet-4-20250514",
+                            "max_tokens": 500,
+                            "messages": [{"role": "user", "content": text_prompt}]
+                        }
+                    )
+                    if retry.status_code == 200:
+                        result = retry.json()
+                        description = result.get("content", [{}])[0].get("text", "")
+                        return {"description": description, "tone": req.tone, "used_vision": False}
                 raise HTTPException(status_code=500, detail="AI generation failed")
 
             result = response.json()
             description = result.get("content", [{}])[0].get("text", "")
 
-            return {"description": description, "tone": req.tone}
+            return {
+                "description": description,
+                "tone": req.tone,
+                "used_vision": bool(req.image_urls),
+                "used_nearby": bool(req.nearby_places),
+            }
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"AI description error: {e}")
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
