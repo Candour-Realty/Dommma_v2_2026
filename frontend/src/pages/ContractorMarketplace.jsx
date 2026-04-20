@@ -536,7 +536,13 @@ const ContractorMarketplace = () => {
   };
 
   const viewContractor = (c) => {
-    setSelectedContractor(c);
+    // Open the full public profile with availability calendar + booking widget
+    const id = c.user_id || c.id;
+    if (id) {
+      navigate(`/contractors/${id}`);
+    } else {
+      setSelectedContractor(c); // fallback to legacy inline modal
+    }
   };
 
   const submitBooking = async (e) => {

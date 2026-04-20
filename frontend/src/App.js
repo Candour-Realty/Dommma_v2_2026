@@ -36,6 +36,7 @@ import RoommateFinder from "@/pages/RoommateFinder";
 import MovingQuote from "@/pages/MovingQuote";
 import CalendarPage from "@/pages/CalendarPage";
 import ContractorPortfolio from "@/pages/ContractorPortfolio";
+import PublicContractorProfile from "@/pages/PublicContractorProfile";
 import NovaInsights from "@/pages/NovaInsights";
 import MyResume from "@/pages/MyResume";
 import ApplicantRanking from "@/pages/ApplicantRanking";
@@ -202,6 +203,7 @@ function App() {
           
           {/* Public Contractor Pages */}
           <Route path="/contractors" element={<ContractorMarketplace />} />
+          <Route path="/contractors/:contractorId" element={<PublicContractorProfile />} />
           <Route path="/portfolio/:contractorId" element={<ContractorPortfolio />} />
           
           {/* Lease Assignment Marketplace - Public */}

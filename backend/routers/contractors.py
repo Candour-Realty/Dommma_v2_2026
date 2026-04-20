@@ -23,7 +23,7 @@ router = APIRouter(tags=["contractors"])
 # ========== MODELS ==========
 
 class ContractorProfileCreate(BaseModel):
-    business_name: str
+    business_name: Optional[str] = None  # optional — falls back to user's name if blank
     description: str = ""
     specialties: List[str] = []
     service_areas: List[str] = []
@@ -40,7 +40,7 @@ class ContractorProfile(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
-    business_name: str
+    business_name: str = ""
     description: str = ""
     specialties: List[str] = []
     service_areas: List[str] = []
@@ -149,18 +149,40 @@ class JobBidCreate(BaseModel):
 
 # ========== CONTRACTOR PROFILES ==========
 
+def _fallback_business_name(user: Optional[Dict[str, Any]]) -> str:
+    """If the contractor didn't set a business name, display their own name."""
+    if not user:
+        return "Service Provider"
+    full = (user.get("full_name") or user.get("name") or "").strip()
+    if full:
+        return f"{full}'s Services"
+    email = user.get("email") or ""
+    if "@" in email:
+        return f"{email.split('@')[0].title()}'s Services"
+    return "Service Provider"
+
+
 @router.post("/contractors/profile")
 async def create_contractor_profile(user_id: str, profile: ContractorProfileCreate):
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+
     existing = await db.contractor_profiles.find_one({"user_id": user_id}, {"_id": 0})
     if existing:
         update_data = profile.model_dump()
+        # If the landlord wipes business_name, auto-fill it from their user record
+        if not (update_data.get("business_name") or "").strip():
+            update_data["business_name"] = _fallback_business_name(user)
         update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
         await db.contractor_profiles.update_one({"user_id": user_id}, {"$set": update_data})
         updated = await db.contractor_profiles.find_one({"user_id": user_id}, {"_id": 0})
         return updated
 
-    profile_obj = ContractorProfile(user_id=user_id, **profile.model_dump())
-    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    profile_data = profile.model_dump()
+    # Auto-fill business_name if blank (so creating a profile has zero required fields)
+    if not (profile_data.get("business_name") or "").strip():
+        profile_data["business_name"] = _fallback_business_name(user)
+
+    profile_obj = ContractorProfile(user_id=user_id, **profile_data)
     if user:
         profile_obj.email = profile.email or user.get("email")
     doc = profile_obj.model_dump()

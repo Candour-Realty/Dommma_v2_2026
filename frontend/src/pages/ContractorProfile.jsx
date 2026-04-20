@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, X, Star,
   Shield, DollarSign, Clock, Phone, Mail, Globe, Briefcase, CheckCircle,
-  Upload, FileText, AlertCircle, Loader2
+  Upload, FileText, AlertCircle, Loader2, Calendar, CheckCircle2, XCircle
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
+import AvailabilityEditor from '../components/contractors/AvailabilityEditor';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -176,9 +177,28 @@ const ContractorProfile = () => {
 
   const handleBookingStatus = async (bookingId, status) => {
     try {
+      // For pending-stage actions (accept/decline) use the new /respond endpoint —
+      // it emails the customer and attaches a calendar invite on accept.
+      if (status === 'confirmed' || status === 'cancelled') {
+        const booking = bookings.find(b => b.id === bookingId);
+        if (booking?.status === 'pending') {
+          const action = status === 'confirmed' ? 'accept' : 'decline';
+          let message = '';
+          if (action === 'decline') {
+            message = window.prompt('Optional message to the customer (e.g. suggested alternative time):') || '';
+          }
+          await axios.post(`${API}/bookings/${bookingId}/respond?action=${action}&user_id=${user.id}${message ? `&message=${encodeURIComponent(message)}` : ''}`);
+          fetchAll();
+          return;
+        }
+      }
+      // Other transitions (in_progress, completed) keep the legacy status endpoint
       await axios.put(`${API}/bookings/${bookingId}/status?status=${status}&user_id=${user.id}`);
       fetchAll();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      alert(e.response?.data?.detail || 'Could not update booking');
+    }
   };
 
   const toggleSpecialty = (s) => setForm(prev => ({ ...prev, specialties: prev.specialties.includes(s) ? prev.specialties.filter(x => x !== s) : [...prev.specialties, s] }));
@@ -214,10 +234,10 @@ const ContractorProfile = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-white rounded-xl p-1 mb-6">
-          {['profile', 'services', 'bookings'].map(tab => (
+        <div className="flex gap-1 bg-white rounded-xl p-1 mb-6 overflow-x-auto">
+          {['profile', 'services', 'availability', 'bookings'].map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 rounded-lg text-sm capitalize transition-colors ${activeTab === tab ? 'bg-[#1A2F3A] text-white' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 min-w-fit py-2.5 px-3 rounded-lg text-sm capitalize transition-colors ${activeTab === tab ? 'bg-[#1A2F3A] text-white' : 'text-gray-500 hover:text-gray-700'}`}
               data-testid={`tab-${tab}`}>
               {tab}
             </button>
@@ -228,9 +248,16 @@ const ContractorProfile = () => {
         {activeTab === 'profile' && (
           <form onSubmit={handleSaveProfile} className="bg-white rounded-2xl p-6 space-y-5">
             <div>
-              <label className="block text-sm text-gray-600 mb-2">Business Name</label>
-              <input type="text" value={form.business_name} onChange={e => setForm({ ...form, business_name: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none" required data-testid="business-name-input" />
+              <label className="block text-sm text-gray-600 mb-2">Business Name <span className="text-xs text-gray-400">(optional)</span></label>
+              <input
+                type="text"
+                value={form.business_name}
+                onChange={e => setForm({ ...form, business_name: e.target.value })}
+                placeholder={user?.full_name ? `${user.full_name}'s Services` : 'Your business or trade name'}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#1A2F3A] outline-none"
+                data-testid="business-name-input"
+              />
+              <p className="text-xs text-gray-400 mt-1">Leave blank and we'll use your name as the display name.</p>
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-2">Description</label>
@@ -409,6 +436,25 @@ const ContractorProfile = () => {
           </div>
         )}
 
+        {/* Availability Tab */}
+        {activeTab === 'availability' && (
+          <div data-testid="contractor-availability-tab">
+            <AvailabilityEditor />
+            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-900">
+              <p className="flex items-start gap-2">
+                <Calendar size={16} className="mt-0.5 flex-shrink-0" />
+                <span>
+                  Your weekly schedule is live on your public profile at{' '}
+                  <Link to={`/contractors/${user?.id}`} className="underline font-medium" target="_blank" rel="noopener noreferrer">
+                    dommma.com/contractors/{user?.id?.slice(0, 8)}…
+                  </Link>
+                  . Customers can only request bookings inside your available hours.
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Bookings Tab */}
         {activeTab === 'bookings' && (
           <div>
@@ -426,9 +472,15 @@ const ContractorProfile = () => {
                       <h4 className="font-medium text-[#1A2F3A]">{b.title}</h4>
                       <span className={`px-3 py-1 rounded-full text-xs ${statusColors[b.status]}`}>{b.status?.replace('_', ' ')}</span>
                     </div>
-                    <p className="text-sm text-gray-500 mb-2">{b.description}</p>
-                    {b.customer && <p className="text-xs text-gray-400 mb-2">From: {b.customer.name || b.customer.email}</p>}
-                    {b.preferred_date && <p className="text-xs text-gray-400">Date: {b.preferred_date} {b.preferred_time}</p>}
+                    {b.description && <p className="text-sm text-gray-500 mb-2">{b.description}</p>}
+                    <div className="text-xs text-gray-500 space-y-0.5 mb-2">
+                      <p>From: {b.customer?.name || b.customer?.email || b.customer_name_snapshot || b.customer_email_snapshot || 'Customer'}</p>
+                      {b.customer_email_snapshot && !b.customer?.email && <p>Email: {b.customer_email_snapshot}</p>}
+                      {b.customer_phone_snapshot && <p>Phone: {b.customer_phone_snapshot}</p>}
+                      {b.preferred_date && <p>Date: {b.preferred_date} at {b.preferred_time}</p>}
+                      {b.address && <p>Location: {b.address}</p>}
+                      {b.notes && <p className="italic">&ldquo;{b.notes}&rdquo;</p>}
+                    </div>
                     {b.amount && <p className="text-sm font-medium text-[#1A2F3A] mt-2">${b.amount}</p>}
                     {b.status === 'pending' && (
                       <div className="flex gap-2 mt-3">

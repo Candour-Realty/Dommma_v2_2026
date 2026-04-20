@@ -276,11 +276,21 @@ const Browse = () => {
               Filters
             </button>
             <div className="hidden md:flex items-center bg-white/10 rounded-full p-1">
-              <button onClick={() => setViewMode('list')} className={`p-2 rounded-full ${viewMode === 'list' ? 'bg-white/20' : ''}`}>
-                <List size={16} />
-              </button>
-              <button onClick={() => setViewMode('split')} className={`p-2 rounded-full ${viewMode === 'split' ? 'bg-white/20' : ''}`}>
+              <button
+                onClick={() => setViewMode('split')}
+                className={`p-2 rounded-full transition ${viewMode === 'split' ? 'bg-white/20' : ''}`}
+                title="Grid view with map"
+                data-testid="view-mode-split"
+              >
                 <Grid size={16} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-full transition ${viewMode === 'list' ? 'bg-white/20' : ''}`}
+                title="Compact list view"
+                data-testid="view-mode-list"
+              >
+                <List size={16} />
               </button>
             </div>
           </div>
@@ -342,8 +352,71 @@ const Browse = () => {
             <p className="text-sm text-gray-500 mb-4">{loading ? 'Loading...' : `${listings.length} properties found`}</p>
             
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">{[1,2,3,4,5,6,7,8].map(i => <div key={i} className="h-64 bg-gray-200 rounded-2xl animate-pulse" />)}</div>
+              <div className={viewMode === 'list' ? 'space-y-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'}>
+                {[1,2,3,4,5,6,7,8].map(i => <div key={i} className={`${viewMode === 'list' ? 'h-28' : 'h-64'} bg-gray-200 rounded-2xl animate-pulse`} />)}
+              </div>
+            ) : viewMode === 'list' ? (
+              /* ── COMPACT LIST VIEW ── horizontal rows: thumbnail + details ── */
+              <div className="space-y-3" data-testid="listings-list-view">
+                {listings.map((listing) => (
+                  <div
+                    key={listing.id}
+                    onClick={() => setSelectedListing(listing)}
+                    onMouseEnter={() => { setHoveredListing(listing); setActiveMarker(listing.id); }}
+                    onMouseLeave={() => { setHoveredListing(null); setActiveMarker(null); }}
+                    className={`flex gap-4 bg-white rounded-xl overflow-hidden cursor-pointer transition-all border hover:shadow-md ${hoveredListing?.id === listing.id ? 'border-[#1A2F3A]' : listing.featured ? 'border-yellow-400' : 'border-gray-200'}`}
+                    data-testid={`listing-row-${listing.id}`}
+                  >
+                    <div className="w-36 h-28 sm:w-48 sm:h-32 flex-shrink-0 relative">
+                      <img src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400'} alt={listing.title} className="w-full h-full object-cover" />
+                      {listing.featured && (
+                        <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded text-[10px] font-bold text-white flex items-center gap-0.5">
+                          <Star size={8} className="fill-white" /> Featured
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 py-3 pr-3 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-[#1A2F3A] truncate" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1.1rem' }}>{listing.title}</h3>
+                          <button
+                            className={`p-1.5 rounded-full transition-colors flex-shrink-0 ${favoriteIds.includes(listing.id) ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                            onClick={(e) => toggleFavorite(listing.id, e)}
+                            data-testid={`favorite-btn-list-${listing.id}`}
+                          >
+                            <Heart size={14} fill={favoriteIds.includes(listing.id) ? 'currentColor' : 'none'} />
+                          </button>
+                        </div>
+                        <p className="text-gray-500 text-xs mt-0.5 flex items-center gap-1 truncate"><MapPin size={10} />{listing.address}, {listing.city}</p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600 mt-2">
+                          <span className="flex items-center gap-1"><Bed size={12} /> {listing.bedrooms === 0 ? 'Studio' : `${listing.bedrooms} bd`}</span>
+                          <span className="flex items-center gap-1"><Bath size={12} /> {listing.bathrooms} ba</span>
+                          <span>{listing.sqft} sqft</span>
+                          <span className="text-gray-400">·</span>
+                          <span>{listing.property_type}</span>
+                          {listing.pet_friendly && <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-100 text-green-700">Pets OK</span>}
+                          {listing.parking && <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 text-blue-700">Parking</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-lg font-semibold text-[#1A2F3A]">
+                          ${listing.price?.toLocaleString()}
+                          <span className="text-xs font-normal text-gray-500">{listing.listing_type === 'sale' ? '' : '/mo'}</span>
+                        </p>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShareModalListing(listing); }}
+                          className="p-1.5 rounded-full text-gray-400 hover:text-[#1A2F3A] hover:bg-gray-100 transition-colors"
+                          title="Share listing"
+                        >
+                          <Share2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
+              /* ── CARD GRID VIEW (default) ── */
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {listings.map((listing) => (
                   <div
@@ -357,8 +430,8 @@ const Browse = () => {
                     <div className="flex flex-col">
                       <div className="w-full h-40 relative">
                         <img src={listing.images?.[0] || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400'} alt={listing.title} className="w-full h-full object-cover" />
-                        <button 
-                          className={`absolute top-2 right-2 p-2 bg-white/80 backdrop-blur-sm rounded-full transition-colors ${favoriteIds.includes(listing.id) ? 'text-red-500' : 'text-gray-400'}`} 
+                        <button
+                          className={`absolute top-2 right-2 p-2 bg-white/80 backdrop-blur-sm rounded-full transition-colors ${favoriteIds.includes(listing.id) ? 'text-red-500' : 'text-gray-400'}`}
                           onClick={(e) => toggleFavorite(listing.id, e)}
                           data-testid={`favorite-btn-${listing.id}`}
                         >
