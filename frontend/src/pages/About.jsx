@@ -19,9 +19,14 @@ const values = [
 
 const team = [
   { name: 'Jayraj Panchal', role: 'Founder', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200' },
-  { name: 'Monika Aggarwal', role: 'Founder', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200' },
+  {
+    name: 'Monika Aggarwal',
+    role: 'Founder',
+    image: '/founders/monika.jpg',
+    bio: "I'm a PMP-certified project management professional with a strong engineering background and an MBA, bringing a strategic and results-oriented approach to delivering complex projects. I specialize in leading cross-functional teams, managing stakeholders, and driving projects from initiation through execution while ensuring timelines, budgets, and business objectives are met. With a blend of technical expertise and business acumen, I focus on operational efficiency, process improvement, and delivering high-impact outcomes in dynamic environments."
+  },
   { name: 'Geoffrey Routledge', role: 'Founder', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200' },
-  { name: 'Rishabh Goswami', role: 'Founder', image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200' },
+  { name: 'Rishabh Goswami', role: 'Founder', image: '/founders/rishabh.jpg' },
 ];
 
 const About = () => {
@@ -128,16 +133,23 @@ const About = () => {
           >
             Meet the<br />Founders
           </h2>
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 gap-10">
             {team.map((member, i) => (
-              <div key={i} className="text-center">
-                <img 
+              <div key={i} className="flex gap-6 items-start">
+                <img
                   src={member.image}
                   alt={member.name}
-                  className="w-32 h-32 rounded-2xl mx-auto mb-4 object-cover"
+                  className="w-28 h-28 rounded-2xl object-cover flex-shrink-0"
                 />
-                <h3 className="text-white font-semibold">{member.name}</h3>
-                <p className="text-white/50 text-sm">{member.role}</p>
+                <div className="min-w-0">
+                  <h3 className="text-white font-semibold text-lg">{member.name}</h3>
+                  <p className="text-[#C4A962] text-sm uppercase tracking-widest mt-0.5">{member.role}</p>
+                  {member.bio && (
+                    <p className="text-white/70 text-sm leading-relaxed mt-3">
+                      {member.bio}
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
