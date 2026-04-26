@@ -204,8 +204,24 @@ async def smart_rent_pricing(
         p25 = baseline * 0.88
         p75 = baseline * 1.12
 
-    sqft_adj = (sqft / 700) if sqft > 0 else 1.0
-    bath_adj = 1.0 + (bathrooms - 1) * 0.05
+    # Sqft adjustment with diminishing returns + safety cap.
+    # Rent does NOT scale linearly with sqft (a 2x bigger unit isn't 2x the rent).
+    # We use a 0.4 power law (research-backed for rental markets) so doubling sqft
+    # adds ~32% rent, tripling adds ~55%. Then cap to ±50% so a 5,000 sqft mansion
+    # doesn't ever 6x the median.
+    if sqft > 0:
+        # Use comparable-set average sqft as the baseline if we have it,
+        # otherwise fall back to 850 (typical 1-2BR Metro Van).
+        comp_sqfts = [c.get("sqft", 0) for c in comps if c.get("sqft", 0) > 0]
+        baseline_sqft = (sum(comp_sqfts) / len(comp_sqfts)) if comp_sqfts else 850
+        ratio = sqft / baseline_sqft
+        sqft_adj = ratio ** 0.4
+        sqft_adj = max(0.65, min(1.5, sqft_adj))  # hard cap
+    else:
+        sqft_adj = 1.0
+
+    # Bathroom adjustment — small bump per extra bath, capped
+    bath_adj = min(1.20, 1.0 + max(0, (bathrooms - 1)) * 0.05)
     suggested = round(median * sqft_adj * bath_adj)
 
     competitive = round(suggested * 0.95)
