@@ -4,7 +4,7 @@ import {
   Building2, ArrowLeft, Plus, MapPin, Bed, Bath, Edit, Trash2,
   Image as ImageIcon, X, DollarSign, Check, Eye, EyeOff, Loader2,
   Gift, Calendar, Star, Zap, CheckCircle, AlertTriangle, Share2,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Camera, RotateCw
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
@@ -204,6 +204,10 @@ const MyProperties = () => {
   const [editingListing, setEditingListing] = useState(null);
   const [shareListing, setShareListing] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [rotatingIdx, setRotatingIdx] = useState(null);
+  // Drag-and-drop reorder state — tracks which photo is being dragged + which one is hovered
+  const [dragIdx, setDragIdx] = useState(null);
+  const [dragOverIdx, setDragOverIdx] = useState(null);
   const [geocoding, setGeocoding] = useState(false);
   const addressInputRef = useRef(null);
   
@@ -300,6 +304,67 @@ const MyProperties = () => {
     const [picked] = next.splice(idx, 1);
     next.unshift(picked);
     setForm({ ...form, images: next });
+  };
+
+  // Rotate a photo 90° clockwise. Loads it into a canvas, rotates pixel-by-pixel,
+  // uploads the rotated version, and replaces the URL in form.images.
+  // Falls back gracefully if the image host doesn't allow cross-origin canvas reads.
+  const rotateImage = async (idx) => {
+    setRotatingIdx(idx);
+    try {
+      const url = form.images[idx];
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      // Cache-bust to make sure we get a fresh CORS-headered fetch
+      const fetchUrl = url + (url.includes('?') ? '&' : '?') + 'rb=' + Date.now();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error('Could not load image'));
+        img.src = fetchUrl;
+      });
+      // Rotate 90° clockwise: swap width/height
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalHeight;
+      canvas.height = img.naturalWidth;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+      // Convert to blob and upload via existing /upload/image endpoint
+      const blob = await new Promise((res, rej) =>
+        canvas.toBlob((b) => (b ? res(b) : rej(new Error('Canvas export failed'))), 'image/jpeg', 0.9)
+      );
+      const fd = new FormData();
+      fd.append('file', blob, 'rotated.jpg');
+      const res = await axios.post(`${API}/upload/image`, fd);
+      const newUrl = res.data.url;
+      const next = [...form.images];
+      next[idx] = newUrl;
+      setForm({ ...form, images: next });
+    } catch (err) {
+      console.error('Rotate failed:', err);
+      alert(
+        "Couldn't rotate this photo on the server. " +
+        "If this keeps happening, try downloading the image, rotating it on your phone, and re-uploading."
+      );
+    } finally {
+      setRotatingIdx(null);
+    }
+  };
+
+  // Drop handler — reorder form.images based on drag start + drop targets
+  const handlePhotoDrop = (targetIdx) => {
+    if (dragIdx === null || dragIdx === targetIdx) {
+      setDragIdx(null);
+      setDragOverIdx(null);
+      return;
+    }
+    const next = [...form.images];
+    const [picked] = next.splice(dragIdx, 1);
+    next.splice(targetIdx, 0, picked);
+    setForm({ ...form, images: next });
+    setDragIdx(null);
+    setDragOverIdx(null);
   };
 
   const toggleAmenity = (amenity) => {
@@ -892,13 +957,45 @@ const MyProperties = () => {
                 <label className="block text-sm text-gray-600 mb-1">Photos</label>
                 {form.images.length > 0 && (
                   <p className="text-xs text-gray-400 mb-2">
-                    The first photo is your <strong>primary</strong> — it shows on listing cards and search results. Use the arrows to reorder, or click ★ to make any photo primary.
+                    The first photo is your <strong>primary</strong> — it shows on listing cards and search results. Drag to reorder, click ★ to make any photo primary, or ↻ to rotate sideways shots.
                   </p>
                 )}
                 <div className="flex flex-wrap gap-3 mb-3">
                   {form.images.map((img, i) => (
-                    <div key={i} className={`relative w-28 h-28 rounded-xl overflow-hidden group ${i === 0 ? 'ring-2 ring-[#C4A962]' : 'ring-1 ring-gray-200'}`}>
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+                    <div
+                      key={i}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.effectAllowed = 'move';
+                        // Some browsers require setData to actually start a drag
+                        try { e.dataTransfer.setData('text/plain', String(i)); } catch (_) {}
+                        setDragIdx(i);
+                      }}
+                      onDragEnter={(e) => {
+                        e.preventDefault();
+                        if (dragIdx !== null && dragIdx !== i) setDragOverIdx(i);
+                      }}
+                      onDragOver={(e) => { e.preventDefault(); }}
+                      onDragLeave={() => {
+                        // Only clear if we're leaving the actual hover target (not entering a child)
+                        setDragOverIdx((prev) => (prev === i ? null : prev));
+                      }}
+                      onDrop={(e) => { e.preventDefault(); handlePhotoDrop(i); }}
+                      onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+                      className={`relative w-28 h-28 rounded-xl overflow-hidden group cursor-move transition-all
+                        ${i === 0 ? 'ring-2 ring-[#C4A962]' : 'ring-1 ring-gray-200'}
+                        ${dragIdx === i ? 'opacity-40 scale-95' : ''}
+                        ${dragOverIdx === i ? 'ring-2 ring-[#1A2F3A] scale-105' : ''}
+                      `}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover pointer-events-none" />
+
+                      {/* Loading overlay while rotating */}
+                      {rotatingIdx === i && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-20">
+                          <Loader2 size={20} className="animate-spin text-white" />
+                        </div>
+                      )}
 
                       {/* Primary badge — only on first photo */}
                       {i === 0 && (
@@ -907,18 +1004,18 @@ const MyProperties = () => {
                         </span>
                       )}
 
-                      {/* Delete button — top right, hover */}
+                      {/* Delete button — top-right, appears on hover */}
                       <button
                         type="button"
                         onClick={() => removeImage(i)}
                         title="Remove photo"
-                        className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-600"
                       >
                         <X size={12} />
                       </button>
 
-                      {/* Reorder + primary controls — bottom strip, hover */}
-                      <div className="absolute bottom-0 left-0 right-0 px-1.5 py-1 bg-black/60 backdrop-blur-sm flex items-center justify-between gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Bottom toolbar — reorder + primary + rotate */}
+                      <div className="absolute bottom-0 left-0 right-0 px-1.5 py-1 bg-black/65 backdrop-blur-sm flex items-center justify-between gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           type="button"
                           onClick={() => movePhoto(i, 'left')}
@@ -938,8 +1035,17 @@ const MyProperties = () => {
                             <Star size={14} />
                           </button>
                         ) : (
-                          <span className="text-[9px] text-white/70 font-bold">PRIMARY</span>
+                          <span className="text-[9px] text-white/70 font-bold tracking-wider">PRIMARY</span>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => rotateImage(i)}
+                          disabled={rotatingIdx !== null}
+                          title="Rotate 90° clockwise"
+                          className="w-6 h-6 rounded text-white flex items-center justify-center hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <RotateCw size={13} />
+                        </button>
                         <button
                           type="button"
                           onClick={() => movePhoto(i, 'right')}
@@ -952,10 +1058,26 @@ const MyProperties = () => {
                       </div>
                     </div>
                   ))}
+
+                  {/* Upload from file picker (photos already on device) */}
                   <label className="w-28 h-28 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-[#1A2F3A] transition-colors">
                     <ImageIcon size={20} className="text-gray-400 mb-1" />
                     <span className="text-xs text-gray-400">{uploading ? 'Uploading…' : 'Add'}</span>
                     <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading} />
+                  </label>
+
+                  {/* Take photo from camera (mobile opens camera; desktop falls back to file picker) */}
+                  <label className="w-28 h-28 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-[#1A2F3A] transition-colors">
+                    <Camera size={20} className="text-gray-400 mb-1" />
+                    <span className="text-xs text-gray-400">{uploading ? 'Uploading…' : 'Camera'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploading}
+                    />
                   </label>
                 </div>
               </div>
