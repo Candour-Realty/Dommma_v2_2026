@@ -18,15 +18,25 @@ const values = [
 ];
 
 const team = [
-  { name: 'Jayraj Panchal', role: 'Founder', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200' },
+  { name: 'Jayraj Panchal', role: 'Founder', image: '/founders/jayraj.jpg' },
   {
     name: 'Monika Aggarwal',
     role: 'Founder',
     image: '/founders/monika.jpg',
     bio: "I'm a PMP-certified project management professional with a strong engineering background and an MBA, bringing a strategic and results-oriented approach to delivering complex projects. I specialize in leading cross-functional teams, managing stakeholders, and driving projects from initiation through execution while ensuring timelines, budgets, and business objectives are met. With a blend of technical expertise and business acumen, I focus on operational efficiency, process improvement, and delivering high-impact outcomes in dynamic environments."
   },
-  { name: 'Geoffrey Routledge', role: 'Founder', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200' },
-  { name: 'Rishabh Goswami', role: 'Founder', image: '/founders/rishabh.jpg' },
+  {
+    name: 'Geoffrey Routledge',
+    role: 'Founder',
+    image: '/founders/geoffrey.jpg',
+    bio: "Geoff Routledge is a Vancouver-based founder, architect, and operator with three decades of experience at the intersection of technology, finance, and real estate.\n\nGeoff founded Liquuid Home Ownership, a securitized shared-equity mortgage product designed to improve affordability for buyers and give institutional investors geographically targeted exposure to home-price indices as a new asset class. He originated the product, drove the legal and operating model required to enable shared-equity mortgages in Canada, and built the institutional-grade financial models — applying CAPM, covariance analysis, and efficient-frontier work to demonstrate that home-price exposure could improve risk-adjusted returns by decorrelating institutional portfolios. The company raised $2M in seed capital on that thesis.\n\nEarlier, Geoff co-founded PayByPhone in 2000, a real-time mobile payment platform for parking and venues launched years before mobile app stores existed. The company went live with flagship customers including the Seattle Mariners, Carolina Hurricanes, and Impark; the model has since scaled to more than 1,300 cities globally. That experience established his track record for bringing novel transaction models through regulatory friction, enterprise procurement, and consumer adoption simultaneously — directly applicable to new instruments in the real estate capital stack.\n\nThe balance of his career — including senior roles at Oracle Cloud, Google Cloud, Verily, Canfor, and Salto — comprises three decades of architecting enterprise systems and closing seven-figure deals. Geoff brings a rare combination to real estate, proptech, and fintech conversations: the financial engineering to structure the instrument, the technical depth to build the platform, and the founder experience to anticipate which problems matter most."
+  },
+  {
+    name: 'Rishabh Goswami',
+    role: 'Co-founder & CTO',
+    image: '/founders/rishabh.jpg',
+    bio: "Rishabh Goswami is the CTO and co-founder of Dommma, bringing deep expertise in privacy, cybersecurity, compliance, and technology strategy to the future of real estate. Based in Vancouver, he has built a career at the intersection of security, risk, infrastructure, and product thinking, helping organizations design systems that are both resilient and trustworthy.\n\nWith a strong foundation in enterprise technology, data privacy, regulatory frameworks, and operational execution, Rishabh has developed the ability to translate complex technical and compliance challenges into practical, scalable solutions. His experience spans secure system design, risk management, privacy governance, incident response, and cross-functional leadership, giving him a rare blend of technical depth and business perspective.\n\nAt Dommma, Rishabh leads the technical vision with a privacy-first, execution-focused mindset — building the architecture, systems, and processes that support a modern real estate platform. He brings a strong appreciation for product quality, user trust, and operational rigor, and is committed to creating technology that is secure, elegant, and built to scale."
+  },
 ];
 
 const About = () => {
@@ -145,9 +155,11 @@ const About = () => {
                   <h3 className="text-white font-semibold text-lg">{member.name}</h3>
                   <p className="text-[#C4A962] text-sm uppercase tracking-widest mt-0.5">{member.role}</p>
                   {member.bio && (
-                    <p className="text-white/70 text-sm leading-relaxed mt-3">
-                      {member.bio}
-                    </p>
+                    <div className="text-white/70 text-sm leading-relaxed mt-3 space-y-3">
+                      {member.bio.split('\n\n').map((para, idx) => (
+                        <p key={idx}>{para}</p>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
