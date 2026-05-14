@@ -66,6 +66,7 @@ import CampaignDashboard from "@/pages/CampaignDashboard";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import SecurityPage from "@/pages/SecurityPage";
 import BulkImport from "@/pages/BulkImport";
+import ImportFromUrl from "@/pages/ImportFromUrl";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import CookieConsent from "@/components/CookieConsent";
@@ -232,6 +233,7 @@ function App() {
           <Route path="/jobs" element={<DashboardLayout><Jobs /></DashboardLayout>} />
           <Route path="/my-properties" element={<DashboardLayout><MyProperties /></DashboardLayout>} />
           <Route path="/bulk-import" element={<DashboardLayout><BulkImport /></DashboardLayout>} />
+          <Route path="/import-from-url" element={<DashboardLayout><ImportFromUrl /></DashboardLayout>} />
           <Route path="/contractor-profile" element={<DashboardLayout><ContractorProfile /></DashboardLayout>} />
           <Route path="/report-issue" element={<DashboardLayout><SmartIssueReporter /></DashboardLayout>} />
           <Route path="/document-analyzer" element={<DashboardLayout><DocumentAnalyzer /></DashboardLayout>} />

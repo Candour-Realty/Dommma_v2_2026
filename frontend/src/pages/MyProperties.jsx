@@ -4,7 +4,7 @@ import {
   Building2, ArrowLeft, Plus, MapPin, Bed, Bath, Edit, Trash2,
   Image as ImageIcon, X, DollarSign, Check, Eye, EyeOff, Loader2,
   Gift, Calendar, Star, Zap, CheckCircle, AlertTriangle, Share2,
-  ChevronLeft, ChevronRight, Camera, RotateCw, Crop
+  ChevronLeft, ChevronRight, Camera, RotateCw, Crop, Link2
 } from 'lucide-react';
 import { useAuth } from '../App';
 import axios from 'axios';
@@ -553,6 +553,9 @@ const MyProperties = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link to="/import-from-url" className="flex items-center gap-2 px-4 py-2 bg-[#C4A962]/20 hover:bg-[#C4A962]/30 text-[#C4A962] border border-[#C4A962]/30 rounded-full text-sm">
+              <Link2 size={16} /> Import from URL
+            </Link>
             <Link to="/bulk-import" className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm">
               <ImageIcon size={16} /> Bulk Import
             </Link>
