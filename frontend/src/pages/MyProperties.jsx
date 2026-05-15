@@ -553,9 +553,11 @@ const MyProperties = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/bd-inbox" className="flex items-center gap-2 px-4 py-2 bg-[#C4A962]/20 hover:bg-[#C4A962]/30 text-[#C4A962] border border-[#C4A962]/30 rounded-full text-sm">
-              <Inbox size={16} /> BD Inbox
-            </Link>
+            {user?.is_admin === true && (
+              <Link to="/bd-inbox" className="flex items-center gap-2 px-4 py-2 bg-[#C4A962]/20 hover:bg-[#C4A962]/30 text-[#C4A962] border border-[#C4A962]/30 rounded-full text-sm">
+                <Inbox size={16} /> BD Inbox
+              </Link>
+            )}
             <Link to="/import-from-url" className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm">
               <Link2 size={16} /> Import URL
             </Link>

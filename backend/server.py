@@ -7609,6 +7609,36 @@ async def startup_migrations():
     if result.modified_count > 0:
         logger.info(f"Migration: Fixed {result.modified_count} e-sign documents - linked recipient_id to signer_id")
 
+    # Idempotent admin promotion: ensure the founder account always has
+    # is_admin=True. Safe to run every boot — only updates when the flag
+    # is missing or false. Lets us deploy admin-gated features without
+    # any manual DB step.
+    ADMIN_EMAIL = "rgoswami@dommma.com"
+    try:
+        admin_result = await db.users.update_one(
+            {
+                "email": {"$regex": f"^{ADMIN_EMAIL}$", "$options": "i"},
+                "$or": [
+                    {"is_admin": {"$exists": False}},
+                    {"is_admin": False},
+                ],
+            },
+            {"$set": {"is_admin": True}},
+        )
+        if admin_result.modified_count > 0:
+            logger.info(f"Admin backfill: promoted {ADMIN_EMAIL} to is_admin=True")
+        elif admin_result.matched_count == 0:
+            # No row matched the OR clause — either the user doesn't exist yet,
+            # or they're already admin. Log only if user is missing entirely.
+            existing = await db.users.find_one(
+                {"email": {"$regex": f"^{ADMIN_EMAIL}$", "$options": "i"}},
+                {"_id": 0, "is_admin": 1},
+            )
+            if not existing:
+                logger.warning(f"Admin backfill: no user found with email={ADMIN_EMAIL}")
+    except Exception as e:
+        logger.exception(f"Admin backfill failed: {e}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()

@@ -21,6 +21,20 @@ class UserCreate(BaseModel):
     password: str
     name: Optional[str] = None
     user_type: str
+    # Accepted but stripped server-side — only the on-startup backfill or a
+    # direct DB update may grant admin. Normal signups can never self-elevate.
+    is_admin: Optional[bool] = False
+
+
+class User(BaseModel):
+    """User shape returned from auth endpoints. Mirrors what's stored in
+    db.users (minus password_hash / verification tokens)."""
+    id: str
+    email: str
+    name: Optional[str] = None
+    user_type: str
+    email_verified: bool = False
+    is_admin: bool = False
 
 
 class UserLogin(BaseModel):
@@ -63,6 +77,10 @@ async def register_user(request: Request, user_data: UserCreate):
         "name": user_data.name or user_data.email.split('@')[0],
         "user_type": user_data.user_type,
         "email_verified": False,
+        # Always force is_admin=False on registration. Self-elevation via the
+        # signup payload is not allowed — only the startup backfill or a
+        # manual DB update may grant admin.
+        "is_admin": False,
         "verification_token": verification_token,
         "verification_token_expires": token_expires,
         "password_hash": hash_password(user_data.password),
@@ -174,7 +192,26 @@ async def login_user(login_data: UserLogin, request: Request):
         "email": user.get('email'),
         "name": user.get('name'),
         "user_type": user.get('user_type'),
+        "is_admin": bool(user.get('is_admin', False)),
         "session_id": session_id
+    }
+
+
+@router.get("/me")
+async def get_me(user_id: str):
+    """Return the canonical user shape (used by the frontend to refresh
+    the auth context after login or page reload). Includes is_admin so the
+    UI can gate admin-only routes."""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0, "password": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": user.get('id'),
+        "email": user.get('email'),
+        "name": user.get('name'),
+        "user_type": user.get('user_type'),
+        "email_verified": bool(user.get('email_verified', False)),
+        "is_admin": bool(user.get('is_admin', False)),
     }
 
 

@@ -34,6 +34,20 @@ export default function BDInbox() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Admin-only gate. Redirect non-admins to /my-properties. We allow
+  // `user === undefined` for one render while the auth context hydrates,
+  // but block as soon as we know the user is non-admin (or not logged in).
+  const isAdmin = user?.is_admin === true;
+  useEffect(() => {
+    if (user === null) {
+      navigate('/login', { replace: true });
+      return;
+    }
+    if (user && !isAdmin) {
+      navigate('/my-properties', { replace: true });
+    }
+  }, [user, isAdmin, navigate]);
+
   const [leads, setLeads] = useState([]);
   const [stats, setStats] = useState({ counts: {}, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -94,6 +108,12 @@ export default function BDInbox() {
     if (!statusFilter) return leads;
     return leads.filter(l => statusFilter.split(',').includes(l.status));
   }, [leads, statusFilter]);
+
+  // While auth is hydrating, or if non-admin, render nothing. The redirect
+  // effect above will move them off this page.
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-[#0F1419] text-white">

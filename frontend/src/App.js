@@ -140,6 +140,31 @@ function App() {
     }
   }, []);
 
+  // Refresh user from /me on first load so newly-added server fields
+  // (e.g. is_admin) propagate without requiring a fresh login.
+  useEffect(() => {
+    if (!user?.id) return;
+    const API = process.env.REACT_APP_BACKEND_URL || '';
+    let cancelled = false;
+    fetch(`${API}/api/auth/me?user_id=${encodeURIComponent(user.id)}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(fresh => {
+        if (cancelled || !fresh) return;
+        // Merge — keep session_id and anything else we already had
+        const merged = { ...user, ...fresh };
+        if (merged.is_admin === user.is_admin && merged.email_verified === user.email_verified) return;
+        setUser(merged);
+        const json = JSON.stringify(merged);
+        sessionStorage.setItem('dommma_user', json);
+        if (localStorage.getItem('dommma_user')) {
+          localStorage.setItem('dommma_user', json);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Inactivity timeout — auto-logout after 30 minutes of no activity
   useEffect(() => {
     if (!user) return;

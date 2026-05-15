@@ -78,6 +78,18 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+async def require_admin(owner_id: Optional[str]) -> None:
+    """Gate: only users with is_admin=True may use BD Inbox endpoints.
+
+    Raises 403 for missing owner_id, unknown user, or non-admin.
+    """
+    if not owner_id:
+        raise HTTPException(status_code=403, detail="Admin access required.")
+    user = await db.users.find_one({"id": owner_id}, {"_id": 0, "is_admin": 1})
+    if not user or not user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin access required.")
+
+
 def _guess_contact(source: str, raw_text: str) -> Dict[str, str]:
     """Best-effort: pull a phone/email from the listing body, otherwise
     default the channel based on source."""
@@ -210,6 +222,7 @@ async def bulk_import(req: BulkImportRequest, background: BackgroundTasks):
 
     No upper limit on URLs. Concurrency is throttled server-side.
     """
+    await require_admin(req.owner_id)
     urls = _dedupe_urls(req.urls)
     if not urls:
         raise HTTPException(status_code=400, detail="No URLs provided.")
@@ -273,6 +286,7 @@ async def list_leads(
     skip: int = 0,
 ):
     """List leads with optional filtering."""
+    await require_admin(owner_id)
     query: Dict[str, Any] = {}
     if owner_id:
         query["owner_id"] = owner_id
@@ -291,6 +305,7 @@ async def list_leads(
 @router.get("/stats")
 async def lead_stats(owner_id: Optional[str] = None):
     """Status counts for the header pills."""
+    await require_admin(owner_id)
     match: Dict[str, Any] = {}
     if owner_id:
         match["owner_id"] = owner_id
@@ -308,6 +323,10 @@ async def lead_stats(owner_id: Optional[str] = None):
 @router.patch("/leads/{lead_id}")
 async def update_lead(lead_id: str, body: LeadUpdate):
     """Patch a lead's status / notes / contact / drafted_message."""
+    existing = await db.bd_leads.find_one({"id": lead_id}, {"_id": 0, "owner_id": 1})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    await require_admin(existing.get("owner_id"))
     updates: Dict[str, Any] = {"updated_at": _now()}
 
     if body.status is not None:
@@ -338,6 +357,10 @@ async def update_lead(lead_id: str, body: LeadUpdate):
 
 @router.delete("/leads/{lead_id}")
 async def delete_lead(lead_id: str):
+    existing = await db.bd_leads.find_one({"id": lead_id}, {"_id": 0, "owner_id": 1})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    await require_admin(existing.get("owner_id"))
     result = await db.bd_leads.delete_one({"id": lead_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -373,6 +396,7 @@ async def draft_outreach(lead_id: str):
     lead = await db.bd_leads.find_one({"id": lead_id}, {"_id": 0})
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
+    await require_admin(lead.get("owner_id"))
     if lead.get("status") not in {"extracted", "drafted", "sent", "replied"}:
         raise HTTPException(
             status_code=400,
@@ -445,6 +469,7 @@ async def convert_to_listing(lead_id: str, body: ConvertRequest):
     lead = await db.bd_leads.find_one({"id": lead_id}, {"_id": 0})
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
+    await require_admin(lead.get("owner_id"))
 
     draft = lead.get("draft") or {}
     if not draft.get("title") or draft.get("price", 0) <= 0:
