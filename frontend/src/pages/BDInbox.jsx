@@ -558,7 +558,9 @@ function channelLabel(method) {
 }
 
 function PasteModal({ onClose, onDone, ownerId }) {
+  const [mode, setMode] = useState('url'); // 'url' | 'text'
   const [text, setText] = useState('');
+  const [sourceHint, setSourceHint] = useState('facebook'); // for text mode
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -571,24 +573,48 @@ function PasteModal({ onClose, onDone, ownerId }) {
       .length;
   }, [text]);
 
+  // Text mode: split on lines of three+ dashes (---, ====, ___)
+  const textBlocks = useMemo(() => {
+    return text
+      .split(/^\s*[-=_]{3,}\s*$/m)
+      .map(s => s.trim())
+      .filter(s => s.length >= 50);
+  }, [text]);
+
   const submit = async () => {
     setError('');
-    const urls = text
-      .split(/[\n,\s]+/)
-      .map(s => s.trim())
-      .filter(s => /^https?:\/\//i.test(s));
-    if (urls.length === 0) {
-      setError('No valid URLs found. Paste one URL per line.');
-      return;
-    }
     setSubmitting(true);
     try {
-      const { data } = await axios.post(`${API}/api/bd-inbox/import`, {
-        urls,
-        owner_id: ownerId,
-      });
-      setResult(data);
-      setTimeout(onDone, 1200);
+      if (mode === 'url') {
+        const urls = text
+          .split(/[\n,\s]+/)
+          .map(s => s.trim())
+          .filter(s => /^https?:\/\//i.test(s));
+        if (urls.length === 0) {
+          setError('No valid URLs found. Paste one URL per line.');
+          setSubmitting(false);
+          return;
+        }
+        const { data } = await axios.post(`${API}/api/bd-inbox/import`, {
+          urls,
+          owner_id: ownerId,
+        });
+        setResult(data);
+        setTimeout(onDone, 1200);
+      } else {
+        if (textBlocks.length === 0) {
+          setError('No listing blocks found. Paste at least one listing of 50+ characters.');
+          setSubmitting(false);
+          return;
+        }
+        const { data } = await axios.post(`${API}/api/bd-inbox/import-text`, {
+          texts: textBlocks,
+          source_hint: sourceHint,
+          owner_id: ownerId,
+        });
+        setResult(data);
+        setTimeout(onDone, 1200);
+      }
     } catch (e) {
       setError(e?.response?.data?.detail || e.message);
     } finally {
@@ -596,37 +622,108 @@ function PasteModal({ onClose, onDone, ownerId }) {
     }
   };
 
+  const urlPlaceholder = `https://vancouver.craigslist.org/van/apa/d/.../789.html
+https://www.kijiji.ca/v-apartments-condos/.../456
+https://www.facebook.com/marketplace/item/123/  (note: FB usually fails — use Text mode instead)`;
+
+  const textPlaceholder = `Paste the full listing copy here. Separate multiple listings with three dashes.
+
+Bright 2BR · Kitsilano · $2,800/mo
+2 bed, 1 bath, 850 sqft. Available June 1. Pets OK, parking included.
+Renovated kitchen, in-suite laundry. Steps to the beach and West 4th.
+Phone: 604-555-1234
+
+---
+
+Studio · Yaletown · $1,950/mo
+450 sqft. Available July 1. No pets, no parking.
+Concierge, gym, rooftop. 5 min walk to SkyTrain.`;
+
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6" onClick={onClose}>
       <div
-        className="bg-[#1A2332] border border-[#2A3441] rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto"
+        className="bg-[#1A2332] border border-[#2A3441] rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-[#2A3441]">
           <h2 className="text-2xl text-white" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
-            Paste listing URLs
+            {mode === 'url' ? 'Paste listing URLs' : 'Paste listing text'}
           </h2>
           <button onClick={onClose} className="text-white/50 hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Tab toggle */}
+        <div className="flex border-b border-[#2A3441]">
+          <button
+            onClick={() => { setMode('url'); setError(''); setResult(null); }}
+            className={`flex-1 py-3 text-sm font-medium transition ${
+              mode === 'url'
+                ? 'text-[#C4A962] border-b-2 border-[#C4A962] -mb-px bg-[#0F1419]/40'
+                : 'text-white/50 hover:text-white/80'
+            }`}
+          >
+            URLs <span className="opacity-50 text-xs">(CL, Kijiji)</span>
+          </button>
+          <button
+            onClick={() => { setMode('text'); setError(''); setResult(null); }}
+            className={`flex-1 py-3 text-sm font-medium transition ${
+              mode === 'text'
+                ? 'text-[#C4A962] border-b-2 border-[#C4A962] -mb-px bg-[#0F1419]/40'
+                : 'text-white/50 hover:text-white/80'
+            }`}
+          >
+            Listing text <span className="opacity-50 text-xs">(FB Marketplace, anything)</span>
+          </button>
+        </div>
+
         <div className="p-5 space-y-4">
-          <p className="text-white/60 text-sm">
-            One URL per line. No limit on count. Supported: Facebook Marketplace, Craigslist, Kijiji.
-            We'll fetch and extract each in the background — feel free to close this and come back.
-          </p>
+          {mode === 'url' ? (
+            <p className="text-white/60 text-sm">
+              One URL per line. No limit on count. Best results: <strong>Craigslist</strong> and <strong>Kijiji</strong>.
+              <span className="block mt-1 text-orange-300/80 text-xs">
+                ⚠ FB Marketplace usually fails here (JS-rendered, login-walled). Use <strong>Listing text</strong> mode instead.
+              </span>
+            </p>
+          ) : (
+            <>
+              <p className="text-white/60 text-sm">
+                Copy the listing text from FB Marketplace (or anywhere) and paste below.
+                Separate multiple listings with three dashes on their own line: <code className="bg-[#0F1419] px-1.5 py-0.5 rounded text-xs">---</code>
+              </p>
+              <div>
+                <label className="block text-xs uppercase tracking-widest text-white/50 mb-1.5">
+                  Where these listings are from
+                </label>
+                <select
+                  value={sourceHint}
+                  onChange={e => setSourceHint(e.target.value)}
+                  className="bg-[#0F1419] border border-[#2A3441] rounded-lg px-3 py-2 text-white text-sm focus:border-[#C4A962] focus:outline-none"
+                >
+                  <option value="facebook">Facebook Marketplace</option>
+                  <option value="craigslist">Craigslist</option>
+                  <option value="kijiji">Kijiji</option>
+                  <option value="pasted">Other / Mixed</option>
+                </select>
+              </div>
+            </>
+          )}
 
           <textarea
             value={text}
             onChange={e => setText(e.target.value)}
-            rows={14}
-            placeholder={`https://www.facebook.com/marketplace/item/123/\nhttps://vancouver.craigslist.org/van/apa/d/.../789.html\nhttps://www.kijiji.ca/v-apartments-condos/.../456`}
+            rows={mode === 'text' ? 16 : 12}
+            placeholder={mode === 'url' ? urlPlaceholder : textPlaceholder}
             className="w-full bg-[#0F1419] border border-[#2A3441] rounded-lg px-3 py-2.5 text-white text-sm font-mono placeholder:text-white/30 focus:border-[#C4A962] focus:outline-none"
           />
 
           <div className="flex items-center justify-between text-xs text-white/50">
-            <span>{urlCount} URL{urlCount !== 1 ? 's' : ''} detected</span>
+            <span>
+              {mode === 'url'
+                ? `${urlCount} URL${urlCount !== 1 ? 's' : ''} detected`
+                : `${textBlocks.length} listing${textBlocks.length !== 1 ? 's' : ''} detected`}
+            </span>
             <span>Processing: ~5 simultaneous at a time</span>
           </div>
 
@@ -640,6 +737,7 @@ function PasteModal({ onClose, onDone, ownerId }) {
             <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 rounded-lg px-3 py-2 text-sm">
               ✓ Queued {result.created} new leads
               {result.skipped_existing > 0 && ` (${result.skipped_existing} already in inbox)`}
+              {result.skipped_short > 0 && ` (${result.skipped_short} too short to extract)`}
             </div>
           )}
 
@@ -652,10 +750,12 @@ function PasteModal({ onClose, onDone, ownerId }) {
             </button>
             <button
               onClick={submit}
-              disabled={submitting || urlCount === 0}
+              disabled={submitting || (mode === 'url' ? urlCount === 0 : textBlocks.length === 0)}
               className="flex-1 bg-[#C4A962] hover:bg-[#D4BB72] disabled:opacity-50 text-[#0F1419] font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2"
             >
-              {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Queueing…</> : <>Queue {urlCount} for extraction</>}
+              {submitting
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Queueing…</>
+                : <>Queue {mode === 'url' ? urlCount : textBlocks.length} for extraction</>}
             </button>
           </div>
         </div>

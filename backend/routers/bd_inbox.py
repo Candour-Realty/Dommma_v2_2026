@@ -66,6 +66,18 @@ class LeadUpdate(BaseModel):
     drafted_message: Optional[str] = None
 
 
+class TextImportRequest(BaseModel):
+    """Bulk import via pasted listing text — for sources we can't fetch
+    (FB Marketplace is JS-rendered, login-walled, or otherwise opaque).
+    Each item is one listing's text. Separate listings in the UI with
+    `---` and the frontend splits before submitting.
+    """
+    texts: List[str]
+    owner_id: Optional[str] = None
+    source_hint: Optional[str] = "facebook"  # what source this came from
+    source_url_hint: Optional[str] = None    # if user has a reference URL
+
+
 VALID_STATUSES = {
     "queued", "extracting", "extracted", "drafted",
     "sent", "replied", "won", "lost", "failed",
@@ -122,6 +134,44 @@ def _guess_contact(source: str, raw_text: str) -> Dict[str, str]:
     return {"contact_method": "unknown", "contact_value": ""}
 
 
+# Phrases that indicate Claude couldn't extract real data (e.g. FB SPA shell
+# fetched without JS rendering). When Claude apologizes in the title or
+# description, we mark the lead as failed instead of letting a useless draft
+# poison the outreach pipeline.
+_GARBAGE_PHRASES = (
+    "corrupt", "invalid", "cannot extract", "could not extract",
+    "no readable", "no data", "unable to", "apologize", "appears to be",
+    "i cannot", "i'm sorry", "encoded improperly", "encoding error",
+    "no listing", "not a listing", "no information",
+)
+
+
+def _is_garbage_extraction(draft) -> bool:
+    """Return True if the LLM output is a polite refusal / apology rather
+    than a real listing extraction.
+
+    Common cause: source page was JS-rendered (FB Marketplace) and our
+    plain-HTTP fetch returned the SPA shell, so Claude got HTML scaffolding
+    with no actual content.
+    """
+    title = (draft.title or "").lower()
+    desc = (draft.description or "").lower()
+    for phrase in _GARBAGE_PHRASES:
+        if phrase in title or phrase in desc:
+            return True
+    # Empty-shell heuristic: no title, no price, no bedrooms, no address,
+    # and a tiny description is almost certainly a failed extraction.
+    if (
+        not draft.title.strip()
+        and draft.price == 0
+        and draft.bedrooms == 0
+        and not draft.address.strip()
+        and len(desc) < 50
+    ):
+        return True
+    return False
+
+
 async def _extract_one(lead_id: str) -> None:
     """Background task: fetch + extract + update a single lead.
 
@@ -160,6 +210,29 @@ async def _extract_one(lead_id: str) -> None:
             images = _extract_image_urls(html_text, meta)
             contact = _guess_contact(source, text_for_llm)
 
+            if _is_garbage_extraction(draft):
+                hint = (
+                    "FB Marketplace pages are JS-rendered — our URL fetch only "
+                    "sees the empty SPA shell. Use the paste-text fallback: open "
+                    "the listing, copy the title + price + description, and "
+                    "submit it via 'Listing text' mode."
+                ) if source == "facebook" else (
+                    "Could not extract real listing data from the page. Try "
+                    "the paste-text fallback with the listing's text content."
+                )
+                await db.bd_leads.update_one(
+                    {"id": lead_id},
+                    {"$set": {
+                        "status": "failed",
+                        "source": source,
+                        "draft": None,
+                        "error": hint,
+                        "updated_at": _now(),
+                    }},
+                )
+                logger.info("Lead %s: garbage extraction from %s", lead_id, source)
+                return
+
             await db.bd_leads.update_one(
                 {"id": lead_id},
                 {"$set": {
@@ -186,6 +259,93 @@ async def _extract_one(lead_id: str) -> None:
             )
         except Exception as e:
             logger.exception("Extraction crashed for %s", lead_id)
+            await db.bd_leads.update_one(
+                {"id": lead_id},
+                {"$set": {
+                    "status": "failed",
+                    "error": str(e)[:500],
+                    "updated_at": _now(),
+                }},
+            )
+
+
+async def _extract_one_text(lead_id: str) -> None:
+    """Background task for pasted-text leads.
+
+    Skips the HTML fetch step entirely and feeds the user's pasted text
+    directly to Claude. Used when the source page can't be fetched
+    (FB Marketplace JS shell, login-walled pages, screenshots OCR'd by
+    the user, etc.).
+    """
+    async with _extract_semaphore:
+        lead = await db.bd_leads.find_one({"id": lead_id}, {"_id": 0})
+        if not lead:
+            logger.warning("Lead %s vanished before text extraction", lead_id)
+            return
+
+        pasted = (lead.get("pasted_text") or "").strip()
+        if len(pasted) < 50:
+            await db.bd_leads.update_one(
+                {"id": lead_id},
+                {"$set": {
+                    "status": "failed",
+                    "error": "Pasted text too short (under 50 chars).",
+                    "updated_at": _now(),
+                }},
+            )
+            return
+
+        try:
+            await db.bd_leads.update_one(
+                {"id": lead_id},
+                {"$set": {"status": "extracting", "updated_at": _now()}},
+            )
+
+            text_for_llm = pasted[:MAX_HTML_CHARS_FOR_LLM]
+            parsed = await _extract_with_claude(text_for_llm)
+            draft = _coerce_draft(parsed)
+            source = lead.get("source", "pasted")
+            contact = _guess_contact(source, text_for_llm)
+
+            if _is_garbage_extraction(draft):
+                await db.bd_leads.update_one(
+                    {"id": lead_id},
+                    {"$set": {
+                        "status": "failed",
+                        "draft": None,
+                        "error": (
+                            "Pasted text didn't look like a listing. Include "
+                            "the title, price, and description — at minimum."
+                        ),
+                        "updated_at": _now(),
+                    }},
+                )
+                return
+
+            await db.bd_leads.update_one(
+                {"id": lead_id},
+                {"$set": {
+                    "status": "extracted",
+                    "draft": draft.model_dump(),
+                    "confidence": _confidence_for(draft),
+                    "contact_method": contact["contact_method"],
+                    "contact_value": contact["contact_value"],
+                    "updated_at": _now(),
+                }},
+            )
+            logger.info("Lead %s extracted from pasted text (%s)", lead_id, source)
+
+        except HTTPException as e:
+            await db.bd_leads.update_one(
+                {"id": lead_id},
+                {"$set": {
+                    "status": "failed",
+                    "error": f"{e.status_code}: {e.detail}",
+                    "updated_at": _now(),
+                }},
+            )
+        except Exception as e:
+            logger.exception("Text extraction crashed for %s", lead_id)
             await db.bd_leads.update_one(
                 {"id": lead_id},
                 {"$set": {
@@ -273,6 +433,59 @@ async def bulk_import(req: BulkImportRequest, background: BackgroundTasks):
         "created": len(created),
         "skipped_existing": skipped_existing,
         "total_submitted": len(urls),
+        "lead_ids": created,
+    }
+
+
+@router.post("/import-text")
+async def bulk_import_text(req: TextImportRequest, background: BackgroundTasks):
+    """Bulk import via pasted listing text. Use this for FB Marketplace
+    (JS-rendered, our URL fetch only sees the empty SPA shell) or any
+    source we can't fetch directly.
+
+    No upper limit on text-blocks. Concurrency throttled server-side.
+    """
+    await require_admin(req.owner_id)
+    texts = [t.strip() for t in (req.texts or []) if t and t.strip()]
+    if not texts:
+        raise HTTPException(status_code=400, detail="No text blocks provided.")
+
+    created = []
+    now = _now()
+    source = req.source_hint or "pasted"
+
+    for text in texts:
+        if len(text) < 50:
+            continue  # too short to be a real listing
+
+        lead = {
+            "id": str(uuid.uuid4()),
+            "owner_id": req.owner_id,
+            "source_url": req.source_url_hint or "",
+            "source": source,
+            "status": "queued",
+            "pasted_text": text,  # what we'll feed to Claude
+            "draft": None,
+            "images": [],
+            "confidence": None,
+            "contact_method": "unknown",
+            "contact_value": "",
+            "drafted_message": "",
+            "notes": "",
+            "error": "",
+            "created_at": now,
+            "updated_at": now,
+            "sent_at": None,
+            "replied_at": None,
+        }
+        await db.bd_leads.insert_one(lead)
+        created.append(lead["id"])
+        background.add_task(_extract_one_text, lead["id"])
+
+    return {
+        "ok": True,
+        "created": len(created),
+        "skipped_short": len(texts) - len(created),
         "lead_ids": created,
     }
 
@@ -404,6 +617,20 @@ async def draft_outreach(lead_id: str):
         )
 
     draft = lead.get("draft") or {}
+    # Defensive: refuse to draft when extraction left us with nothing useful.
+    # Without this guard, Claude generates apologetic messages like
+    # "I tried pulling your listing but the data came through corrupted" —
+    # which would torpedo our credibility with the landlord.
+    if not draft.get("title") or int(draft.get("price", 0) or 0) <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Lead extraction was incomplete (no title or price). "
+                "Re-import via the paste-text fallback with the listing's "
+                "actual text content."
+            ),
+        )
+
     prompt = DRAFT_PROMPT.format(
         title=draft.get("title", "your listing"),
         price=draft.get("price", "n/a"),
