@@ -7539,6 +7539,7 @@ from routers.ai_chatbot import router as ai_chatbot_router
 from routers.auth import router as auth_router
 from routers.listings import router as listings_router
 from routers.listing_import import router as listing_import_router
+from routers.bd_inbox import router as bd_inbox_router
 from routers.contractors import router as contractors_router
 from routers.web_push import router as web_push_router
 from routers.virtual_staging import router as virtual_staging_router
@@ -7563,6 +7564,7 @@ app.include_router(ai_chatbot_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(listings_router, prefix="/api")
 app.include_router(listing_import_router, prefix="/api")
+app.include_router(bd_inbox_router, prefix="/api")
 app.include_router(contractors_router, prefix="/api")
 app.include_router(web_push_router, prefix="/api")
 app.include_router(virtual_staging_router, prefix="/api")

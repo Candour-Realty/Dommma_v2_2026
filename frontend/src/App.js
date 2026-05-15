@@ -67,6 +67,7 @@ import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import SecurityPage from "@/pages/SecurityPage";
 import BulkImport from "@/pages/BulkImport";
 import ImportFromUrl from "@/pages/ImportFromUrl";
+import BDInbox from "@/pages/BDInbox";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import CookieConsent from "@/components/CookieConsent";
@@ -234,6 +235,7 @@ function App() {
           <Route path="/my-properties" element={<DashboardLayout><MyProperties /></DashboardLayout>} />
           <Route path="/bulk-import" element={<DashboardLayout><BulkImport /></DashboardLayout>} />
           <Route path="/import-from-url" element={<DashboardLayout><ImportFromUrl /></DashboardLayout>} />
+          <Route path="/bd-inbox" element={<DashboardLayout><BDInbox /></DashboardLayout>} />
           <Route path="/contractor-profile" element={<DashboardLayout><ContractorProfile /></DashboardLayout>} />
           <Route path="/report-issue" element={<DashboardLayout><SmartIssueReporter /></DashboardLayout>} />
           <Route path="/document-analyzer" element={<DashboardLayout><DocumentAnalyzer /></DashboardLayout>} />
