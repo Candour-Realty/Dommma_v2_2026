@@ -247,6 +247,8 @@ async def _extract_one(lead_id: str) -> None:
                 }},
             )
             logger.info("Lead %s extracted from %s", lead_id, source)
+            # Auto-draft the outreach message so the BD user can just hit Send.
+            await _auto_draft_lead(lead_id)
 
         except HTTPException as e:
             await db.bd_leads.update_one(
@@ -302,6 +304,15 @@ async def _extract_one_text(lead_id: str) -> None:
             )
 
             text_for_llm = pasted[:MAX_HTML_CHARS_FOR_LLM]
+
+            # If the pasted text contains a URL (the user copied it from the
+            # listing or pasted it explicitly), grab the first one as
+            # source_url so the "Open Source" button works later.
+            embedded_url = None
+            url_match = re.search(r"https?://[^\s\)\]\}]+", pasted)
+            if url_match:
+                embedded_url = url_match.group(0).rstrip(".,;)")
+
             parsed = await _extract_with_claude(text_for_llm)
             draft = _coerce_draft(parsed)
             source = lead.get("source", "pasted")
@@ -322,18 +333,22 @@ async def _extract_one_text(lead_id: str) -> None:
                 )
                 return
 
-            await db.bd_leads.update_one(
-                {"id": lead_id},
-                {"$set": {
-                    "status": "extracted",
-                    "draft": draft.model_dump(),
-                    "confidence": _confidence_for(draft),
-                    "contact_method": contact["contact_method"],
-                    "contact_value": contact["contact_value"],
-                    "updated_at": _now(),
-                }},
-            )
+            extracted_updates = {
+                "status": "extracted",
+                "draft": draft.model_dump(),
+                "confidence": _confidence_for(draft),
+                "contact_method": contact["contact_method"],
+                "contact_value": contact["contact_value"],
+                "updated_at": _now(),
+            }
+            # Save the URL we sniffed out of the paste, if we have one and
+            # the lead doesn't already have one set.
+            if embedded_url and not lead.get("source_url"):
+                extracted_updates["source_url"] = embedded_url
+
+            await db.bd_leads.update_one({"id": lead_id}, {"$set": extracted_updates})
             logger.info("Lead %s extracted from pasted text (%s)", lead_id, source)
+            await _auto_draft_lead(lead_id)
 
         except HTTPException as e:
             await db.bd_leads.update_one(
@@ -582,45 +597,74 @@ async def delete_lead(lead_id: str):
 
 # ---- Outreach drafting ----
 
-DRAFT_PROMPT = """You are drafting a short, personal Facebook DM / email / SMS from Rishabh, co-founder of Dommma — a Vancouver-only rental marketplace launching Q3 2026. The goal: get a landlord to mirror their existing rental listing onto Dommma. Free, no fees, they can take it down anytime.
+DRAFT_PROMPT = """You're Rishabh, a Vancouver-based founder building Dommma — a local rental marketplace launching this summer. You're writing a casual outreach message to a landlord who posted a rental publicly. The goal: get permission to feature their listing on Dommma before launch.
 
 LISTING DETAILS:
 - Title: {title}
 - Price: ${price}/mo
-- Beds/Baths: {bedrooms} / {bathrooms}
+- Beds/Baths: {bedrooms}/{bathrooms}
 - Neighborhood: {city}, {province}
+- Description excerpt: {description}
 - Source: {source}
+- Channel you're using to message them: {channel}
 
-STYLE RULES:
-- 3-4 sentences max, under 280 characters total
-- Lead with one specific detail from THEIR listing (price + location + bed count) so they know it's not a bot
-- Mention Dommma is Vancouver-only and founder-led (not VC marketing spam)
-- One concrete ask: "Reply YES and I'll mirror it for you" — no Calendly links, no forms, no "let me know if you have questions"
-- No emojis, no exclamation marks, no excessive enthusiasm
-- Sound like a real founder, not a marketer
+WRITE A MESSAGE THAT:
+1. Opens with "Hi —" (no name, we don't have it)
+2. References ONE specific, non-obvious detail from the listing description (not just price+location, which sounds robotic — find something in the description: "the in-suite laundry", "the south-facing balcony", "June 1 move-in", "the parking", "Kits walkability", etc.)
+3. Has ONE line of credibility: "I'm a Vancouver founder building Dommma (a local rental marketplace launching this summer)"
+4. Explains the value to THEM in one line: pre-launch I'm featuring real local listings so renters see actual inventory instead of stock photos / dummy data
+5. Soft ask, phrased as a question: "Would you mind if I included yours?" or "OK if I add yours?" — NEVER "Reply YES and I'll mirror it"
+6. Reassures: free, no signup on their end, they can have it taken down anytime
+7. Ends with an easy out: "totally OK to say no, just figured I'd ask" or similar
+8. Signs off "— Rishabh" only (no title, no link, no signature)
 
-Return ONLY the message text. No greeting like "Hi [Name]" because we don't know their name. No sign-off other than "— Rishabh, Dommma".
+HARD BANS:
+- No emojis
+- No exclamation marks
+- No "Reply YES and I'll..."
+- No "for free!" or "amazing opportunity"
+- No "limited time" / fake urgency
+- No quarter naming ("Q3 2026") — use natural phrasing like "this summer"
+- No SaaS-speak ("leverage", "platform", "solution")
+- Don't sound eager ("I'd love to", "would be amazing")
+- Don't list features ("AI lease review!" / "no scammy fees!") — sounds like a pitch deck
+- Don't say "founder-led" or "VC-free" — those phrases scream marketing
+
+VOICE EXAMPLES (write in this register):
+
+Example A — Craigslist studio at $1,950 West End with laundry + concierge:
+Hi — saw the West End studio you have up for $1,950. The in-suite laundry plus concierge combo is exactly what a lot of renters I've talked to are after. I'm a Vancouver founder building Dommma (a local rental marketplace launching this summer), and ahead of launch I'm featuring real Vancouver listings so renters see actual inventory instead of stock photos. Would you mind if I added yours? No signup on your end, free, take it down whenever. Totally OK to say no — just figured I'd ask. — Rishabh
+
+Example B — FB Marketplace 2BR Mt Pleasant $2,800, June 1 move-in, parking:
+Hi — your 2BR in Mt Pleasant caught my eye, especially with the parking and June 1 move-in. I'm a Vancouver founder building Dommma (a small local rental marketplace, launching this summer). Pre-launch I'm adding real local listings so renters see actual inventory rather than dummy data. Would you be open to me adding yours? No signup, free, you can have it pulled anytime. Either way, no worries — just figured I'd ask. — Rishabh
+
+LENGTH: 4-6 sentences. 350-500 characters total. Slightly conversational, not terse.
+
+Return ONLY the message text. Start with "Hi —". End with "— Rishabh". No extra commentary.
 """
 
 
-@router.post("/leads/{lead_id}/draft-message")
-async def draft_outreach(lead_id: str):
-    """Use Claude to draft a personalized outreach message for this lead."""
-    lead = await db.bd_leads.find_one({"id": lead_id}, {"_id": 0})
-    if not lead:
-        raise HTTPException(status_code=404, detail="Lead not found")
-    await require_admin(lead.get("owner_id"))
-    if lead.get("status") not in {"extracted", "drafted", "sent", "replied"}:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Lead not ready for drafting (status={lead.get('status')}). Wait for extraction.",
-        )
+def _channel_label_for(source: str, contact_method: str) -> str:
+    """How will the user actually send this? Tells Claude which voice fits.
+    e.g. an email reads more polished than a quick FB DM."""
+    if contact_method == "email":
+        return "email (will be sent via mailto)"
+    if contact_method == "phone":
+        return "SMS"
+    if source == "facebook":
+        return "Facebook DM"
+    if source == "kijiji":
+        return "Kijiji in-platform message"
+    return "direct message"
 
+
+async def _generate_message_for_lead(lead: Dict[str, Any]) -> str:
+    """Pure helper: takes a lead document, returns a generated outreach message.
+    Used by both the manual draft endpoint and the auto-draft background step.
+    Raises HTTPException(400) if the lead can't be drafted from (missing
+    title/price), so callers can decide whether to surface the error.
+    """
     draft = lead.get("draft") or {}
-    # Defensive: refuse to draft when extraction left us with nothing useful.
-    # Without this guard, Claude generates apologetic messages like
-    # "I tried pulling your listing but the data came through corrupted" —
-    # which would torpedo our credibility with the landlord.
     if not draft.get("title") or int(draft.get("price", 0) or 0) <= 0:
         raise HTTPException(
             status_code=400,
@@ -631,6 +675,7 @@ async def draft_outreach(lead_id: str):
             ),
         )
 
+    description = (draft.get("description") or "")[:600]
     prompt = DRAFT_PROMPT.format(
         title=draft.get("title", "your listing"),
         price=draft.get("price", "n/a"),
@@ -638,7 +683,9 @@ async def draft_outreach(lead_id: str):
         bathrooms=draft.get("bathrooms", "?"),
         city=draft.get("city", "Vancouver"),
         province=draft.get("province", "BC"),
+        description=description,
         source=lead.get("source", "their post"),
+        channel=_channel_label_for(lead.get("source", ""), lead.get("contact_method", "")),
     )
 
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
@@ -648,21 +695,65 @@ async def draft_outreach(lead_id: str):
     from anthropic import AsyncAnthropic
     client = AsyncAnthropic(api_key=api_key)
 
-    try:
-        msg = await client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=400,
-            messages=[{"role": "user", "content": prompt}],
-        )
-    except Exception as e:
-        logger.exception("Draft generation failed")
-        raise HTTPException(status_code=502, detail=f"Claude error: {e!s}")
+    msg = await client.messages.create(
+        model="claude-sonnet-4-5-20250929",
+        max_tokens=600,
+        messages=[{"role": "user", "content": prompt}],
+    )
 
     text = ""
     for block in msg.content:
         if getattr(block, "type", None) == "text":
             text += block.text
-    text = text.strip()
+    return text.strip()
+
+
+async def _auto_draft_lead(lead_id: str) -> None:
+    """Background helper: generate + save a draft message right after
+    successful extraction. Silently no-ops if extraction is incomplete."""
+    lead = await db.bd_leads.find_one({"id": lead_id}, {"_id": 0})
+    if not lead or lead.get("status") != "extracted":
+        return
+    try:
+        message = await _generate_message_for_lead(lead)
+        await db.bd_leads.update_one(
+            {"id": lead_id},
+            {"$set": {
+                "drafted_message": message,
+                "status": "drafted",
+                "updated_at": _now(),
+            }},
+        )
+        logger.info("Lead %s auto-drafted", lead_id)
+    except HTTPException as e:
+        # 400 (incomplete draft) is expected — just leave at 'extracted'
+        logger.info("Lead %s skipped auto-draft: %s", lead_id, e.detail)
+    except Exception as e:
+        logger.exception("Auto-draft crashed for %s", lead_id)
+
+
+@router.post("/leads/{lead_id}/draft-message")
+async def draft_outreach(lead_id: str):
+    """Use Claude to (re-)draft a personalized outreach message for this lead.
+    Most leads will already have a draft from the auto-draft pipeline; this
+    endpoint lets the user redraft if they don't like the first version."""
+    lead = await db.bd_leads.find_one({"id": lead_id}, {"_id": 0})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    await require_admin(lead.get("owner_id"))
+    if lead.get("status") not in {"extracted", "drafted", "sent", "replied"}:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Lead not ready for drafting (status={lead.get('status')}). Wait for extraction.",
+        )
+
+    try:
+        text = await _generate_message_for_lead(lead)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Draft generation failed")
+        raise HTTPException(status_code=502, detail=f"Claude error: {e!s}")
 
     await db.bd_leads.update_one(
         {"id": lead_id},

@@ -398,22 +398,63 @@ function LeadDetail({ lead, onRefresh }) {
     }
   };
 
-  const copyMessage = () => {
-    navigator.clipboard.writeText(draftedMessage);
+  const [toast, setToast] = useState('');
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3500);
   };
 
-  const sendVia = () => {
-    if (lead.contact_method === 'phone' && lead.contact_value) {
-      window.location.href = `sms:${lead.contact_value}?body=${encodeURIComponent(draftedMessage)}`;
-    } else if (lead.contact_method === 'email' && lead.contact_value) {
-      window.location.href = `mailto:${lead.contact_value}?subject=${encodeURIComponent('Dommma — Vancouver rental marketplace')}&body=${encodeURIComponent(draftedMessage)}`;
-    } else {
-      // FB DM, Kijiji message, or email relay — copy + open source
-      navigator.clipboard.writeText(draftedMessage);
-      window.open(lead.source_url, '_blank');
-    }
-    updateStatus('sent');
+  const copyMessage = () => {
+    navigator.clipboard.writeText(draftedMessage);
+    showToast(`Copied draft for "${(draft.title || 'this lead').slice(0, 40)}"`);
   };
+
+  const subjectForEmail = () => {
+    // Friendly subject — references their listing
+    const where = draft.city || 'Vancouver';
+    const what = draft.bedrooms === 0 ? 'studio'
+                : draft.bedrooms ? `${draft.bedrooms}BR rental`
+                : 'rental listing';
+    return `Quick question about your ${where} ${what}`;
+  };
+
+  const sendEmail = (toAddress = '') => {
+    const subject = subjectForEmail();
+    const body = draftedMessage;
+    // Empty `to` means user picks recipient in their mail client
+    window.location.href = `mailto:${toAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    updateStatus('sent');
+    showToast(`Email opened for "${(draft.title || 'this lead').slice(0, 40)}"`);
+  };
+
+  const sendSms = (number) => {
+    window.location.href = `sms:${number}?body=${encodeURIComponent(draftedMessage)}`;
+    updateStatus('sent');
+    showToast(`SMS opened for "${(draft.title || 'this lead').slice(0, 40)}"`);
+  };
+
+  const openSourceAndCopy = () => {
+    if (!lead.source_url) {
+      navigator.clipboard.writeText(draftedMessage);
+      showToast(`Copied. (No source URL saved — open the listing manually and paste.)`);
+      updateStatus('sent');
+      return;
+    }
+    navigator.clipboard.writeText(draftedMessage);
+    window.open(lead.source_url, '_blank', 'noopener,noreferrer');
+    updateStatus('sent');
+    showToast(`Copied & opened "${(draft.title || 'this listing').slice(0, 40)}"`);
+  };
+
+  // Decide which channel-specific buttons to show. Email + SMS + Open-Source
+  // are independent options — surface all that apply, highlight the primary.
+  const hasEmail = lead.contact_method === 'email' && lead.contact_value;
+  const hasPhone = lead.contact_method === 'phone' && lead.contact_value;
+  const hasUrl = !!lead.source_url;
+  const sourceLabel = lead.source === 'facebook' ? 'FB'
+                    : lead.source === 'craigslist' ? 'Craigslist'
+                    : lead.source === 'kijiji' ? 'Kijiji'
+                    : 'source';
 
   return (
     <div className="grid lg:grid-cols-3 gap-5">
@@ -460,7 +501,7 @@ function LeadDetail({ lead, onRefresh }) {
               className="text-[#C4A962] hover:text-[#D4BB72] text-xs inline-flex items-center gap-1 disabled:opacity-50"
             >
               {drafting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-              {draftedMessage ? 'Redraft' : 'Draft message'}
+              Redraft
             </button>
           )}
         </div>
@@ -469,24 +510,73 @@ function LeadDetail({ lead, onRefresh }) {
           value={draftedMessage}
           onChange={e => setDraftedMessage(e.target.value)}
           onBlur={saveMessage}
-          placeholder={canDraft ? 'Click "Draft message" or write your own…' : 'Waiting for extraction…'}
+          placeholder={canDraft ? 'Draft will auto-generate once extraction finishes…' : 'Waiting for extraction…'}
           className="w-full bg-[#0F1419] border border-[#2A3441] rounded-lg px-3 py-2 text-white text-sm placeholder:text-white/30 focus:border-[#C4A962] focus:outline-none"
         />
-        <div className="flex gap-2">
-          <button
-            onClick={copyMessage}
-            disabled={!draftedMessage}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 border border-[#2A3441] hover:bg-[#1A2332] text-white/70 text-xs px-3 py-2 rounded-lg disabled:opacity-50"
-          >
-            <Copy className="w-3 h-3" /> Copy
-          </button>
-          <button
-            onClick={sendVia}
-            disabled={!draftedMessage}
-            className="flex-[2] inline-flex items-center justify-center gap-1.5 bg-[#C4A962] hover:bg-[#D4BB72] disabled:opacity-50 text-[#0F1419] font-semibold text-xs px-3 py-2 rounded-lg"
-          >
-            <Send className="w-3 h-3" /> Send via {channelLabel(lead.contact_method)}
-          </button>
+        {/* Send options — surface all relevant channels. Primary picks the
+            most-direct option for this lead's contact_method. */}
+        <div className="space-y-2">
+          {/* Primary action row */}
+          <div className="grid grid-cols-2 gap-2">
+            {hasEmail && (
+              <button
+                onClick={() => sendEmail(lead.contact_value)}
+                disabled={!draftedMessage}
+                className="inline-flex items-center justify-center gap-1.5 bg-[#C4A962] hover:bg-[#D4BB72] disabled:opacity-50 text-[#0F1419] font-semibold text-xs px-3 py-2 rounded-lg"
+                title={`Open mailto: ${lead.contact_value}`}
+              >
+                <Mail className="w-3 h-3" /> Email — {lead.contact_value.length > 18 ? lead.contact_value.slice(0,16)+'…' : lead.contact_value}
+              </button>
+            )}
+            {hasPhone && (
+              <button
+                onClick={() => sendSms(lead.contact_value)}
+                disabled={!draftedMessage}
+                className="inline-flex items-center justify-center gap-1.5 bg-[#C4A962] hover:bg-[#D4BB72] disabled:opacity-50 text-[#0F1419] font-semibold text-xs px-3 py-2 rounded-lg"
+              >
+                <Phone className="w-3 h-3" /> SMS — {lead.contact_value}
+              </button>
+            )}
+            {hasUrl && (
+              <button
+                onClick={openSourceAndCopy}
+                disabled={!draftedMessage}
+                className={`inline-flex items-center justify-center gap-1.5 disabled:opacity-50 text-xs px-3 py-2 rounded-lg font-semibold ${
+                  hasEmail || hasPhone
+                    ? 'border border-[#C4A962]/40 text-[#C4A962] hover:bg-[#C4A962]/10'
+                    : 'bg-[#C4A962] hover:bg-[#D4BB72] text-[#0F1419]'
+                }`}
+                title={lead.source_url}
+              >
+                <ExternalLink className="w-3 h-3" /> Open {sourceLabel} + Copy
+              </button>
+            )}
+          </div>
+
+          {/* Secondary row */}
+          <div className="flex gap-2 text-xs">
+            <button
+              onClick={() => sendEmail('')}
+              disabled={!draftedMessage}
+              className="inline-flex items-center gap-1 text-white/50 hover:text-white px-2 py-1 disabled:opacity-30"
+              title="Open your mail client with the draft — pick the recipient yourself"
+            >
+              <Mail className="w-3 h-3" /> Email (pick recipient)
+            </button>
+            <button
+              onClick={copyMessage}
+              disabled={!draftedMessage}
+              className="inline-flex items-center gap-1 text-white/50 hover:text-white px-2 py-1 disabled:opacity-30"
+            >
+              <Copy className="w-3 h-3" /> Copy only
+            </button>
+          </div>
+
+          {toast && (
+            <div className="bg-emerald-500/15 border border-emerald-500/40 text-emerald-200 rounded px-2 py-1.5 text-xs flex items-start gap-1.5">
+              <Check className="w-3 h-3 flex-shrink-0 mt-0.5" /> {toast}
+            </div>
+          )}
         </div>
       </div>
 
